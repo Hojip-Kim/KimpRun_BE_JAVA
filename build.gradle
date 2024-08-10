@@ -26,6 +26,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.java-websocket:Java-WebSocket:1.5.2'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.security:spring-security-messaging'
+    implementation group: 'org.postgresql', name: 'postgresql', version: '42.7.3'
 
 
     compileOnly 'org.projectlombok:lombok'
