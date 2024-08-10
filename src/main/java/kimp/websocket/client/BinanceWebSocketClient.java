@@ -1,4 +1,4 @@
-package kimp.websocket.binance;
+package kimp.websocket.client;
 
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
@@ -22,7 +22,7 @@ public class BinanceWebSocketClient extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-        log.info("Received message : {}" , message);
+//        log.info("Received message : {}" , message);
     }
 
     @Override
