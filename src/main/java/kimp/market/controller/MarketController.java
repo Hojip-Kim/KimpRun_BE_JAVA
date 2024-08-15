@@ -1,15 +1,13 @@
-package kimp.market;
+package kimp.market.controller;
 
 import kimp.market.dto.response.UpbitMarketList;
 import kimp.market.service.BinanceService;
 import kimp.market.service.UpbitService;
 import kimp.websocket.dto.response.SimpleUpbitDto;
+import kimp.websocket.dto.response.UpbitMarketDataList;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/market")
@@ -23,20 +21,19 @@ public class MarketController {
         this.binanceService = binanceService;
     }
 
-    @GetMapping("/data")
-    public UpbitMarketList getMarketData(@RequestParam(name = "market") String market){
-        if (market == null || market.isEmpty())
-        {throw new IllegalArgumentException("Not have Params");}
+    @GetMapping("/first/name")
+    public UpbitMarketList getMarketData(){
 
         UpbitMarketList response = this.upbitService.getUpbitMarketData();
         if(response == null){
             throw new IllegalArgumentException("Not have response");
         }
-        return this.upbitService.getUpbitMarketData();
+        return response;
     }
 
-    @GetMapping("/first")
-    public Map<String, SimpleUpbitDto> getFirstMarketData(){
+
+    @GetMapping("/first/data")
+    public UpbitMarketDataList getFirstMarketDatas(){
 
         return upbitService.getUpbitFirstMarketData();
     }
