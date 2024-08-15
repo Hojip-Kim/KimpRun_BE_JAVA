@@ -59,12 +59,7 @@ public class UpbitWebsocketClient extends WebSocketClient {
             UpbitReceiveDto upbitReceiveDto = objectMapper.readValue(receivedString, UpbitReceiveDto.class);
 
 
-            BigDecimal rate = upbitReceiveDto.getChange().equals("FALL") ?
-                    upbitReceiveDto.getChangeRate().negate() :
-                    upbitReceiveDto.getChangeRate();
-
-
-            SimpleUpbitDto simpleUpbitDto = new SimpleUpbitDto(upbitReceiveDto.getCode(), upbitReceiveDto.getTradeVolume(), rate.multiply(new BigDecimal("100")), upbitReceiveDto.getHighest52WeekPrice(), upbitReceiveDto.getLowest52WeekPrice(), upbitReceiveDto.getOpeningPrice(), upbitReceiveDto.getTradePrice(), upbitReceiveDto.getChange());
+            SimpleUpbitDto simpleUpbitDto = new SimpleUpbitDto(upbitReceiveDto.getCode(), upbitReceiveDto.getTradeVolume(), upbitReceiveDto.getSignedChangeRate(), upbitReceiveDto.getHighest52WeekPrice(), upbitReceiveDto.getLowest52WeekPrice(), upbitReceiveDto.getOpeningPrice(), upbitReceiveDto.getTradePrice(), upbitReceiveDto.getChange(), upbitReceiveDto.getAccTradePrice24h());
             String dtoJson = objectMapper.writeValueAsString(simpleUpbitDto);
             webSocketHandler.sendMessageToAll(dtoJson);
 
