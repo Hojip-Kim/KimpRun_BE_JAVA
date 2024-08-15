@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 public class UpbitMarketList {
-    @JsonProperty("marketList")
+    @JsonProperty("marketNameList")
     private List<String> marketList;
 
     public List<String> getMarketList() {
