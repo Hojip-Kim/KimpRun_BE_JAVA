@@ -1,4 +1,4 @@
-package kimp.config.websocket;
+package kimp.websocket.config;
 
 import kimp.websocket.handler.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
