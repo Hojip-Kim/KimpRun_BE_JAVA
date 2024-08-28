@@ -18,6 +18,9 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 @Slf4j
 public class UpbitWebsocketClient extends WebSocketClient {
@@ -26,6 +29,9 @@ public class UpbitWebsocketClient extends WebSocketClient {
 
     private final WebSocketHandler webSocketHandler;
     private final Upbit upbit;
+
+    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private Future<?> reconnectTask;
 
     private static volatile boolean isConnected = false;
     private static volatile boolean isReconnecting = false;
@@ -105,11 +111,11 @@ public class UpbitWebsocketClient extends WebSocketClient {
      *
      */
     public void attemptReConnect(){
-        if(isReconnecting){
-            return;
+        if (reconnectTask != null && !reconnectTask.isDone()) {
+            reconnectTask.cancel(true); // 기존 재연결 작업 취소
         }
-        isReconnecting = true;
-        new Thread(() -> {
+
+        reconnectTask = executor.submit(() -> {
             try {
                 log.info("재연결 시도중...");
                 while (!isConnected) {
@@ -120,13 +126,14 @@ public class UpbitWebsocketClient extends WebSocketClient {
                         if (this.isOpen() && checkNetworkConnect()) {
                             isConnected = true;
                             log.info("재연결 성공");
-                        }else{
+                        } else {
                             log.warn("연결은 성공하였으나, 네트워크 상태 불안정. 네트워크 연결 다시 시도");
                             isConnected = false;
                         }
                     } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt(); // 스레드의 인터럽트 상태를 유지하며 스레드를 종료
                         log.error("재 연결 방해됨.", e);
-                        Thread.currentThread().interrupt();
+                        break;
                     } catch (Exception e) {
                         log.error("재연결 실패", e);
                     }
@@ -134,11 +141,11 @@ public class UpbitWebsocketClient extends WebSocketClient {
             } catch (Exception ex) {
                 log.error("재연결 중 문제 발생", ex);
             } finally {
-                if(isConnected) {
+                if (isConnected) {
                     isReconnecting = false;
                 }
             }
-        }).start();
+        });
     }
 
 
@@ -146,8 +153,10 @@ public class UpbitWebsocketClient extends WebSocketClient {
         try{
             this.send("PING");
 
+            // 3초간 blocking
+            // ('pong'을 받고, isConnected를 true로 만드는 시간을 3초 간 기다림)
             synchronized (this){
-                this.wait(10000);
+                this.wait(3000);
             }
             return isConnected;
         } catch(InterruptedException e){
@@ -165,12 +174,12 @@ public class UpbitWebsocketClient extends WebSocketClient {
         if (isConnected){
             try{
                 this.send("PING");
-                log.info("PING message set to server");
+                log.info("연결 수립을 위한 PING 메시지 송신");
             }catch(Exception e){
-                log.error("Failed to send PING message", e);
+                log.error("PING 메시지 송신 실패", e);
             }
         }else{
-            log.warn("Websocket server is not connected");
+            log.warn("웹소켓 서버 연결 안됨");
         }
     }
 }
