@@ -23,7 +23,7 @@ public class MarketCommonMethod {
     /**
      * @param url : 데이터를 원하는 url (외부 API)
      * @param startWith : 파라미터로 보내진 DTO의 메서드 필드에서 해당 string으로 시작하는 값들의
-     * @param method : startWith의 대상이 되는 method
+     * @param method : startWith의 대상이 되는 Dto의 method(필드)
      * @param dtoClass : 원하는 url에따른 dto클래스가 다르며, 필드도 다르므로 Generic형식으로 dto class List 추가
      *
      * @return : 파라미터로 넣어준 인자 dto 클래스의 List형식으로 데이터 반환
@@ -43,6 +43,34 @@ public class MarketCommonMethod {
                     }
                 })
                 .filter(market -> market != null && market.startsWith(startWith))
+                .collect(Collectors.toList());
+
+        return list;
+    }
+
+    /**
+     * @param url : 데이터를 원하는 url (외부 API)
+     * @param endWith : 파라미터로 보내진 DTO의 메서드 필드에서 해당 string으로 시작하는 값들의
+     * @param method : endWith의 대상이 되는 Dto의 method(필드)
+     * @param dtoClass : 원하는 url에따른 dto클래스가 다르며, 필드도 다르므로 Generic형식으로 dto class List 추가
+     *
+     * @return : 파라미터로 넣어준 인자 dto 클래스의 List형식으로 데이터 반환
+     */
+    public <T> List<String> getMarketListByURLAndEndWith(String url, String endWith, String method,  Class<T[]> dtoClass) throws IOException {
+        String data = restTemplate.getForObject(url, String.class);
+
+        T[] marketData = objectMapper.readValue(data, dtoClass);
+
+        Class<?> componentType = dtoClass.getComponentType();
+        List<String> list = Arrays.stream(marketData)
+                .map(dto -> {
+                    try {
+                        return (String)componentType.getMethod(method).invoke(dto);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to invoke method : " + method + " on DTO : " + dtoClass, e);
+                    }
+                })
+                .filter(market -> market != null && market.endsWith(endWith))
                 .collect(Collectors.toList());
 
         return list;
