@@ -1,20 +1,19 @@
 package kimp.market.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-public class UpbitMarketList {
-    @JsonProperty("marketNameList")
+public class UpbitMarketList extends MarketList{
+
     private List<String> marketList;
 
-    public List<String> getMarketList() {
-        return marketList;
+    public UpbitMarketList(List<String> marketList) {
+        super(marketList);
+        this.marketList = marketList;
+    }
+
+    @Override
+    public List<String> getMarkets() {
+        return this.marketList;
     }
 }
