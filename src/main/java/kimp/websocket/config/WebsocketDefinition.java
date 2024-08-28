@@ -1,6 +1,7 @@
 package kimp.websocket.config;
 
-import kimp.market.service.UpbitService;
+import kimp.market.components.Upbit;
+import kimp.market.service.serviceImpl.MarketServiceImpl;
 import kimp.websocket.client.BinanceWebSocketClient;
 import kimp.websocket.handler.WebSocketHandler;
 import kimp.websocket.client.UpbitWebsocketClient;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -22,14 +24,15 @@ public class WebsocketDefinition {
     @Value("${binance.websocket.url}")
     private String binanceWebsocketUrl;
 
-    private final UpbitService upbitService;
-
+    private final Upbit upbit;
     /*
      * @TODO
      *   streamNames and wsUrl 환경변수설정
      * */
     @Bean
-    public BinanceWebSocketClient binanceWebSocketClient() throws URISyntaxException {
+    public BinanceWebSocketClient binanceWebSocketClient(MarketServiceImpl marketServiceImpl) throws URISyntaxException, IOException {
+
+
         String streamNames = String.join("/",
                 "btcusdt@trade",
                 "ethusdt@trade",
@@ -54,7 +57,7 @@ public class WebsocketDefinition {
     @Bean
     public UpbitWebsocketClient upbitWebsocketClient(WebSocketHandler webSocketHandler) throws URISyntaxException, InterruptedException {
 
-        UpbitWebsocketClient client = new UpbitWebsocketClient(upbitWebsocketUrl, webSocketHandler, upbitService);
+        UpbitWebsocketClient client = new UpbitWebsocketClient(upbitWebsocketUrl, webSocketHandler, upbit);
 
         client.connectBlocking();
 
