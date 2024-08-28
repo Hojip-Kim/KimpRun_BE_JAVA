@@ -1,40 +1,39 @@
 package kimp.market.controller;
 
-import kimp.market.dto.response.UpbitMarketList;
-import kimp.market.service.BinanceService;
-import kimp.market.service.UpbitService;
-import kimp.websocket.dto.response.SimpleUpbitDto;
-import kimp.websocket.dto.response.UpbitMarketDataList;
+import kimp.market.dto.response.CombinedMarketList;
+import kimp.market.dto.response.MarketDataList;
+import kimp.market.dto.response.MarketList;
+import kimp.market.service.MarketService;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/market")
+@AllArgsConstructor
 public class MarketController {
 
-    private final UpbitService upbitService;
-    private final BinanceService binanceService;
-
-    public MarketController(UpbitService upbitService, BinanceService binanceService) {
-        this.upbitService = upbitService;
-        this.binanceService = binanceService;
-    }
+    private final MarketService marketService;
 
     @GetMapping("/first/name")
-    public UpbitMarketList getMarketData(){
+    public CombinedMarketList getMarketList() throws IOException {
 
-        UpbitMarketList response = this.upbitService.getUpbitMarketData();
-        if(response == null){
-            throw new IllegalArgumentException("Not have response");
-        }
-        return response;
+        return this.marketService.getMarketList();
     }
 
 
     @GetMapping("/first/data")
-    public UpbitMarketDataList getFirstMarketDatas(){
+    public MarketDataList getFirstMarketDatas(@RequestParam String market) throws IOException {
 
-        return upbitService.getUpbitFirstMarketData();
+        return marketService.getMarketDataList(market);
+    }
+
+    @GetMapping("/first/test")
+    public void test() throws IOException {
+        marketService.getMarkets();
     }
 }
