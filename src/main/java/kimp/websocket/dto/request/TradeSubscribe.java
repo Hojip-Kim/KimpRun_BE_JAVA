@@ -1,4 +1,4 @@
-package kimp.websocket;
+package kimp.websocket.dto.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
