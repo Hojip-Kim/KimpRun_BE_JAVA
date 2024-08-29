@@ -14,4 +14,5 @@ public abstract class Market implements MarketInterface {
 
     public abstract MarketDataList getMarketDataList() throws IOException;
 
+    public abstract MarketList getMarketPair() throws IOException;
 }
