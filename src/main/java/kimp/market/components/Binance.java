@@ -75,6 +75,7 @@ public class Binance extends Market {
         return this.binanceMarketList;
     }
 
+    @Override
     public MarketList getMarketPair() throws IOException {
         if(this.binanceMarketPair == null) {
             setBinanceMarketList();
@@ -84,9 +85,9 @@ public class Binance extends Market {
     }
 
     @Override
-    public MarketDataList getMarketDataList() throws IOException {
+    public MarketDataList getMarketDataList() {
         if(this.binanceMarketDataList == null) {
-            setBinanceMarketList();
+            setMarketDataList();
         }
         return this.binanceMarketDataList;
     }
@@ -96,7 +97,6 @@ public class Binance extends Market {
         if(this.binanceMarketList == null) {
             throw new IllegalArgumentException("Binance Market List is null");
         }
-
         String requestStringURL = binanceTickerUrl + "[" +
                 binanceMarketList.getMarkets().stream()
                         .map(market -> "\"" + market + "\"")
