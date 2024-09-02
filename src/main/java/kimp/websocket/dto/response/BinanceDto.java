@@ -2,9 +2,12 @@ package kimp.websocket.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import kimp.market.common.MarketCommonMethod;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 
+
+@Getter
 public class BinanceDto extends MarketDto{
     @JsonProperty("token")
     private String token;
