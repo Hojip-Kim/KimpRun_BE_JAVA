@@ -1,8 +1,8 @@
 package kimp.market.controller;
 
+import kimp.market.dto.response.CombinedMarketDataList;
 import kimp.market.dto.response.CombinedMarketList;
 import kimp.market.dto.response.MarketDataList;
-import kimp.market.dto.response.MarketList;
 import kimp.market.service.MarketService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,20 +20,28 @@ public class MarketController {
     private final MarketService marketService;
 
     @GetMapping("/first/name")
-    public CombinedMarketList getMarketList() throws IOException {
+    public CombinedMarketList getMarketList(@RequestParam String first, @RequestParam String second) throws IOException {
 
-        return this.marketService.getMarketList();
+        return this.marketService.getMarketList(first, second);
     }
 
 
-    @GetMapping("/first/data")
+//    @GetMapping("/first/data/combine")
+//    public MarketData
+
+    @GetMapping("/first/single/data")
     public MarketDataList getFirstMarketDatas(@RequestParam String market) throws IOException {
 
         return marketService.getMarketDataList(market);
     }
 
+    @GetMapping("/first/combine/data")
+    public CombinedMarketDataList getCombinedMarketDatas(@RequestParam String first, @RequestParam String second) throws IOException {
+        return marketService.getCombinedMarketDataList(first, second);
+    }
+
     @GetMapping("/first/test")
-    public void test() throws IOException {
-        marketService.getMarkets();
+    public CombinedMarketDataList test() throws IOException {
+       return marketService.getCombinedMarketDataList("upbit", "binance");
     }
 }
