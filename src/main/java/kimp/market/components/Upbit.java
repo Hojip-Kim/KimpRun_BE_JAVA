@@ -34,7 +34,7 @@ public class Upbit extends Market{
 
     public MarketList upbitMarketPair = null;
 
-    public MarketDataList upbitMarketDataList;
+    public MarketDataList<UpbitDto> upbitMarketDataList;
 
     @Value("${upbit.api.url}")
     private String upbitApiUrl;
