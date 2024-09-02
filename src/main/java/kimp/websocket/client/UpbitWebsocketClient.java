@@ -6,7 +6,7 @@ import kimp.websocket.dto.response.UpbitDto;
 import kimp.websocket.dto.response.UpbitReceiveDto;
 import kimp.websocket.dto.request.TicketMessage;
 import kimp.websocket.dto.request.TradeSubscribe;
-import kimp.websocket.handler.WebSocketHandler;
+import kimp.websocket.handler.UpbitWebSocketHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -27,7 +27,7 @@ public class UpbitWebsocketClient extends WebSocketClient {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private final WebSocketHandler webSocketHandler;
+    private final UpbitWebSocketHandler upbitWebsocketHandler;
     private final Upbit upbit;
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -36,9 +36,9 @@ public class UpbitWebsocketClient extends WebSocketClient {
     private static volatile boolean isConnected = false;
     private static volatile boolean isReconnecting = false;
 
-    public UpbitWebsocketClient(String serverUri, WebSocketHandler webSocketHandler, Upbit upbit) throws URISyntaxException {
+    public UpbitWebsocketClient(String serverUri, UpbitWebSocketHandler upbitWebsocketHandler, Upbit upbit) throws URISyntaxException {
         super(new URI(serverUri));
-        this.webSocketHandler = webSocketHandler;
+        this.upbitWebsocketHandler = upbitWebsocketHandler;
         this.upbit = upbit;
     }
 
@@ -78,7 +78,7 @@ public class UpbitWebsocketClient extends WebSocketClient {
 
                 UpbitDto upbitDto = new UpbitDto(upbitReceiveDto.getCode().replace("KRW-", ""), upbitReceiveDto.getTradeVolume(), upbitReceiveDto.getSignedChangeRate(), upbitReceiveDto.getHighest52WeekPrice(), upbitReceiveDto.getLowest52WeekPrice(), upbitReceiveDto.getOpeningPrice(), upbitReceiveDto.getTradePrice(), upbitReceiveDto.getChange(), upbitReceiveDto.getAccTradePrice24h());
 
-                webSocketHandler.inputDataToHashMap(upbitDto);
+                upbitWebsocketHandler.inputDataToHashMap(upbitDto);
 
             } catch (Exception e) {
                 log.error("Failed to convert message to Dto", e);
