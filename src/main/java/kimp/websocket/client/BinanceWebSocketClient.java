@@ -1,18 +1,26 @@
 package kimp.websocket.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import kimp.websocket.dto.response.BinanceReceiveDto;
+import kimp.websocket.dto.response.BinanceStreamDto;
+import kimp.websocket.handler.BinanceWebsocketHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
 
 @Slf4j
 //@Component
 public class BinanceWebSocketClient extends WebSocketClient {
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final BinanceWebsocketHandler binanceWebsocketHandler;
 
-    public BinanceWebSocketClient(URI serverUri){
-        super(serverUri);
+    public BinanceWebSocketClient(String serverUri, BinanceWebsocketHandler binanceWebsocketHandler) throws URISyntaxException {
+        super(new URI(serverUri));
+        this.binanceWebsocketHandler = binanceWebsocketHandler;
     }
 
     @Override
@@ -22,7 +30,13 @@ public class BinanceWebSocketClient extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-//        log.info("Received message : {}" , message);
+        try {
+            BinanceReceiveDto binanceReceiveDto = objectMapper.readValue(message, BinanceReceiveDto.class);
+            BinanceStreamDto binanceDto = new BinanceStreamDto(binanceReceiveDto.getToken().replace("USDT", ""), binanceReceiveDto.getPrice());
+            binanceWebsocketHandler.inputDataToHashMap(binanceDto);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
     @Override
