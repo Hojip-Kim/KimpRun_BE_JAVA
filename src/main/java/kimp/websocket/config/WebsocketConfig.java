@@ -1,7 +1,7 @@
 package kimp.websocket.config;
 
-import kimp.websocket.handler.WebSocketHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import kimp.websocket.handler.BinanceWebsocketHandler;
+import kimp.websocket.handler.UpbitWebSocketHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.*;
 
@@ -9,19 +9,23 @@ import org.springframework.web.socket.config.annotation.*;
 @EnableWebSocket
 public class WebsocketConfig implements WebSocketConfigurer {
 
-    @Autowired
-    private final WebSocketHandler webSocketHandler;
+    private final UpbitWebSocketHandler upbitWebSocketHandler;
+    private final BinanceWebsocketHandler binanceWebsocketHandler;
 
-    public WebsocketConfig(WebSocketHandler webSocketHandler) {
-        this.webSocketHandler = webSocketHandler;
+    public WebsocketConfig(UpbitWebSocketHandler upbitWebSocketHandler, BinanceWebsocketHandler binanceWebsocketHandler) {
+        this.upbitWebSocketHandler = upbitWebSocketHandler;
+        this.binanceWebsocketHandler = binanceWebsocketHandler;
     }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-            registry
-                    .addHandler(webSocketHandler, "/websocket")
-                    .setAllowedOrigins("*");
+        registry
+                .addHandler(upbitWebSocketHandler, "/upbit")
+                .setAllowedOrigins("*");
+        registry
+                .addHandler(binanceWebsocketHandler, "/binance")
+                .setAllowedOrigins("*");
+
+
     }
-
-
 }
