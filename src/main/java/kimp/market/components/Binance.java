@@ -45,7 +45,7 @@ public class Binance extends Market {
      */
     public MarketList binanceMarketPair = null;
 
-    public MarketDataList binanceMarketDataList;
+    public MarketDataList<BinanceDto> binanceMarketDataList;
 
     @Value("${binance.api.url}")
     private String binanceApiUrl;
