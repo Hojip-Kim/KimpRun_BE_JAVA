@@ -3,8 +3,7 @@ package kimp.websocket.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.websocket.dto.response.UpbitDto;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -18,8 +17,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor
 @Component
-public class WebSocketHandler extends TextWebSocketHandler {
-    private static final Logger log = LoggerFactory.getLogger(WebSocketHandler.class);
+@Slf4j
+public class UpbitWebSocketHandler extends TextWebSocketHandler {
     private final ObjectMapper objectMapper;
 
     // 실시간 데이터를 받아오기위한 UpbitWebsocketClient DI
@@ -29,13 +28,14 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-
+        log.info(session.getId() + " established");
         sessions.put(session.getId(), session);
 
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        log.info(session.getId() + " closed");
         sessions.remove(session.getId());
         super.afterConnectionClosed(session, status);
     }
