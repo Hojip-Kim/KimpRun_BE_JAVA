@@ -1,6 +1,7 @@
 package kimp.config;
 
 import kimp.user.service.UserService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,6 +18,9 @@ public class SecurityConfig {
 
     private final UserService userService;
 
+    @Value("${custom.secure.paths}")
+    private String[] securePaths;
+
     public SecurityConfig(UserService userService) {
         this.userService = userService;
     }
@@ -32,12 +36,14 @@ public class SecurityConfig {
     * */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+//        System.out.println(removeParentheses(permissionPoint));
         httpSecurity
-//                .httpBasic(basic -> basic.disable())
-//                .csrf(csrf -> csrf.disable())
+                .httpBasic(basic -> basic.disable())
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(req -> req
-                        .requestMatchers("/","/member", "/member/register","/member/login", "/member/email-auth", "/user", "/user/**", "/upbit","/upbit/**").
-                permitAll()
+                        .requestMatchers(securePaths)
+//                        .requestMatchers("/","/member", "/member/register","/member/login", "/member/email-auth", "/user", "/user/**", "/upbit","/upbit/**", "/binance", "/binance/**", "/upbitSSE", "/upbitSSE/**", "/websocket", "/websocket/**", "/market","/market/**", "market/first/**", "market/first/data")
+                        .permitAll()
                 .anyRequest()
                 .authenticated())
                 .formLogin(form -> form.loginPage("/member/login").failureHandler(getFailureHandler()).permitAll())
@@ -46,6 +52,27 @@ public class SecurityConfig {
 
     return httpSecurity.build();
     }
+
+    private static String removeParentheses(String text){
+        text.replace("{", "");
+        text.replace("}", "");
+
+        System.out.println(text);
+        return text;
+    }
+
+//    @Bean
+//    public CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration configuration = new CorsConfiguration();
+//
+//        configuration.addAllowedOrigin("*");
+//        configuration.addAllowedHeader("*");
+//        configuration.addAllowedMethod("*");
+//        configuration.setAllowCredentials(true);
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", configuration);
+//        return source;
+//    }
 
     @Bean
     public UserDetailsService userDetailsService() {
