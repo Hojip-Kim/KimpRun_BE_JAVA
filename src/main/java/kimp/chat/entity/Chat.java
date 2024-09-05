@@ -8,4 +8,6 @@ public class Chat extends TimeStamp {
 
     private String chatID;
 
+
+
 }
