@@ -29,6 +29,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'org.springframework.security:spring-security-messaging'
     implementation group: 'org.postgresql', name: 'postgresql', version: '42.7.3'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
 
     compileOnly 'org.projectlombok:lombok'
@@ -42,4 +43,8 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile){
+    options.encoding = "UTF-8"
 }
