@@ -1,4 +1,4 @@
-package kimp.websocket.handler;
+package kimp.market.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.websocket.dto.response.BinanceStreamDto;
@@ -15,11 +15,14 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@RequiredArgsConstructor
 @Component
 @Slf4j
 public class BinanceWebsocketHandler extends TextWebSocketHandler {
     private final ObjectMapper objectMapper;
+
+    public BinanceWebsocketHandler(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     private Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
 

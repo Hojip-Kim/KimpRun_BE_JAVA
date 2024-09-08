@@ -1,4 +1,4 @@
-package kimp.config;
+package kimp.config.security;
 
 import kimp.user.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,8 +41,8 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(req -> req
-                        .requestMatchers(securePaths)
-//                        .requestMatchers("/","/member", "/member/register","/member/login", "/member/email-auth", "/user", "/user/**", "/upbit","/upbit/**", "/binance", "/binance/**", "/upbitSSE", "/upbitSSE/**", "/websocket", "/websocket/**", "/market","/market/**", "market/first/**", "market/first/data")
+//                        .requestMatchers(securePaths)
+                        .requestMatchers("/","/member", "/member/register","/member/login", "/member/email-auth", "/user", "/user/**", "/upbit","/upbit/**", "/binance", "/binance/**", "/upbitSSE", "/upbitSSE/**", "/websocket", "/websocket/**", "/market","/market/**", "market/first/**", "market/first/data", "/chat/**","/chat/allLog", "/chat/test", "/chatService/**", "/chatService")
                         .permitAll()
                 .anyRequest()
                 .authenticated())

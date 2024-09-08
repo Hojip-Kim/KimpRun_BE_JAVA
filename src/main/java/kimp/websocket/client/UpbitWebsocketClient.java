@@ -6,7 +6,7 @@ import kimp.websocket.dto.response.UpbitDto;
 import kimp.websocket.dto.response.UpbitReceiveDto;
 import kimp.websocket.dto.request.TicketMessage;
 import kimp.websocket.dto.request.TradeSubscribe;
-import kimp.websocket.handler.UpbitWebSocketHandler;
+import kimp.market.handler.UpbitWebSocketHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;

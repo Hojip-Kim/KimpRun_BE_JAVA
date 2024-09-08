@@ -18,12 +18,12 @@ public class TimeStamp {
     private Long id = null;
 
     @CreatedDate
-    @Column(name = "REG_AT", updatable = false)
-    private LocalDateTime regAt;
+    @Column(name = "registed_at", updatable = false)
+    private LocalDateTime registed_at;
 
 
     @LastModifiedDate
-    @Column(name = "UPT_AT")
-    private LocalDateTime uptAt;
+    @Column(name = "updated_at")
+    private LocalDateTime updated_at;
 
 }
