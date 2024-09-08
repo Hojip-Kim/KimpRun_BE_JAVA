@@ -1,4 +1,4 @@
-package kimp.config;
+package kimp.config.database;
 
 
 import org.springframework.context.annotation.Configuration;
