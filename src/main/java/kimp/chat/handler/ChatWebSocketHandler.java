@@ -1,40 +1,44 @@
-package kimp.websocket.handler.chat;
+package kimp.chat.handler;
 
+import kimp.chat.service.ChatWebsocketService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 @Component
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
-    private Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
+    private final ChatWebsocketService chatWebsocketService;
+
+    public ChatWebSocketHandler(ChatWebsocketService chatWebsocketService) {
+        this.chatWebsocketService = chatWebsocketService;
+    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        sessions.put(session.getId(), session);
+        chatWebsocketService.sessionInput(session);
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        sessions.remove(session.getId());
+        chatWebsocketService.sessionClose(session);
         super.afterConnectionClosed(session, status);
     }
 
+    // message receive역할
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         // 메시지를 받은 경우 처리 로직 (필요시)
-        for(WebSocketSession otherSession : sessions.values()){
-            otherSession.sendMessage(message);
-        }
+        chatWebsocketService.saveMessage(session, message);
+        chatWebsocketService.broadcastChat(session, message);
     }
 
-
-
-
-
+    // TODO : websocket time-out 방지용 ping-pong logic
+    @Override
+    protected void handlePongMessage(WebSocketSession session, PongMessage message) throws Exception {
+        super.handlePongMessage(session, message);
+    }
 }
