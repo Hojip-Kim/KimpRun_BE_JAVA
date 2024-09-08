@@ -1,8 +1,8 @@
 package kimp.websocket.config;
 
-import kimp.websocket.handler.chat.ChatWebSocketHandler;
-import kimp.websocket.handler.market.BinanceWebsocketHandler;
-import kimp.websocket.handler.market.UpbitWebSocketHandler;
+import kimp.market.handler.BinanceWebsocketHandler;
+import kimp.market.handler.UpbitWebSocketHandler;
+import kimp.chat.handler.ChatWebSocketHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.*;
 
@@ -30,7 +30,7 @@ public class WebsocketConfig implements WebSocketConfigurer {
                 .addHandler(binanceWebsocketHandler, "/binance")
                 .setAllowedOrigins("*");
         registry
-                .addHandler(chatWebSocketHandler, "/chat")
+                .addHandler(chatWebSocketHandler, "/chatService")
                 .setAllowedOrigins("*");
 
 
