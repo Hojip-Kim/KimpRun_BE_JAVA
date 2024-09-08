@@ -1,10 +1,13 @@
 package kimp.chat.service.serviceImpl;
 
 import kimp.chat.dao.daoImpl.ChatDao;
+import kimp.chat.dto.ChatLogDTO;
 import kimp.chat.entity.Chat;
 import kimp.chat.service.ChatService;
 
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ChatServiceImpl implements ChatService {
@@ -20,5 +23,11 @@ public class ChatServiceImpl implements ChatService {
 
         return chatDao.insertChat(chatID, content);
     }
+
+    @Override
+    public List<ChatLogDTO> getChatMessages(int page, int size) {
+        return chatDao.getAllChats(page, size);
+    }
+
 
 }

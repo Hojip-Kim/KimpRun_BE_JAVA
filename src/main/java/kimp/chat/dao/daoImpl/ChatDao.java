@@ -1,13 +1,19 @@
 package kimp.chat.dao.daoImpl;
 
+import kimp.chat.dto.ChatLogDTO;
 import kimp.chat.entity.Chat;
 import kimp.chat.repository.ChatRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
+
+import java.util.Collections;
+import java.util.List;
 
 
 @Repository
 public class ChatDao {
-
 
     private final ChatRepository chatRepository;
 
@@ -19,5 +25,17 @@ public class ChatDao {
         Chat chat = new Chat(chatId, content);
 
         return chatRepository.insert(chat);
+    }
+
+    public List<ChatLogDTO> getAllChats(int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("registed_at").descending());
+        List<ChatLogDTO> chatMessages = chatRepository.findAllByOrderByRegisted_atAsc(pageable);
+        if(chatMessages == null || chatMessages.isEmpty()){
+            throw new IllegalArgumentException("Not found any chats");
+        }
+
+        Collections.reverse(chatMessages);
+        return chatMessages;
     }
 }
