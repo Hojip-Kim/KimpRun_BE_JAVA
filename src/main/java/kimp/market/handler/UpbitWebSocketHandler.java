@@ -1,8 +1,7 @@
-package kimp.websocket.handler;
+package kimp.market.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.websocket.dto.response.UpbitDto;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -15,11 +14,14 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-@RequiredArgsConstructor
 @Component
 @Slf4j
 public class UpbitWebSocketHandler extends TextWebSocketHandler {
     private final ObjectMapper objectMapper;
+
+    public UpbitWebSocketHandler(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     // 실시간 데이터를 받아오기위한 UpbitWebsocketClient DI
     private Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
