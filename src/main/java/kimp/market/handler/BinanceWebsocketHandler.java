@@ -59,9 +59,10 @@ public class BinanceWebsocketHandler extends TextWebSocketHandler {
             String mapToJson = objectMapper.writeValueAsString(dataHashMap);
             log.info(String.valueOf(dataHashMap.size()));
             dataHashMap.clear();
+            TextMessage textMessage = new TextMessage(mapToJson);
             for (WebSocketSession session : sessions.values()) {
                 if (session.isOpen()) {
-                    session.sendMessage(new TextMessage(mapToJson));
+                    session.sendMessage(textMessage);
                 }
             }
 

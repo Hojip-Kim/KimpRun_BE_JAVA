@@ -1,7 +1,7 @@
 package kimp.market.controller;
 
-import kimp.market.dto.response.CombinedMarketDataList;
 import kimp.market.dto.response.CombinedMarketList;
+import kimp.market.dto.response.CombinedMarketDataList;
 import kimp.market.dto.response.MarketDataList;
 import kimp.market.service.MarketService;
 import lombok.AllArgsConstructor;

@@ -1,7 +1,5 @@
 package kimp.market.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 
 public class BinanceMarketList extends MarketList {

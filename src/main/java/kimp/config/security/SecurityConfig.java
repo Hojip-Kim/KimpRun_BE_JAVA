@@ -1,5 +1,6 @@
 package kimp.config.security;
 
+import kimp.config.UserAuthenticationFailureHandler;
 import kimp.user.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -25,11 +26,6 @@ public class SecurityConfig {
         this.userService = userService;
     }
 
-    @Bean
-    UserAuthenticationFailureHandler getFailureHandler() {
-        return new UserAuthenticationFailureHandler();
-    }
-
     /*
     * @TODO
     *   request matcher 환경변수설정
@@ -46,33 +42,17 @@ public class SecurityConfig {
                         .permitAll()
                 .anyRequest()
                 .authenticated())
-                .formLogin(form -> form.loginPage("/member/login").failureHandler(getFailureHandler()).permitAll())
+                .formLogin(form -> form.loginPage("/member/login").permitAll().failureHandler(getFailureHandler()).permitAll())
                 .logout(logout -> logout.permitAll());
 
 
     return httpSecurity.build();
     }
 
-    private static String removeParentheses(String text){
-        text.replace("{", "");
-        text.replace("}", "");
-
-        System.out.println(text);
-        return text;
+    @Bean
+    public UserAuthenticationFailureHandler getFailureHandler(){
+        return new UserAuthenticationFailureHandler();
     }
-
-//    @Bean
-//    public CorsConfigurationSource corsConfigurationSource() {
-//        CorsConfiguration configuration = new CorsConfiguration();
-//
-//        configuration.addAllowedOrigin("*");
-//        configuration.addAllowedHeader("*");
-//        configuration.addAllowedMethod("*");
-//        configuration.setAllowCredentials(true);
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", configuration);
-//        return source;
-//    }
 
     @Bean
     public UserDetailsService userDetailsService() {
