@@ -1,4 +1,6 @@
+
 package kimp.market.handler;
+
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.websocket.dto.response.UpbitDto;
@@ -60,9 +62,10 @@ public class UpbitWebSocketHandler extends TextWebSocketHandler {
             String mapToJson = objectMapper.writeValueAsString(dataHashMap);
             log.info(String.valueOf(dataHashMap.size()));
             dataHashMap.clear();
+            TextMessage textMessage = new TextMessage(mapToJson);
             for (WebSocketSession session : sessions.values()) {
                 if (session.isOpen()) {
-                    session.sendMessage(new TextMessage(mapToJson));
+                    session.sendMessage(textMessage);
                 }
             }
 

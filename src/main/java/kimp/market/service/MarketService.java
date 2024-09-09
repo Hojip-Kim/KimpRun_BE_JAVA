@@ -1,7 +1,7 @@
 package kimp.market.service;
 
-import kimp.market.dto.response.CombinedMarketDataList;
 import kimp.market.dto.response.CombinedMarketList;
+import kimp.market.dto.response.CombinedMarketDataList;
 import kimp.market.dto.response.MarketDataList;
 
 import java.io.IOException;

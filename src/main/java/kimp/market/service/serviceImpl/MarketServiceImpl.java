@@ -1,11 +1,11 @@
 package kimp.market.service.serviceImpl;
 
-import kimp.market.Enum.MarketType;
 import kimp.market.components.Binance;
+import kimp.market.dto.response.CombinedMarketList;
+import kimp.market.Enum.MarketType;
 import kimp.market.components.Market;
 import kimp.market.components.Upbit;
 import kimp.market.dto.response.CombinedMarketDataList;
-import kimp.market.dto.response.CombinedMarketList;
 import kimp.market.dto.response.MarketDataList;
 import kimp.market.service.MarketService;
 import kimp.websocket.dto.response.MarketDto;
