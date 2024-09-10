@@ -1,13 +1,11 @@
 package kimp.chat.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import kimp.chat.dto.ChatLogDTO;
+import kimp.chat.dto.request.ChatLogRequestDto;
+import kimp.chat.dto.response.ChatLogResponseDto;
 import kimp.chat.service.ChatService;
 import kimp.chat.entity.Chat;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -22,8 +20,10 @@ public class ChatController {
     }
 
     @GetMapping("/allLog")
-    public List<ChatLogDTO> getChats(HttpServletRequest req, @RequestParam(value = "page") int page, @RequestParam(value ="size") int size) {
-        return chatService.getChatMessages(page, size);
+    public List<ChatLogResponseDto> getChats(@ModelAttribute ChatLogRequestDto requestDto, HttpServletRequest req ) {
+
+
+        return chatService.getChatMessages(requestDto.getPage(), requestDto.getSize());
     }
 
     @GetMapping("/test")
