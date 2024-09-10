@@ -1,0 +1,4 @@
+package kimp.board.service;
+
+public interface BoardService {
+}
