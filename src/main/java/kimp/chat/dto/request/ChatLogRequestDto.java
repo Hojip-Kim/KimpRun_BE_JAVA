@@ -7,11 +7,11 @@ import lombok.Setter;
 @Setter
 public class ChatLogRequestDto {
 
-    private int page;
-    private int size;
+    private Integer page;
+    private Integer size;
 
     public ChatLogRequestDto(){}
-    public ChatLogRequestDto(int page, int size){
+    public ChatLogRequestDto(Integer page, Integer size){
         this.page = page;
         this.size = size;
     }}
