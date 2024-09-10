@@ -21,6 +21,9 @@ public class MarketController {
 
     @GetMapping("/first/name")
     public CombinedMarketList getMarketList(@RequestParam String first, @RequestParam String second) throws IOException {
+        if(first == null || second == null || first.isEmpty() || second.isEmpty()) {
+            throw new IllegalArgumentException("Not have parameter");
+        }
 
         return this.marketService.getMarketList(first, second);
     }
@@ -31,12 +34,19 @@ public class MarketController {
 
     @GetMapping("/first/single/data")
     public MarketDataList getFirstMarketDatas(@RequestParam String market) throws IOException {
+        if(market == null || market.isEmpty()) {
+            throw new IllegalArgumentException("Not have parameter");
+        }
 
         return marketService.getMarketDataList(market);
     }
 
     @GetMapping("/first/combine/data")
     public CombinedMarketDataList getCombinedMarketDatas(@RequestParam String first, @RequestParam String second) throws IOException {
+        if(first == null || second == null || first.isEmpty() || second.isEmpty()) {
+            throw new IllegalArgumentException("Not have parameter");
+        }
+
         return marketService.getCombinedMarketDataList(first, second);
     }
 
