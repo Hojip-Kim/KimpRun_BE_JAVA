@@ -1,11 +1,11 @@
-package kimp.chat.dto;
+package kimp.chat.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class ChatLogDTO {
+public class ChatLogResponseDto {
     private String chatID;
     private String content;
 

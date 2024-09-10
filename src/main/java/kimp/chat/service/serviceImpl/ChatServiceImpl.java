@@ -1,7 +1,7 @@
 package kimp.chat.service.serviceImpl;
 
 import kimp.chat.dao.daoImpl.ChatDao;
-import kimp.chat.dto.ChatLogDTO;
+import kimp.chat.dto.response.ChatLogResponseDto;
 import kimp.chat.entity.Chat;
 import kimp.chat.service.ChatService;
 
@@ -25,7 +25,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public List<ChatLogDTO> getChatMessages(int page, int size) {
+    public List<ChatLogResponseDto> getChatMessages(int page, int size) {
         return chatDao.getAllChats(page, size);
     }
 
