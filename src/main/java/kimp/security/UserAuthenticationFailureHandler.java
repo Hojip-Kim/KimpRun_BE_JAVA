@@ -1,4 +1,4 @@
-package kimp.config.security;
+package kimp.security;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

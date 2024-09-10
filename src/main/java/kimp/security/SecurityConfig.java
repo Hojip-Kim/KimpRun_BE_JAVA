@@ -1,6 +1,5 @@
-package kimp.config.security;
+package kimp.security;
 
-import kimp.config.UserAuthenticationFailureHandler;
 import kimp.user.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
