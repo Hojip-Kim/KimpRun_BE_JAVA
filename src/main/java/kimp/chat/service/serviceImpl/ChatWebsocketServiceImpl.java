@@ -26,12 +26,20 @@ public class ChatWebsocketServiceImpl implements ChatWebsocketService {
 
     @Override
     public void sessionInput(WebSocketSession webSocketSession){
-        WebSocketSession session =  sessions.put(webSocketSession.getId(), webSocketSession);
+        if(sessions.containsKey(webSocketSession.getId())){
+            throw new IllegalArgumentException("Already exists in Session Map : ID - " + webSocketSession.getId());
+        }
+
+        sessions.put(webSocketSession.getId(), webSocketSession);
 
     }
 
     @Override
     public void sessionClose(WebSocketSession session){
+        if(!sessions.containsKey(session.getId())){
+            throw new IllegalArgumentException("Session Map에 " + session.getId() + " ID 가 없습니다.");
+        }
+
         WebSocketSession removeSession = sessions.remove(session.getId());
 
         if(removeSession == null){
@@ -45,7 +53,11 @@ public class ChatWebsocketServiceImpl implements ChatWebsocketService {
 
         String chatDtoJson = objectMapper.writeValueAsString(chatDto);
 
+        if(chatDtoJson.isEmpty()){
+            throw new IllegalArgumentException("ChatDtoJson is Empty");
+        }
         TextMessage newText = new TextMessage(chatDtoJson);
+
         for(WebSocketSession session : sessions.values()){
             if(session.isOpen()){
                 session.sendMessage(newText);
@@ -56,6 +68,9 @@ public class ChatWebsocketServiceImpl implements ChatWebsocketService {
     // user session을 통해 find by name의형태로 찾아서 메시지 저장
     @Override
     public void saveMessage(WebSocketSession webSocketSession, TextMessage textMessage) {
+        if(textMessage.getPayloadLength() == 0){
+            throw new IllegalArgumentException("text message's content is null");
+        }
         chatDao.insertChat(webSocketSession.getId(), textMessage.getPayload());
     }
 }
