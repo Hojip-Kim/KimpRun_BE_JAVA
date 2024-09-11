@@ -19,11 +19,14 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        chatWebsocketService.sessionInput(session);
+        if(session.isOpen()) {
+            chatWebsocketService.sessionInput(session);
+        }
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+
         chatWebsocketService.sessionClose(session);
         super.afterConnectionClosed(session, status);
     }
@@ -31,6 +34,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     // message receive역할
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        if(message.getPayloadLength() == 0 || message == null){
+            throw new IllegalArgumentException("Not have text message contents");
+        }
         // 메시지를 받은 경우 처리 로직 (필요시)
         chatWebsocketService.saveMessage(session, message);
         chatWebsocketService.broadcastChat(session, message);
