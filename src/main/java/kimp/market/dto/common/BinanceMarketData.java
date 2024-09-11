@@ -1,7 +1,9 @@
 package kimp.market.dto.common;
 
+import lombok.Getter;
 import java.math.BigDecimal;
 
+@Getter
 public class BinanceMarketData {
 
     private String symbol;
@@ -25,6 +27,8 @@ public class BinanceMarketData {
     private BigDecimal firstId;
     private BigDecimal lastId;
     private BigDecimal count;
+
+    public BinanceMarketData(){}
 
     public BinanceMarketData(String symbol, String priceChange, String priceChangePercent, String weightedAvgPrice, String prevClosePrice, String lastPrice, String lastQty, String bidPrice, String bidQty, String askPrice, String askQty, String openPrice, String highPrice, String lowPrice, String volume, String quoteVolume, BigDecimal openTime, BigDecimal closeTime, BigDecimal firstId, BigDecimal lastId, BigDecimal count) {
         this.symbol = symbol;
@@ -50,87 +54,4 @@ public class BinanceMarketData {
         this.count = count;
     }
 
-    public String getSymbol() {
-        return symbol;
-    }
-
-    public String getPriceChange() {
-        return priceChange;
-    }
-
-    public String getPriceChangePercent() {
-        return priceChangePercent;
-    }
-
-    public String getWeightedAvgPrice() {
-        return weightedAvgPrice;
-    }
-
-    public String getPrevClosePrice() {
-        return prevClosePrice;
-    }
-
-    public String getLastPrice() {
-        return lastPrice;
-    }
-
-    public String getLastQty() {
-        return lastQty;
-    }
-
-    public String getBidPrice() {
-        return bidPrice;
-    }
-
-    public String getBidQty() {
-        return bidQty;
-    }
-
-    public String getAskPrice() {
-        return askPrice;
-    }
-
-    public String getAskQty() {
-        return askQty;
-    }
-
-    public String getOpenPrice() {
-        return openPrice;
-    }
-
-    public String getHighPrice() {
-        return highPrice;
-    }
-
-    public String getLowPrice() {
-        return lowPrice;
-    }
-
-    public String getVolume() {
-        return volume;
-    }
-
-    public String getQuoteVolume() {
-        return quoteVolume;
-    }
-
-    public BigDecimal getOpenTime() {
-        return openTime;
-    }
-
-    public BigDecimal getCloseTime() {
-        return closeTime;
-    }
-
-    public BigDecimal getFirstId() {
-        return firstId;
-    }
-
-    public BigDecimal getLastId() {
-        return lastId;
-    }
-
-    public BigDecimal getCount() {
-        return count;
-    }
 }
