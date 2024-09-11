@@ -13,11 +13,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-@RequiredArgsConstructor
 public class MarketCommonMethod {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+
+    public MarketCommonMethod(RestTemplate restTemplate, ObjectMapper objectMapper){
+        this.restTemplate =restTemplate;
+        this.objectMapper = objectMapper;
+    }
 
 
     /**
