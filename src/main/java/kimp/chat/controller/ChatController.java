@@ -5,6 +5,7 @@ import kimp.chat.dto.request.ChatLogRequestDto;
 import kimp.chat.dto.response.ChatLogResponseDto;
 import kimp.chat.service.ChatService;
 import kimp.chat.entity.Chat;
+import org.apache.coyote.BadRequestException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,8 +21,10 @@ public class ChatController {
     }
 
     @GetMapping("/allLog")
-    public List<ChatLogResponseDto> getChats(@ModelAttribute ChatLogRequestDto requestDto, HttpServletRequest req ) {
-
+    public List<ChatLogResponseDto> getChats(@ModelAttribute ChatLogRequestDto requestDto, HttpServletRequest req ) throws BadRequestException {
+        if(requestDto.getPage() < 0 || requestDto.getSize() <= 0) {
+            throw new BadRequestException();
+        }
 
         return chatService.getChatMessages(requestDto.getPage(), requestDto.getSize());
     }
