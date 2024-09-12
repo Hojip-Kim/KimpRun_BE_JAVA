@@ -1,4 +1,4 @@
-package kimp.chat.dao.daoImpl;
+package kimp.chat.dao;
 
 import kimp.chat.dto.response.ChatLogResponseDto;
 import kimp.chat.entity.Chat;
