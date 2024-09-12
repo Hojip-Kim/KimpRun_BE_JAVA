@@ -1,9 +1,11 @@
 package kimp.community.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
 @Table(name="comments_count")
+@Getter
 public class CommentCount {
 
     @Id
