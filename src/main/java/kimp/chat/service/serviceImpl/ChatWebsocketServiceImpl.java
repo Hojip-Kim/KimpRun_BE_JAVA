@@ -1,7 +1,7 @@
 package kimp.chat.service.serviceImpl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kimp.chat.dao.daoImpl.ChatDao;
+import kimp.chat.dao.ChatDao;
 import kimp.chat.dto.ChatDto;
 import kimp.chat.service.ChatWebsocketService;
 import org.springframework.stereotype.Service;
