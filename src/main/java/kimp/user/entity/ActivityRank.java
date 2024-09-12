@@ -12,8 +12,8 @@ public class ActivityRank {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
-    private String rank_key;
+    @Column(name="rank_key",unique = true, nullable = false)
+    private String rankKey;
 
     @Column
     private String grade;
@@ -21,9 +21,9 @@ public class ActivityRank {
     public ActivityRank() {
     }
 
-    public ActivityRank(Long id, String rank_key, String grade) {
+    public ActivityRank(Long id, String rankKey, String grade) {
         this.id = id;
-        this.rank_key = rank_key;
+        this.rankKey = rankKey;
         this.grade = grade;
     }
 }
