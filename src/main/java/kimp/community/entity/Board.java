@@ -21,7 +21,7 @@ public class Board extends TimeStamp {
     private User user;
 
     @OneToMany(fetch = FetchType.LAZY)
-    private List<Comment> coments;
+    private List<Comment> comments;
 
     @Lob // 길이가 긴 문자열
     @Column(nullable = false)
@@ -31,11 +31,11 @@ public class Board extends TimeStamp {
 
     }
 
-    public Board(Category category, String title, User user, List<Comment> coments, String content) {
+    public Board(Category category, String title, User user, List<Comment> comments, String content) {
         this.category = category;
         this.title = title;
         this.user = user;
-        this.coments = coments;
+        this.comments = comments;
         this.content = content;
     }
 }
