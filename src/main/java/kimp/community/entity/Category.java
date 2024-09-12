@@ -9,13 +9,22 @@ import lombok.Getter;
 @Getter
 public class Category extends TimeStamp {
 
-    @Column(nullable = false)
-    public String category_name;
+    @Column(name="category_name",nullable = false)
+    public String categoryName;
 
     public Category() {
     }
 
-    public Category(String category_name) {
-        this.category_name = category_name;
+    public Category(String categoryName) {
+        this.categoryName = categoryName;
     }
+
+
+    public void updateCategoryName(String newCategoryName){
+        if(newCategoryName.isBlank()){
+            throw new IllegalArgumentException("update category name is blank.");
+        }
+        this.categoryName = newCategoryName;
+    }
+
 }
