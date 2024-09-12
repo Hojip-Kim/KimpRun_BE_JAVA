@@ -20,9 +20,9 @@ public class UserController {
     }
 
     @PostMapping("/sign-up")
-    public CreateUserResponseDto createUser(@RequestBody CreateUserDTO request){
+    public void createUser(@RequestBody CreateUserDTO request){
         logger.info("user로 들어왔음");
 
-        return this.userService.createUser(request);
+//        return this.userService.createUser(request);
     }
 }

@@ -17,16 +17,16 @@ public class UserServiceImpl implements UserService {
 
 
     @Transactional
-    public CreateUserResponseDto createUser(CreateUserDTO request) {
+    public void createUser(CreateUserDTO request) {
 
-        if(this.userRepository.findUserByUserId(request.getUserId()).isPresent()){
+        if(this.userRepository.findUserById(request.getUserId()).isPresent()){
             throw new IllegalArgumentException("이미 존재하는 유저입니다.");
         };
 
-        User user = new User(request.getUserId(), request.getPassword(), request.getNickname());
-        User createdUser = this.userRepository.save(user);
+//        User user = new User(request.getUserId(), request.getPassword(), request.getNickname());
+//        User createdUser = this.userRepository.save(user);
 
-        return new CreateUserResponseDto(createdUser.getUserId(), createdUser.getNickname());
+//        return new CreateUserResponseDto(createdUser.getLogin_id(), createdUser.getNickname());
     }
 
 

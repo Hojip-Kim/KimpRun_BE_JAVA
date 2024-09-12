@@ -1,6 +1,6 @@
-package kimp.chat.dao.daoImpl;
+package kimp.chat.dao;
 
-import kimp.chat.dto.ChatLogDTO;
+import kimp.chat.dto.response.ChatLogResponseDto;
 import kimp.chat.entity.Chat;
 import kimp.chat.repository.ChatRepository;
 import org.springframework.data.domain.PageRequest;
@@ -27,10 +27,10 @@ public class ChatDao {
         return chatRepository.insert(chat);
     }
 
-    public List<ChatLogDTO> getAllChats(int page, int size) {
+    public List<ChatLogResponseDto> getAllChats(int page, int size) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("registed_at").descending());
-        List<ChatLogDTO> chatMessages = chatRepository.findAllByOrderByRegisted_atAsc(pageable);
+        List<ChatLogResponseDto> chatMessages = chatRepository.findAllByOrderByRegisted_atAsc(pageable);
         if(chatMessages == null || chatMessages.isEmpty()){
             throw new IllegalArgumentException("Not found any chats");
         }
