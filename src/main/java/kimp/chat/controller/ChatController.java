@@ -1,7 +1,7 @@
 package kimp.chat.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import kimp.chat.dto.request.ChatLogRequestDto;
+import kimp.common.dto.PageRequestDto;
 import kimp.chat.dto.response.ChatLogResponseDto;
 import kimp.chat.service.ChatService;
 import kimp.chat.entity.Chat;
@@ -21,7 +21,7 @@ public class ChatController {
     }
 
     @GetMapping("/allLog")
-    public List<ChatLogResponseDto> getChats(@ModelAttribute ChatLogRequestDto requestDto, HttpServletRequest req ) throws BadRequestException {
+    public List<ChatLogResponseDto> getChats(@ModelAttribute PageRequestDto requestDto, HttpServletRequest req ) throws BadRequestException {
         if(requestDto.getPage() < 0 || requestDto.getSize() <= 0) {
             throw new BadRequestException();
         }
