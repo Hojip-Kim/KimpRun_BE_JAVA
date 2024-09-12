@@ -14,13 +14,13 @@ public class UserWithdraw extends TimeStamp {
     @JoinColumn(name="user_id")
     private User user;
 
-    @Column
-    private Boolean is_withdraw;
+    @Column(name="is_withdraw")
+    private Boolean isWithdraw;
 
     public UserWithdraw() {}
 
-    public UserWithdraw(User user, Boolean is_withdraw) {
+    public UserWithdraw(User user, Boolean isWithdraw) {
         this.user = user;
-        this.is_withdraw = is_withdraw;
+        this.isWithdraw = isWithdraw;
     }
 }

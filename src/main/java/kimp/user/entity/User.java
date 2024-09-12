@@ -10,8 +10,8 @@ import lombok.Getter;
 @Getter
 public class User extends TimeStamp {
 
-    @Column(nullable = false)
-    private String login_id;
+    @Column(name="login_id",nullable = false)
+    private String loginId;
 
     @JsonIgnore
     @Column(nullable = false)
@@ -35,8 +35,8 @@ public class User extends TimeStamp {
 
     public User(){}
 
-    public User(String login_id, String password, String nickname, Oauth oauth, UserAgent userAgent, UserWithdraw userWithdraw, Profile profile) {
-        this.login_id = login_id;
+    public User(String loginId, String password, String nickname, Oauth oauth, UserAgent userAgent, UserWithdraw userWithdraw, Profile profile) {
+        this.loginId = loginId;
         this.password = password;
         this.nickname = nickname;
         this.oauth = oauth;

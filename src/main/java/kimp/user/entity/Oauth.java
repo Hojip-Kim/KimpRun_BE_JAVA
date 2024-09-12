@@ -12,18 +12,18 @@ public class Oauth extends TimeStamp {
     @JoinColumn(name="user_id")
     private User user;
 
-    @Column
-    private String access_token;
+    @Column(name="access_token")
+    private String accessToken;
 
-    @Column
-    private String refresh_token;
+    @Column(name="refresh_token")
+    private String refreshToken;
 
     public Oauth() {
     }
 
-    public Oauth(User user, String access_token, String refresh_token) {
+    public Oauth(User user, String accessToken, String refreshToken) {
         this.user = user;
-        this.access_token = access_token;
-        this.refresh_token = refresh_token;
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
     }
 }

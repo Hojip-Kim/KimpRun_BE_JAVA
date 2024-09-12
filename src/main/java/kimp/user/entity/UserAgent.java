@@ -18,8 +18,8 @@ public class UserAgent extends TimeStamp {
     @Column
     private String ip;
 
-    @Column
-    private Boolean is_banned;
+    @Column(name="is_banned")
+    private Boolean isBanned;
 
     @OneToOne(mappedBy = "agent")
     private BannedCount bannedCount;
@@ -28,10 +28,10 @@ public class UserAgent extends TimeStamp {
     public UserAgent() {
     }
 
-    public UserAgent(User user, String ip, Boolean is_banned, BannedCount bannedCount) {
+    public UserAgent(User user, String ip, Boolean isBanned, BannedCount bannedCount) {
         this.user = user;
         this.ip = ip;
-        this.is_banned = is_banned;
+        this.isBanned = isBanned;
         this.bannedCount = bannedCount;
     }
 }

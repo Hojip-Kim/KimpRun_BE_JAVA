@@ -16,25 +16,25 @@ public class Profile extends TimeStamp {
     @Column
     private String nickname;
 
-    @Column
-    private String image_url;
+    @Column(name="image_url")
+    private String imageUrl;
 
     @ManyToOne
     @JoinColumn(name = "seed_range_key", referencedColumnName = "seed_range_key")
-    private SeedMoneyRange seed_range;
+    private SeedMoneyRange seedRange;
 
     @ManyToOne
     @JoinColumn(name = "activity_rank_key", referencedColumnName = "rank_key")
-    private ActivityRank activity_rank;
+    private ActivityRank activityRank;
 
     public Profile() {
     }
 
-    public Profile(User user, String nickname, String image_url, SeedMoneyRange seed_range, ActivityRank activity_rank) {
+    public Profile(User user, String nickname, String imageUrl, SeedMoneyRange seedRange, ActivityRank activityRank) {
         this.user = user;
         this.nickname = nickname;
-        this.image_url = image_url;
-        this.seed_range = seed_range;
-        this.activity_rank = activity_rank;
+        this.imageUrl = imageUrl;
+        this.seedRange = seedRange;
+        this.activityRank = activityRank;
     }
 }
