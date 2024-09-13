@@ -30,7 +30,7 @@ public class ChatDao {
     public List<ChatLogResponseDto> getAllChats(int page, int size) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("registed_at").descending());
-        List<ChatLogResponseDto> chatMessages = chatRepository.findAllByOrderByRegisted_atAsc(pageable);
+        List<ChatLogResponseDto> chatMessages = chatRepository.findAllByOrderByRegistedAtAsc(pageable);
         if(chatMessages == null || chatMessages.isEmpty()){
             throw new IllegalArgumentException("Not found any chats");
         }
