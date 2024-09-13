@@ -17,7 +17,7 @@ public class User extends TimeStamp {
     @Column(nullable = false)
     private String password;
 
-    @Column()
+    @Column(nullable = true)
     private String nickname;
 
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
@@ -35,13 +35,10 @@ public class User extends TimeStamp {
 
     public User(){}
 
-    public User(String loginId, String password, String nickname, Oauth oauth, UserAgent userAgent, UserWithdraw userWithdraw, Profile profile) {
+    public User(String loginId, String password) {
         this.loginId = loginId;
         this.password = password;
-        this.nickname = nickname;
-        this.oauth = oauth;
-        this.userAgent = userAgent;
-        this.userWithdraw = userWithdraw;
-        this.profile = profile;
     }
+
+
 }

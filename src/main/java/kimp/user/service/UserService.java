@@ -1,11 +1,18 @@
 package kimp.user.service;
 
+import kimp.user.dto.UserCopyDto;
+import kimp.user.dto.UserDto;
 import kimp.user.dto.request.CreateUserDTO;
 import kimp.user.dto.response.CreateUserResponseDto;
+import kimp.user.entity.User;
 
 public interface UserService {
-//    public CreateUserResponseDto createUser(CreateUserDTO request);
 
-    public void createUser(CreateUserDTO request);
+    public UserDto createUser(CreateUserDTO request);
+
+    public UserDto getUserByLoginId(String loginId);
+
+    public UserCopyDto createCopyUserDtoByLoginId(String loginId);
+
 
 }
