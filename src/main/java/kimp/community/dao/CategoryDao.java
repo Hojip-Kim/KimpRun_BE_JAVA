@@ -50,6 +50,9 @@ public class CategoryDao {
     }
 
     public Category updateCategory(UpdateCategoryRequestDto updateCategoryRequestDto){
+        if(this.categoryRepository.findByCategoryName(updateCategoryRequestDto.getCategoryName()).isPresent()){
+            throw new IllegalArgumentException("Already have " + updateCategoryRequestDto.getCategoryName() + " name");
+        }
         Category category = getCategoryById(updateCategoryRequestDto.getCategoryId());
 
         category.updateCategoryName(updateCategoryRequestDto.getCategoryName());
