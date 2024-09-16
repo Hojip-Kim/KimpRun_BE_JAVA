@@ -20,13 +20,11 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
-    private final SessionRegistry sessionRegistry;
 
-    public UserController(UserService userService, SessionRegistry sessionRegistry) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.sessionRegistry = sessionRegistry;
     }
-    
+
 
     @GetMapping("/test")
     public Map<String, String> redirectToHome(@AuthenticationPrincipal UserDetails userDetails) throws IOException {
