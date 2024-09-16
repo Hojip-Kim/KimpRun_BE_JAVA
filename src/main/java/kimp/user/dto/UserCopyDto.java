@@ -16,4 +16,5 @@ import lombok.NoArgsConstructor;
 public class UserCopyDto {
     private String loginId;
     private String password;
+    private String role;
 }
