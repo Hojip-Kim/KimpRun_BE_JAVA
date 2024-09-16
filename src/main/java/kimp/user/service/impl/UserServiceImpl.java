@@ -4,14 +4,11 @@ import kimp.user.dao.UserDao;
 import kimp.user.dto.UserCopyDto;
 import kimp.user.dto.UserDto;
 import kimp.user.dto.request.CreateUserDTO;
-import kimp.user.dto.response.CreateUserResponseDto;
 import kimp.user.entity.User;
-import kimp.user.repository.UserRepository;
 import kimp.user.service.UserService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -42,7 +39,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserCopyDto createCopyUserDtoByLoginId(String loginId) {
         User user = userDao.findUserByLoginId(loginId);
-        return new UserCopyDto(user.getLoginId(), user.getPassword());
+        return new UserCopyDto(user.getLoginId(), user.getPassword(), user.getRole());
     }
 
 
