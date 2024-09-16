@@ -6,11 +6,11 @@ import kimp.common.entity.TimeStamp;
 import lombok.Getter;
 
 @Entity
-@Table(name= "\"user\"")
+@Table(name= "user_table")
 @Getter
 public class User extends TimeStamp {
 
-    @Column(name="login_id",nullable = false)
+    @Column(name="login_id",nullable = false, unique=true)
     private String loginId;
 
     @JsonIgnore
@@ -19,6 +19,9 @@ public class User extends TimeStamp {
 
     @Column(nullable = true)
     private String nickname;
+
+    @Column(nullable = false)
+    private String role;
 
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private Oauth oauth;
@@ -33,11 +36,18 @@ public class User extends TimeStamp {
     private Profile profile;
 
 
-    public User(){}
+    public User(){
+        if(this.role == null){
+            this.role = "USER";
+        }
+    }
 
     public User(String loginId, String password) {
         this.loginId = loginId;
         this.password = password;
+        if(this.role == null){
+            this.role = "USER";
+        }
     }
 
 
