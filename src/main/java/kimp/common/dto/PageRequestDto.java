@@ -19,7 +19,7 @@ public class PageRequestDto {
         }
         if(isSizeHigherThanOne(size)) {
             this.size = size;
-        }{
+        }else{
             throw new IllegalArgumentException("size must higher than One");
         }
     }

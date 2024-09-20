@@ -22,7 +22,7 @@ public class ChatController {
 
     @GetMapping("/allLog")
     public List<ChatLogResponseDto> getChats(@ModelAttribute PageRequestDto requestDto, HttpServletRequest req ) throws BadRequestException {
-        if(requestDto.getPage() < 0 || requestDto.getSize() <= 0) {
+        if(requestDto == null) {
             throw new BadRequestException();
         }
 
