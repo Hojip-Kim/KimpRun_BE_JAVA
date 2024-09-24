@@ -16,10 +16,14 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
 
-        // response header의 set-cookie 실패로 인한 명시적 session수립
-        request.getSession();
-
         log.info("로그인 성공 - Username: {}", authentication.getName());
+
+
+        // JSON 응답 설정
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"result\":\"success\",\"message\":\"로그인에 성공하였습니다.\"}");
+        response.getWriter().flush();
 
     }
 }
