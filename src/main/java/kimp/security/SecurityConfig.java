@@ -17,8 +17,10 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 @EnableWebSecurity
 @Configuration
@@ -45,22 +47,7 @@ public class SecurityConfig {
 
         http
                 // CORS 설정 적용
-                .cors(c -> {
-                            CorsConfigurationSource source = request -> {
-                                CorsConfiguration config = new CorsConfiguration();
-                                config.setAllowCredentials(true);
-                                config.setAllowedOrigins(Arrays.asList("http://localhost:3000",
-                                        "kimp-run-fe-jvmn-ffjqw3bd2-hojip-kims-projects.vercel.app",
-                                        "kimp-run-fe-jvmn.vercel.app",
-                                        "kimp-run-fe-jvmn-dev.vercel.app",
-                                        "2f68-2001-2d8-ef42-eff1-a49a-9d39-ce9f-f068.ngrok-free.app"));
-                                config.setAllowedMethods(Arrays.asList("HEAD", "POST", "GET", "DELETE", "PUT", "OPTIONS"));
-                                config.setAllowedHeaders(Arrays.asList("*"));
-                                return config;
-                            };
-                            c.configurationSource(source);
-                        }
-                    )
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 // CSRF 비활성화
                 .csrf(AbstractHttpConfigurer::disable)
                 // 세션 관리 설정
@@ -94,16 +81,17 @@ public class SecurityConfig {
         return http.build();
     }
 
-
-    // AuthenticationManager를 직접 빈으로 등록하지 않음
-    // AuthenticationConfiguration을 통해 주입받음
-//    @Bean
-//    public AuthenticationManager authenticationManager() {
-//        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
-//        daoAuthenticationProvider.setUserDetailsService(customUserDetailService);
-//        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
-//        return new ProviderManager(daoAuthenticationProvider);
-//    }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("https://kimp-run-fe-jvmn-dev.vercel.app"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
