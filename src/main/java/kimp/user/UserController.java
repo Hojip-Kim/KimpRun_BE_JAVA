@@ -1,17 +1,23 @@
 package kimp.user;
 
+import kimp.security.user.CustomUserDetails;
+import kimp.user.dto.UserDto;
 import kimp.user.dto.request.CreateUserDTO;
-import kimp.user.dto.response.CreateUserResponseDto;
 import kimp.user.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
+@Slf4j
 public class UserController {
-
-    private final Logger logger = LoggerFactory.getLogger(UserController.class.getName());
 
     private final UserService userService;
 
@@ -19,10 +25,30 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/sign-up")
-    public void createUser(@RequestBody CreateUserDTO request){
-        logger.info("user로 들어왔음");
 
-//        return this.userService.createUser(request);
+    @GetMapping("/test")
+    public Map<String, String> redirectToHome(@AuthenticationPrincipal UserDetails userDetails) throws IOException {
+
+
+
+        Map<String, String> testMap = new HashMap<>();
+
+
+        if(userDetails != null) {
+            testMap.put("result", userDetails.getUsername());
+            return testMap;
+        }
+        else{
+            testMap.put("result", "not member");
+            return testMap;
+        }
+
+    }
+
+
+    @PostMapping("/sign-up")
+    public UserDto createUser(@RequestBody CreateUserDTO request){
+
+        return userService.createUser(request);
     }
 }

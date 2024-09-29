@@ -1,67 +1,100 @@
 package kimp.security;
 
+import kimp.security.user.CustomAuthenticationFilter;
+import kimp.security.user.service.CustomUserDetailService;
 import kimp.user.service.UserService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig {
 
     private final UserService userService;
+    private final CustomUserDetailService customUserDetailService;
 
-    @Value("${custom.secure.paths}")
-    private String[] securePaths;
-
-    public SecurityConfig(UserService userService) {
+    public SecurityConfig(UserService userService, CustomUserDetailService customUserDetailService) {
         this.userService = userService;
-    }
-
-    /*
-    * @TODO
-    *   request matcher 환경변수설정
-    * */
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-//        System.out.println(removeParentheses(permissionPoint));
-        httpSecurity
-                .httpBasic(basic -> basic.disable())
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(req -> req
-//                        .requestMatchers(securePaths)
-                        .requestMatchers("/","/member", "/member/register","/member/login", "/member/email-auth", "/user", "/user/**", "/upbit","/upbit/**", "/binance", "/binance/**", "/upbitSSE", "/upbitSSE/**", "/websocket", "/websocket/**", "/market","/market/**", "market/first/**", "market/first/data", "/chat/**","/chat/allLog", "/chat/test", "/chatService/**", "/chatService")
-                        .permitAll()
-                .anyRequest()
-                .authenticated())
-                .formLogin(form -> form.loginPage("/member/login").permitAll().failureHandler(getFailureHandler()).permitAll())
-                .logout(logout -> logout.permitAll());
-
-
-    return httpSecurity.build();
+        this.customUserDetailService = customUserDetailService;
     }
 
     @Bean
-    public UserAuthenticationFailureHandler getFailureHandler(){
-        return new UserAuthenticationFailureHandler();
+
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationConfiguration authConfig) throws Exception {
+        // AuthenticationManager를 AuthenticationConfiguration을 통해 가져옴
+        AuthenticationManager authenticationManager = authConfig.getAuthenticationManager();
+
+        // CustomAuthenticationFilter 생성 및 설정
+        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManager);
+        customAuthenticationFilter.setFilterProcessesUrl("/login");
+
+
+        http
+                // CORS 설정 적용
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // CSRF 비활성화
+                .csrf(AbstractHttpConfigurer::disable)
+                // 세션 관리 설정
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                )
+                // 요청 권한 설정
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(
+                                "/login",
+                                "/user/sign-up",
+                                "/user",
+                                "/upbit/**",
+                                "/binance/**",
+                                "/websocket/**",
+                                "/market/**",
+                                "/chat/**",
+                                "/chatService/**",
+                                "/category/**",
+                                "/error"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
+                // 기본 폼로그인 비활성화
+                .formLogin(AbstractHttpConfigurer::disable)
+                // 로그아웃 비활성화
+                .logout(AbstractHttpConfigurer::disable)
+                // CustomAuthenticationFilter를 필터 체인에 추가
+                .addFilterAt(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails user =
-                User.withDefaultPasswordEncoder()
-                        .username("user")
-                        .password("password")
-                        .roles("USER")
-                        .build();
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("https://kimp-run-fe-jvmn-dev.vercel.app"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
-        return new InMemoryUserDetailsManager(user);
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

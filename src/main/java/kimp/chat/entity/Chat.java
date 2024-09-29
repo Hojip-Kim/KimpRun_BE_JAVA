@@ -5,6 +5,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 
@@ -21,10 +22,12 @@ public class Chat {
 
     @CreatedDate
     @Indexed
-    private LocalDateTime registed_at;
+    @Field("registed_at")
+    private LocalDateTime registedAt;
 
     @LastModifiedDate
-    private LocalDateTime updated_at;
+    @Field("updated_at")
+    private LocalDateTime updatedAt;
 
     public Chat(){};
     public Chat(String chatID, String content){

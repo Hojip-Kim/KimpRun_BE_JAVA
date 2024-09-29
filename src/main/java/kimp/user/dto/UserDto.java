@@ -1,4 +1,4 @@
-package kimp.chat.dto.response;
+package kimp.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,8 +7,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class ChatLogResponseDto {
-    private String chatID;
-    private String content;
+public class UserDto {
+
+    private String loginId;
+
+    private String nickname;
+
 
 }

@@ -44,11 +44,9 @@ public class UpbitWebsocketClient extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
-        log.info(">>> Connected to Upbit Websocket Successful");
+        log.info(">>> [업비트] 웹소켓 연결 성공");
 
         isConnected = true;
-
-
 
         try {
             List<String> codes = upbit.getMarketList().getMarkets();
@@ -59,7 +57,7 @@ public class UpbitWebsocketClient extends WebSocketClient {
             this.send(message);
 
         } catch (Exception e) {
-            log.error("Failed to send subscribe message", e);
+            log.error("[업비트] 웹소켓 연결 실패", e);
         }
     }
 
@@ -81,26 +79,27 @@ public class UpbitWebsocketClient extends WebSocketClient {
                 upbitWebsocketHandler.inputDataToHashMap(upbitDto);
 
             } catch (Exception e) {
-                log.error("Failed to convert message to Dto", e);
+                log.error("[업비트] 웹소켓 DTO 변환 실패", e);
             }
         }else{
             synchronized (this) {
                 isConnected = true;
-                this.notify(); // 응답 도착하면 대기중 스레드를 꺠움
+                // 응답 도착하면 대기중 스레드를 꺠움
+                this.notify();
             }
         }
     }
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        log.info(">>> DisConnected to Upbit Websocket Successful");
+        log.info(">>> [업비트] 웹소켓 연결 종료 성공");
         isConnected = false;
         attemptReConnect();
     }
 
     @Override
     public void onError(Exception ex) {
-        log.error("An error occurred: " + ex.getMessage(), ex);
+        log.error("[업비트] 웹소켓 에러 : " + ex.getMessage(), ex);
         isConnected = false;
         attemptReConnect();
     }
@@ -117,29 +116,28 @@ public class UpbitWebsocketClient extends WebSocketClient {
 
         reconnectTask = executor.submit(() -> {
             try {
-                log.info("재연결 시도중...");
                 while (!isConnected) {
                     try {
                         Thread.sleep(5000);
-                        log.info("재연결 시도");
+                        log.info("[업비트] 웹소켓 재연결 시도");
                         this.reconnectBlocking();
                         if (this.isOpen() && checkNetworkConnect()) {
                             isConnected = true;
-                            log.info("재연결 성공");
+                            log.info("[업비트] 웹소켓 재연결 성공");
                         } else {
-                            log.warn("연결은 성공하였으나, 네트워크 상태 불안정. 네트워크 연결 다시 시도");
+                            log.warn("[업비트] 연결은 성공하였으나, 네트워크 상태 불안정. 네트워크 연결 다시 시도");
                             isConnected = false;
                         }
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt(); // 스레드의 인터럽트 상태를 유지하며 스레드를 종료
-                        log.error("재 연결 방해됨.", e);
+                        log.error("[업비트] 웹소켓 재 연결 방해됨.", e);
                         break;
                     } catch (Exception e) {
-                        log.error("재연결 실패", e);
+                        log.error("[업비트] 웹소켓 재연결 실패", e);
                     }
                 }
             } catch (Exception ex) {
-                log.error("재연결 중 문제 발생", ex);
+                log.error("[업비트] 웹소켓 재연결 중 문제 발생", ex);
             } finally {
                 if (isConnected) {
                     isReconnecting = false;
@@ -160,11 +158,11 @@ public class UpbitWebsocketClient extends WebSocketClient {
             }
             return isConnected;
         } catch(InterruptedException e){
-            log.error("네트워크 상태 확인 중 방해됨", e);
+            log.error("[업비트] 네트워크 상태 확인 중 방해됨", e);
             Thread.currentThread().interrupt();
             return false;
         }catch(Exception e){
-            log.error("네트워크 상태 확인 중 오류 발생", e);
+            log.error("[업비트] 네트워크 상태 확인 중 오류 발생", e);
             return false;
         }
     }
@@ -174,12 +172,12 @@ public class UpbitWebsocketClient extends WebSocketClient {
         if (isConnected){
             try{
                 this.send("PING");
-                log.info("연결 수립을 위한 PING 메시지 송신");
+                log.info("[업비트] 연결 수립을 위한 PING 메시지 송신");
             }catch(Exception e){
-                log.error("PING 메시지 송신 실패", e);
+                log.error("[업비트] PING 메시지 송신 실패", e);
             }
         }else{
-            log.warn("웹소켓 서버 연결 안됨");
+            log.warn("[업비트] 웹소켓 서버 연결 안됨");
         }
     }
 }
