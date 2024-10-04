@@ -1,19 +1,18 @@
 package kimp.security.user;
 
-import kimp.user.entity.User;
+import kimp.user.dto.UserCopyDto;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 public class CustomUserDetails implements UserDetails {
 
-    private final User user;
+    private final UserCopyDto userCopyDto;
 
-    public CustomUserDetails(User user) {
-        this.user = user;
+    public CustomUserDetails(UserCopyDto userCopyDto) {
+        this.userCopyDto = userCopyDto;
     }
 
 
@@ -23,14 +22,23 @@ public class CustomUserDetails implements UserDetails {
         return Collections.emptyList();
     }
 
+    public Long getId(){
+        return userCopyDto.getId();
+    }
+
+    // user의 email이 null이면 null반환, 그렇지않으면 email 반환
+    public String getEmail() {
+        return userCopyDto.getEmail() == null ? null : userCopyDto.getEmail();
+    }
+
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return userCopyDto.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return user.getLoginId();
+        return userCopyDto.getLoginId();
     }
 
     @Override

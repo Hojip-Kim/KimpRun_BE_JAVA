@@ -1,5 +1,6 @@
 package kimp.security.user.service;
 
+import kimp.security.user.CustomUserDetails;
 import kimp.user.dto.UserCopyDto;
 import kimp.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,11 +23,7 @@ public class CustomUserDetailService implements UserDetailsService {
         UserCopyDto userDto = userService.createCopyUserDtoByLoginId(loginId);
 
         if(userDto != null) {
-            return org.springframework.security.core.userdetails.User.builder()
-                    .username(userDto.getLoginId())
-                    .password(userDto.getPassword())
-                    .roles(userDto.getRole())
-                    .build();
+            return new CustomUserDetails(userDto);
         }else{
             throw new UsernameNotFoundException(loginId);
         }
