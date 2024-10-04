@@ -14,6 +14,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 public class UserCopyDto {
+    private Long id;
+    private String email;
     private String loginId;
     private String password;
     private String role;
