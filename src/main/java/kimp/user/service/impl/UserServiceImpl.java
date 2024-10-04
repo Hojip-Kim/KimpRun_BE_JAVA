@@ -21,27 +21,33 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
-    public UserDto createUser(CreateUserDTO request) {
+    public User createUser(CreateUserDTO request) {
 
         User user = userDao.createUser(request.getLoginId(), passwordEncoder.encode(request.getPassword())); // 유저 패스워드 솔트 + 해시화
 
-        return new UserDto(user.getLoginId(), user.getNickname());
+        return user;
     }
 
 
     @Override
-    public UserDto getUserByLoginId(String loginId) {
+    public User getUserByLoginId(String loginId) {
+
         User user = userDao.findUserByLoginId(loginId);
 
-        return new UserDto(user.getLoginId(), user.getNickname());
+        return user;
     }
 
+    // 외부 서비스에서 호출하는 메소드
+    // 외부 서비스에서 객체 변경 방지를 위한 dto화
     @Override
     public UserCopyDto createCopyUserDtoByLoginId(String loginId) {
         User user = userDao.findUserByLoginId(loginId);
-        return new UserCopyDto(user.getLoginId(), user.getPassword(), user.getRole());
+        return new UserCopyDto(user.getId(),user.getEmail(),user.getLoginId(), user.getPassword(), user.getRole());
     }
 
-
-
+    @Override
+    public User getUserById(Long id) {
+        User user = userDao.findUserById(id);
+        return user;
+    }
 }
