@@ -1,6 +1,7 @@
 package kimp.security;
 
 import kimp.security.user.CustomAuthenticationFilter;
+import kimp.security.user.CustomLogoutSuccessHandler;
 import kimp.security.user.service.CustomUserDetailService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,7 +45,6 @@ public class SecurityConfig {
         http
                 // CORS 설정 적용
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // CSRF 비활성화
                 .csrf(AbstractHttpConfigurer::disable)
                 // 세션 관리 설정
                 .sessionManagement(session -> session
@@ -69,8 +69,11 @@ public class SecurityConfig {
                 )
                 // 기본 폼로그인 비활성화
                 .formLogin(AbstractHttpConfigurer::disable)
-                // 로그아웃 비활성화
-                .logout(AbstractHttpConfigurer::disable)
+                .logout((logout) -> logout.logoutUrl("/logout")
+                        .logoutSuccessHandler(new CustomLogoutSuccessHandler())
+                        .invalidateHttpSession(true) // 세션 무효화
+                        .deleteCookies("JSESSIONID")
+                )
                 // CustomAuthenticationFilter를 필터 체인에 추가
                 .addFilterAt(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -80,7 +83,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("https://kimp-run-fe-jvmn-dev.vercel.app"));
+        configuration.setAllowedOrigins(Arrays.asList("https://kimp-run-fe-jvmn-dev.vercel.app", "http://localhost", "http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

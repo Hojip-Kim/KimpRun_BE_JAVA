@@ -3,10 +3,10 @@ package kimp.user;
 import kimp.security.user.CustomUserDetails;
 import kimp.user.dto.UserDto;
 import kimp.user.dto.request.CreateUserDTO;
+import kimp.user.entity.User;
 import kimp.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,13 +29,12 @@ public class UserController {
     @GetMapping("/test")
     public Map<String, String> redirectToHome(@AuthenticationPrincipal UserDetails userDetails) throws IOException {
 
-
-
         Map<String, String> testMap = new HashMap<>();
 
+        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
 
         if(userDetails != null) {
-            testMap.put("result", userDetails.getUsername());
+            testMap.put("result", customUserDetails.getEmail());
             return testMap;
         }
         else{
@@ -49,6 +48,8 @@ public class UserController {
     @PostMapping("/sign-up")
     public UserDto createUser(@RequestBody CreateUserDTO request){
 
-        return userService.createUser(request);
+        User user = userService.createUser(request);
+
+        return new UserDto(user.getLoginId(), user.getNickname());
     }
 }
