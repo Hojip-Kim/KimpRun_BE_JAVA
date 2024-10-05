@@ -14,5 +14,5 @@ public interface ChatRepository extends MongoRepository<Chat, String> {
 
 
     @Query(value="{}", fields = "{chatID: 1, content: 1}")
-    List<ChatLogResponseDto> findAllByOrderByRegistedAtAsc(Pageable pageable);
+    List<Chat> findAllByOrderByRegistedAtAsc(Pageable pageable);
 }
