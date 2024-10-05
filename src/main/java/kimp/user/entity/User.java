@@ -13,6 +13,9 @@ public class User extends TimeStamp {
     @Column(name="login_id",nullable = false, unique=true)
     private String loginId;
 
+    @Column(nullable = true)
+    private String email;
+
     @JsonIgnore
     @Column(nullable = false)
     private String password;
@@ -50,5 +53,13 @@ public class User extends TimeStamp {
         }
     }
 
+    public User(String loginId, String password, String email) {
+        this.loginId = loginId;
+        this.password = password;
+        if (this.role == null) {
+            this.role = "USER";
+        }
+        this.email = email;
+    }
 
 }

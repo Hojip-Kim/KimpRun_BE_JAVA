@@ -26,7 +26,9 @@ public class ChatController {
             throw new BadRequestException();
         }
 
-        return chatService.getChatMessages(requestDto.getPage(), requestDto.getSize());
+        List<Chat> chatLog = chatService.getChatMessages(requestDto.getPage(), requestDto.getSize());
+
+        return chatService.convertChatLogToDto(chatLog);
     }
 
     @GetMapping("/test")
