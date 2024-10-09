@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 @Entity
-@Table(name = "post_like_cnt")
+@Table(name = "board_like_cnt")
 @Getter
 public class BoardLikeCount{
 
@@ -12,18 +12,20 @@ public class BoardLikeCount{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne
+    @JoinColumn(name = "board_id")
     private Board board;
 
     @Column(nullable = false)
-    private Integer likes;
+    private Integer likes = 0;
 
     public BoardLikeCount() {
     }
 
-    public BoardLikeCount(Long id, Board board, Integer likes) {
-        this.id = id;
+    public BoardLikeCount(Board board) {
         this.board = board;
-        this.likes = likes;
+    }
+    public void likesCount(){
+        this.likes++;
     }
 }
