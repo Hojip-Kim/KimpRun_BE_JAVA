@@ -1,15 +1,37 @@
 package kimp.community.service;
 
-import kimp.community.entity.Board;
+import kimp.community.dto.board.request.CreateBoardRequestDto;
+import kimp.community.dto.board.request.UpdateBoardRequestDto;
+import kimp.community.dto.board.response.BoardResponseDto;
+import kimp.community.entity.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
+
 public interface BoardService {
 
-    public List<Board> getBoardsByPage(int page, int size);
+    // 전체 카테고리에서의 게시글 페이지
+    public Page<Board> getBoardsByPage(int page);
 
-    public Board getBoardById(int id);
+    // 특정 카테고리에서의 게시글 페이지
+    public Page<Board> getBoardsPageByCategory(Category category, Pageable pageable);
 
-    public Integer getBoardsCount();
+    public Board getBoardById(long id);
+
+    public Board createBoard(CreateBoardRequestDto createBoardRequestDto);
+
+    public Board updateBoard(Board board, UpdateBoardRequestDto updateBoardRequestDto );
+
+    public Boolean deleteBoard(Board board);
+
+    public BoardLikeCount createBoardLikeCount(Board board);
+
+    public BoardViews createBoardViews(Board board);
+
+    public BoardResponseDto convertBoardToBoardResponseDto(Board board);
+
+    public List<BoardResponseDto> convertBoardPagesToBoardResponseDtos(Page<Board> boardPages);
 
 }
