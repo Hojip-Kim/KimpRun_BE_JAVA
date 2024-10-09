@@ -13,17 +13,20 @@ public class BoardViews{
     private Long id;
 
     @OneToOne
+    @JoinColumn(name = "board_id")
     private Board board;
 
     @Column
-    private Integer views;
+    private Integer views = 0;
 
     public BoardViews() {
     }
 
-    public BoardViews(Long id, Board board, Integer views) {
-        this.id = id;
+    public BoardViews(Board board) {
         this.board = board;
-        this.views = views;
+    }
+
+    private void viewCount(){
+        this.views++;
     }
 }
