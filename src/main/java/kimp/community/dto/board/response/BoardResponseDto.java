@@ -12,10 +12,13 @@ import java.time.LocalDateTime;
 @Getter
 public class BoardResponseDto {
 
-    private Long id;
+    private Long boardId;
     private Long userId;
+    private String userNickName;
     private String title;
     private String content;
+    private Integer boardViewsCount;
+    private Integer boardLikesCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
