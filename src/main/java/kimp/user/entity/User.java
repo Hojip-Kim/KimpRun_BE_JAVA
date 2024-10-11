@@ -3,7 +3,12 @@ package kimp.user.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import kimp.common.entity.TimeStamp;
+import kimp.community.entity.Board;
+import kimp.community.entity.Comment;
+import kimp.user.enums.UserRole;
 import lombok.Getter;
+
+import java.util.List;
 
 @Entity
 @Table(name= "user_table")
@@ -24,7 +29,8 @@ public class User extends TimeStamp {
     private String nickname;
 
     @Column(nullable = false)
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
 
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private Oauth oauth;
@@ -38,10 +44,15 @@ public class User extends TimeStamp {
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private Profile profile;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Board> boards;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Comment> comments;
 
     public User(){
         if(this.role == null){
-            this.role = "USER";
+            this.role = UserRole.USER;
         }
     }
 
@@ -49,7 +60,7 @@ public class User extends TimeStamp {
         this.loginId = loginId;
         this.password = password;
         if(this.role == null){
-            this.role = "USER";
+            this.role = UserRole.USER;
         }
     }
 
@@ -57,9 +68,32 @@ public class User extends TimeStamp {
         this.loginId = loginId;
         this.password = password;
         if (this.role == null) {
-            this.role = "USER";
+            this.role = UserRole.USER;
         }
         this.email = email;
+    }
+
+    public User addBoard(Board board){
+        this.boards.add(board);
+        return this;
+    }
+
+    public User addComment(Comment comment){
+        this.comments.add(comment);
+        return this;
+    }
+
+    public User updatePassword(String password){
+        this.password = password;
+        return this;
+    }
+
+    public User grantRole(UserRole role){
+        if(this.role == null){
+            throw new IllegalArgumentException("Role cannot be null");
+        }
+        this.role = role;
+        return this;
     }
 
 }
