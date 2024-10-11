@@ -5,6 +5,7 @@ import kimp.security.user.CustomLogoutSuccessHandler;
 import kimp.security.user.service.CustomUserDetailService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -53,22 +54,12 @@ public class SecurityConfig {
                 )
                 // 요청 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(
-                                "/login",
-                                "/user/sign-up",
-                                "/user",
-                                "/upbit/**",
-                                "/binance/**",
-                                "/websocket/**",
-                                "/market/**",
-                                "/chat/**",
-                                "/chatService/**",
-                                "/category/**",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/error"
-                        ).permitAll()
-                        .anyRequest().authenticated()
+                                .requestMatchers(HttpMethod.POST, "/login").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/**").authenticated()
+                                .requestMatchers(HttpMethod.PUT, "/**").authenticated()
+                                .requestMatchers(HttpMethod.PATCH, "/**").authenticated()
+                                .requestMatchers(HttpMethod.DELETE, "/**").authenticated()
+                                .anyRequest().permitAll()
                 )
                 // 기본 폼로그인 비활성화
                 .formLogin(AbstractHttpConfigurer::disable)
