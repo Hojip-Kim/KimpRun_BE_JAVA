@@ -3,6 +3,7 @@ package kimp.community.controller;
 import kimp.community.dto.board.request.CreateBoardRequestDto;
 import kimp.community.dto.board.request.UpdateBoardRequestDto;
 import kimp.community.dto.board.response.BoardResponseDto;
+import kimp.community.dto.board.response.BoardWithCommentResponseDto;
 import kimp.community.entity.Board;
 import kimp.community.service.BoardService;
 import kimp.community.service.BoardPacadeService;
@@ -32,23 +33,26 @@ public class BoardController {
      * @param
      * boardId : long type
      * @return
-     * Long boardId;
-     * Long userId;
-     * String userNickName;
-     * String title;
-     * String content;
-     * LocalDateTime createdAt;
-     * LocalDateTime updatedAt;
+    Long boardId,
+    Long userId,
+    String userNickName,
+    String title,
+    String content,
+    Integer boardViewsCount,
+    Integer boardLikesCount,
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt,
+    List<ResponseCommentDto> comments
      */
-    @GetMapping("/boardId")
-    private BoardResponseDto getBoard(@RequestParam("boardId") long boardId){
+    @GetMapping()
+    private BoardWithCommentResponseDto getBoard(@RequestParam("boardId") long boardId, @RequestParam("commentPage") int commentPage){
         if(boardId < 0){
             throw new IllegalArgumentException("categoryId and boardId must be non-negative");
         }
 
-        Board board = boardService.getBoardById(boardId);
+        BoardWithCommentResponseDto board = boardPacadeService.getBoardByIdWithCommentPage(boardId, commentPage);
 
-        return boardService.convertBoardToBoardResponseDto(board);
+        return board;
     }
 
     @GetMapping("/all/page")
