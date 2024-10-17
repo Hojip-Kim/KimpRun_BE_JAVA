@@ -26,6 +26,9 @@ public class Board extends TimeStamp {
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Comment> comments;
 
+    @OneToOne(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private CommentCount commentCount;
+
     @OneToOne(mappedBy = "board",cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private BoardViews views;
 
@@ -79,6 +82,12 @@ public class Board extends TimeStamp {
     public Board updateContent(String content){
         if(content != null && !content.isEmpty()){
             this.content = content;
+        }
+        return this;
+    }
+    public Board setCommentCount(CommentCount commentCount){
+        if(commentCount != null){
+            this.commentCount = commentCount;
         }
         return this;
     }
