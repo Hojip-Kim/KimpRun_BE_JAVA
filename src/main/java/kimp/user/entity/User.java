@@ -8,6 +8,7 @@ import kimp.community.entity.Comment;
 import kimp.user.enums.UserRole;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -45,31 +46,25 @@ public class User extends TimeStamp {
     private Profile profile;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Board> boards;
+    private List<Board> boards = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Comment> comments;
+    private List<Comment> comments = new ArrayList<>();
 
     public User(){
-        if(this.role == null){
-            this.role = UserRole.USER;
-        }
+        this.role = UserRole.USER;
     }
 
     public User(String loginId, String password) {
         this.loginId = loginId;
         this.password = password;
-        if(this.role == null){
-            this.role = UserRole.USER;
-        }
+        this.role = UserRole.USER;
     }
 
     public User(String loginId, String password, String email) {
         this.loginId = loginId;
         this.password = password;
-        if (this.role == null) {
-            this.role = UserRole.USER;
-        }
+        this.role = UserRole.USER;
         this.email = email;
     }
 
