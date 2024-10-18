@@ -12,18 +12,21 @@ public class CommentCount {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "board_id")
     private Board board;
 
     @Column
-    private Integer counts;
+    private Integer counts = 0;
 
     public CommentCount() {
     }
 
-    public CommentCount(Long id, Board board, Integer counts) {
-        this.id = id;
+    public CommentCount(Board board) {
         this.board = board;
-        this.counts = counts;
+    }
+
+    public void addCount(){
+        this.counts++;
     }
 }
