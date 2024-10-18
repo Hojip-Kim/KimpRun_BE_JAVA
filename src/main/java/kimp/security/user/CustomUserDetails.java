@@ -1,9 +1,12 @@
 package kimp.security.user;
 
 import kimp.user.dto.UserCopyDto;
+import kimp.user.enums.UserRole;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -19,7 +22,17 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // 권한 설정
-        return Collections.emptyList();
+        UserRole role = userCopyDto.getRole();
+
+        Collection<GrantedAuthority> authorities = new ArrayList<>();
+
+        if(role == null){
+            return Collections.emptyList();
+        }
+
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + role.name()));
+
+        return authorities;
     }
 
     public Long getId(){

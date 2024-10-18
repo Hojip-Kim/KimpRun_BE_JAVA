@@ -4,8 +4,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import kimp.community.dto.category.CategoryDto;
 import kimp.community.dto.category.request.CreateCategoryRequestDto;
 import kimp.community.dto.category.request.UpdateCategoryRequestDto;
+import kimp.community.entity.Category;
+import kimp.community.service.CategoryPacadeService;
 import kimp.community.service.CategoryService;
+import kimp.security.user.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,15 +21,19 @@ import java.util.List;
 public class CategoryController {
 
     private final CategoryService categoryService;
+    private final CategoryPacadeService categoryPacadeService;
 
-    public CategoryController(CategoryService categoryService) {
+    public CategoryController(CategoryService categoryService, CategoryPacadeService categoryPacadeService) {
         this.categoryService = categoryService;
+        this.categoryPacadeService = categoryPacadeService;
     }
 
     @GetMapping
     public List<CategoryDto> getAllCategories(HttpServletRequest request){
 
-        return categoryService.getAllCategories();
+        List<Category> category = categoryService.getAllCategories();
+
+        return categoryService.convertCategoryListToDto(category);
     }
 
     @GetMapping("/{id}")
@@ -31,23 +41,35 @@ public class CategoryController {
         if(id < 0){
             throw new IllegalArgumentException("category Id is not available.");
         }
-        return categoryService.getCategoryByID(id);
+
+        Category category = categoryService.getCategoryByID(id);
+
+        return new CategoryDto(category.getId(), category.getCategoryName());
     }
 
+    @PreAuthorize("hasRole('MANAGER')")
     @PostMapping
-    public CategoryDto createCategory(HttpServletRequest request, @RequestBody CreateCategoryRequestDto createCategoryRequestDto){
+    public CategoryDto createCategory(@AuthenticationPrincipal UserDetails userDetails, @RequestBody CreateCategoryRequestDto createCategoryRequestDto){
 
-        return categoryService.createCategory(createCategoryRequestDto);
+        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
+
+        Category category = categoryPacadeService.createCategory(customUserDetails.getId(),createCategoryRequestDto);
+
+        return categoryService.convertCategoryToDto(category);
     }
 
+    @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping
-    public CategoryDto patchCategory(HttpServletRequest request, @RequestBody UpdateCategoryRequestDto updateCategoryRequestDto){
+    public CategoryDto patchCategory(@AuthenticationPrincipal UserDetails userDetails, @RequestBody UpdateCategoryRequestDto updateCategoryRequestDto){
 
-        return categoryService.updatedCategory(updateCategoryRequestDto);
+        Category category = categoryService.updatedCategory(updateCategoryRequestDto);
+
+        return new CategoryDto(category.getId(), category.getCategoryName());
     }
 
+    @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable Long id){
+    public ResponseEntity<Void> deleteCategory(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long id){
         if(id < 0){
             throw new IllegalArgumentException("category Id is not available");
         }
