@@ -46,4 +46,9 @@ public class Comment extends TimeStamp {
         this.likeCount = commentLikeCount;
         return this;
     }
+
+    public Comment updateCommentContent(String content){
+        this.content = content;
+        return this;
+    }
 }
