@@ -4,6 +4,7 @@ import kimp.user.dao.UserDao;
 import kimp.user.entity.User;
 import kimp.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -14,7 +15,7 @@ public class UserDaoImpl implements UserDao {
 
     private final UserRepository userRepository;
 
-    public UserDaoImpl(UserRepository userRepository) {
+    public UserDaoImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
     }
 
@@ -47,4 +48,23 @@ public class UserDaoImpl implements UserDao {
         return this.userRepository.save(new User(loginId, password));
     }
 
+    @Override
+    public User updateUser(User user ,String newHashedPassword) {
+        user.updatePassword(newHashedPassword);
+
+        return this.userRepository.save(user);
+    }
+
+    @Override
+    public Boolean deleteUser(Long id) {
+        User user = findUserById(id);
+        this.userRepository.delete(user);
+
+        User findUser = findUserById(id);
+        if(findUser == null){
+            return false;
+        }
+
+        return true;
+    }
 }

@@ -13,17 +13,20 @@ public class BoardCount {
     private Long id;
 
     @OneToOne
-    private Category category;
+    @JoinColumn(name = "category_id")
+    public Category category;
 
     @Column
-    private Integer counts;
+    private Integer counts = 0;
 
     public BoardCount() {
     }
 
-    public BoardCount(Long id, Category category, Integer counts) {
-        this.id = id;
+    public BoardCount(Category category) {
         this.category = category;
-        this.counts = counts;
+    }
+
+    public void viewCounts(){
+        this.counts++;
     }
 }

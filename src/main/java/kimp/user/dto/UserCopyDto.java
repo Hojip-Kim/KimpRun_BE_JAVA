@@ -1,5 +1,6 @@
 package kimp.user.dto;
 
+import kimp.user.enums.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,5 +19,5 @@ public class UserCopyDto {
     private String email;
     private String loginId;
     private String password;
-    private String role;
+    private UserRole role;
 }
