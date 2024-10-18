@@ -26,7 +26,7 @@ public class BoardViews{
         this.board = board;
     }
 
-    private void viewCount(){
+    public void viewCount(){
         this.views++;
     }
 }
