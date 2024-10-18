@@ -4,6 +4,9 @@ import jakarta.transaction.Transactional;
 import kimp.community.dto.board.request.CreateBoardRequestDto;
 import kimp.community.dto.board.request.UpdateBoardRequestDto;
 import kimp.community.dto.board.response.BoardResponseDto;
+import kimp.community.dto.board.response.BoardWithCommentResponseDto;
+import kimp.community.dto.comment.request.RequestCreateCommentDto;
+import kimp.community.dto.comment.response.ResponseCommentDto;
 import kimp.community.entity.*;
 import kimp.user.entity.User;
 import kimp.user.service.UserService;
@@ -21,12 +24,14 @@ public class BoardPacadeService {
     private final UserService userService;
     private final CategoryService categoryService;
     private final CommentService commentService;
+    private final CommentPacadeService commentPacadeService;
 
-    public BoardPacadeService(BoardService boardService, UserService userService, CategoryService categoryService, CommentService commentService) {
+    public BoardPacadeService(BoardService boardService, UserService userService, CategoryService categoryService, CommentService commentService, CommentPacadeService commentPacadeService) {
         this.boardService = boardService;
         this.userService = userService;
         this.categoryService = categoryService;
         this.commentService = commentService;
+        this.commentPacadeService = commentPacadeService;
     }
 
     @Transactional
@@ -39,16 +44,29 @@ public class BoardPacadeService {
         Board board = boardService.createBoard(createBoardRequestDto);
         BoardViews boardViews = boardService.createBoardViews(board);
         BoardLikeCount boardLikeCount = boardService.createBoardLikeCount(board);
+        CommentCount commentCount = commentService.createCommentCount(board);
 
-        board.setUser(user).setCategory(category).setViews(boardViews).setBoardLikeCounts(boardLikeCount);
+        board.setUser(user).setCategory(category).setViews(boardViews).setBoardLikeCounts(boardLikeCount).setCommentCount(commentCount);
 
         user.addBoard(board);
 
         category.getBoardCount().viewCounts();
 
-        commentService.createCommentCount(board);
-
         return board;
+    }
+
+    // 게시글 조회
+    // board를 Id로 찾은 후 comment list와 함께 response
+    @Transactional
+    public BoardWithCommentResponseDto getBoardByIdWithCommentPage(Long requestBoardId, int page) {
+        Board board = boardService.getBoardById(requestBoardId);
+        board.getViews().viewCount();
+        Page<Comment> comments = commentPacadeService.getComments(requestBoardId, page);
+
+        List<ResponseCommentDto> commentDtos =  commentService.converCommentsToResponseDtoList(comments.getContent());
+
+        return new BoardWithCommentResponseDto(board.getId(), board.getUser().getId(), board.getUser().getNickname(), board.getTitle(), board.getContent(), board.getViews().getViews(), board.getBoardLikeCount().getLikes(), board.getRegisted_at(), board.getUpdated_at(), commentDtos);
+
     }
 
     public Board updateBoard(Long userId, Long boardId, UpdateBoardRequestDto updateBoardRequestDto) {
@@ -91,4 +109,39 @@ public class BoardPacadeService {
                 .collect(Collectors.toList());
     }
 
+
+    @Transactional
+    public Comment createComment(long userId, long boardId, RequestCreateCommentDto requestCreateCommentDto) {
+        Board board = boardService.getBoardById(boardId);
+        User user = userService.getUserById(userId);
+        Comment comment = commentService.createComment(user, board, requestCreateCommentDto);
+        CommentLikeCount commentLikeCount = commentService.createCommentLikeCount(comment);
+        comment.setCommentLikeCount(commentLikeCount);
+        user.addComment(comment);
+        board.addComment(comment);
+        board.getCommentCount().addCount();
+
+        return comment;
+    }
+
+    public Page<Comment> getComments(long boardId, int page) {
+        Page<Comment> comments = commentService.getCommentByBoardId(boardId, page);
+
+        return comments;
+
+    }
+
+    public Boolean likeBoardById(Long boardId, Long userId) {
+        Board board = boardService.getBoardById(boardId);
+        User user = userService.getUserById(userId);
+        BoardLikeCount boardLikeCount = board.getBoardLikeCount();
+        int beforeBoardLike = boardLikeCount.getLikes();
+        boardLikeCount.addLikes(user);
+        int prevBoardLike = boardLikeCount.getLikes();
+        if(beforeBoardLike + 1 == prevBoardLike){
+            return true;
+        }
+
+        return false;
+    }
 }

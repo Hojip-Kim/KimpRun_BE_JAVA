@@ -126,4 +126,14 @@ public class BoardController {
         return ResponseEntity.notFound().build();
     }
 
+    @PatchMapping("/like")
+    private ResponseEntity<Boolean> likeBoard(@AuthenticationPrincipal UserDetails userDetails, @RequestBody long boardId){
+
+        CustomUserDetails customUserDetails = (CustomUserDetails)userDetails;
+
+        Boolean isCompleted = boardPacadeService.likeBoardById(boardId, customUserDetails.getId());
+
+        return ResponseEntity.ok(isCompleted);
+    }
+
 }
