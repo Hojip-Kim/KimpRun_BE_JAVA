@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -22,10 +23,16 @@ public class CustomUserDetails implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // 권한 설정
         UserRole role = userCopyDto.getRole();
+
+        Collection<GrantedAuthority> authorities = new ArrayList<>();
+
         if(role == null){
             return Collections.emptyList();
         }
-        return Collections.singletonList(new SimpleGrantedAuthority(role.name()));
+
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + role.name()));
+
+        return authorities;
     }
 
     public Long getId(){
