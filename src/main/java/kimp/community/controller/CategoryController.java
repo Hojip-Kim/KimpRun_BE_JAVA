@@ -5,23 +5,27 @@ import kimp.community.dto.category.CategoryDto;
 import kimp.community.dto.category.request.CreateCategoryRequestDto;
 import kimp.community.dto.category.request.UpdateCategoryRequestDto;
 import kimp.community.entity.Category;
+import kimp.community.service.CategoryPacadeService;
 import kimp.community.service.CategoryService;
+import kimp.security.user.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-// TODO : Category 관리의 경우 userDetails ROLES가 관리자 등급인 경우에만 접근허용하도록 조치.
 @RestController
 @RequestMapping("/category")
 public class CategoryController {
 
     private final CategoryService categoryService;
+    private final CategoryPacadeService categoryPacadeService;
 
-    public CategoryController(CategoryService categoryService) {
+    public CategoryController(CategoryService categoryService, CategoryPacadeService categoryPacadeService) {
         this.categoryService = categoryService;
+        this.categoryPacadeService = categoryPacadeService;
     }
 
     @GetMapping
@@ -42,14 +46,19 @@ public class CategoryController {
 
         return new CategoryDto(category.getId(), category.getCategoryName());
     }
+
+    @PreAuthorize("hasRole('MANAGER')")
     @PostMapping
     public CategoryDto createCategory(@AuthenticationPrincipal UserDetails userDetails, @RequestBody CreateCategoryRequestDto createCategoryRequestDto){
 
-        Category category = categoryService.createCategory(createCategoryRequestDto);
+        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
+
+        Category category = categoryPacadeService.createCategory(customUserDetails.getId(),createCategoryRequestDto);
 
         return categoryService.convertCategoryToDto(category);
     }
 
+    @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping
     public CategoryDto patchCategory(@AuthenticationPrincipal UserDetails userDetails, @RequestBody UpdateCategoryRequestDto updateCategoryRequestDto){
 
@@ -58,6 +67,7 @@ public class CategoryController {
         return new CategoryDto(category.getId(), category.getCategoryName());
     }
 
+    @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long id){
         if(id < 0){
