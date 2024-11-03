@@ -19,11 +19,11 @@ public class TimeStamp {
 
     @CreatedDate
     @Column(name = "registed_at", updatable = false)
-    private LocalDateTime registed_at;
+    private LocalDateTime registedAt;
 
 
     @LastModifiedDate
     @Column(name = "updated_at")
-    private LocalDateTime updated_at;
+    private LocalDateTime updatedAt;
 
 }
