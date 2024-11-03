@@ -31,8 +31,8 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public User findUserByLoginId(String loginId){
-        Optional<User> user = this.userRepository.findByLoginId(loginId);
+    public User findUserByEmail(String email){
+        Optional<User> user = this.userRepository.findByEmail(email);
         if(user.isEmpty()){
             throw new IllegalArgumentException("user not found");
         }
@@ -40,12 +40,12 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public User createUser(String loginId, String password){
-        Optional<User> user = this.userRepository.findByLoginId(loginId);
+    public User createUser(String email,String nickname, String password){
+        Optional<User> user = this.userRepository.findByEmail(email);
         if(user.isPresent()){
             throw new IllegalArgumentException("user already exists");
         }
-        return this.userRepository.save(new User(loginId, password));
+        return this.userRepository.save(new User(email,nickname, password));
     }
 
     @Override
