@@ -13,10 +13,6 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 public class TimeStamp {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id = null;
-
     @CreatedDate
     @Column(name = "registed_at", updatable = false)
     private LocalDateTime registedAt;
