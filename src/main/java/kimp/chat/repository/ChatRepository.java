@@ -13,6 +13,6 @@ import java.util.List;
 public interface ChatRepository extends MongoRepository<Chat, String> {
 
 
-    @Query(value="{}", fields = "{chatID: 1, content: 1}")
+    @Query(value="{}", fields = "{chatID: 1, content: 1, authenticated: 1}")
     List<Chat> findAllByOrderByRegistedAtAsc(Pageable pageable);
 }
