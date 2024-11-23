@@ -1,16 +1,26 @@
 package kimp.user.dto.request;
 
-import lombok.AllArgsConstructor;
+import kimp.user.enums.Oauth;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class CreateUserDTO {
-    private String loginId;
+    private String nickname;
+    private String email;
     private String password;
+    private Oauth oauth = null;
+    private String providerId = null;
+    private String accessToken = null;
+    private String refreshToken = null;
+
+    public CreateUserDTO() {}
+
+    public CreateUserDTO(String nickname, String email, String password) {
+        this.nickname = nickname;
+        this.email = email;
+        this.password = password;
+    }
 
 }
