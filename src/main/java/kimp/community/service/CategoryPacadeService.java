@@ -1,27 +1,27 @@
 package kimp.community.service;
 
-import jakarta.transaction.Transactional;
 import kimp.community.dto.category.request.CreateCategoryRequestDto;
 import kimp.community.entity.Category;
-import kimp.user.entity.User;
-import kimp.user.service.UserService;
+import kimp.user.entity.Member;
+import kimp.user.service.MemberService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CategoryPacadeService {
     private final CategoryService categoryService;
-    private final UserService userService;
+    private final MemberService memberService;
 
-    public CategoryPacadeService(CategoryService categoryService, UserService userService) {
+    public CategoryPacadeService(CategoryService categoryService, MemberService memberService) {
         this.categoryService = categoryService;
-        this.userService = userService;
+        this.memberService = memberService;
     }
 
     @Transactional
-    public Category createCategory(long userId, CreateCategoryRequestDto categoryDto){
+    public Category createCategory(long memberId, CreateCategoryRequestDto categoryDto){
         Category category = categoryService.createCategory(categoryDto);
-        User user = userService.getUserById(userId);
-        return category.setUser(user);
+        Member member = memberService.getmemberById(memberId);
+        return category.setMember(member);
     }
 
 }

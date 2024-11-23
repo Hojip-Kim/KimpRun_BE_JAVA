@@ -2,12 +2,16 @@ package kimp.community.entity;
 
 import jakarta.persistence.*;
 import kimp.common.entity.TimeStamp;
-import kimp.user.entity.User;
+import kimp.user.entity.Member;
 import lombok.Getter;
 
 @Entity
 @Getter
 public class Category extends TimeStamp {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name="category_name",nullable = false)
     public String categoryName;
@@ -16,8 +20,8 @@ public class Category extends TimeStamp {
     public BoardCount boardCount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    public User user;
+    @JoinColumn(name = "member_id")
+    public Member member;
 
     public Category() {
     }
@@ -46,11 +50,11 @@ public class Category extends TimeStamp {
         return this;
     }
 
-    public Category setUser(User user){
-        if(user == null){
-            throw new IllegalArgumentException("user must not be null");
+    public Category setMember(Member member){
+        if(member == null){
+            throw new IllegalArgumentException("member must not be null");
         }
-        this.user = user;
+        this.member = member;
         return this;
     }
 
