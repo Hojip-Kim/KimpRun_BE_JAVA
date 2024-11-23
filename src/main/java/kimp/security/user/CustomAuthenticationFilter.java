@@ -36,12 +36,12 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
         try {
             ObjectMapper mapper = new ObjectMapper();
             Map<String, String> credentials = mapper.readValue(request.getInputStream(), Map.class);
-            String username = credentials.get("loginId");
+            String membername = credentials.get("email");
             String password = credentials.get("password");
 
-            log.info("로그인 시도 - Username: {}", username);
+            log.info("로그인 시도 - membername: {}", membername);
 
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password);
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(membername, password);
 
             return this.getAuthenticationManager().authenticate(authToken);
         } catch (IOException e) {
@@ -66,7 +66,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
                                             FilterChain chain, Authentication authResult)
             throws IOException, ServletException {
-        log.info("로그인 성공 - Username: {}", authResult.getName());
+        log.info("로그인 성공 - memberName: {}", authResult.getName());
 
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authResult);
