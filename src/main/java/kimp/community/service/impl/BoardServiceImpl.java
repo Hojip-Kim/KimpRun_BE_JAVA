@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,6 +46,7 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
+    @Transactional
     public Page<Board> getBoardsPageByCategory(Category category, Pageable pageable){
         Page<Board> boardPages = boardDao.findByCategoryWithPage(category, pageable);
         return boardPages;
@@ -92,7 +94,7 @@ public class BoardServiceImpl implements BoardService {
             throw new IllegalArgumentException("board object is null");
         }
 
-        return new BoardResponseDto(board.getId(), board.getUser().getId(), board.getUser().getNickname(), board.getTitle(), board.getContent(), board.getViews().getViews(), board.getBoardLikeCount().getLikes(),board.getRegisted_at(), board.getUpdated_at());
+        return new BoardResponseDto(board.getId(), board.getMember().getId(), board.getMember().getNickname(), board.getTitle(), board.getContent(), board.getViews().getViews(), board.getBoardLikeCount().getLikes(),board.getRegistedAt(), board.getUpdatedAt(), board.getCommentCount().getCounts());
     }
 
     @Override
