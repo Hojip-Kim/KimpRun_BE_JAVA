@@ -1,6 +1,9 @@
 package kimp.chat.handler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import kimp.chat.dto.request.ChatMessage;
 import kimp.chat.service.ChatWebsocketService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PongMessage;
@@ -9,6 +12,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 @Component
+@Slf4j
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final ChatWebsocketService chatWebsocketService;
@@ -38,8 +42,13 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             throw new IllegalArgumentException("Not have text message contents");
         }
         // 메시지를 받은 경우 처리 로직 (필요시)
-        chatWebsocketService.saveMessage(session, message);
-        chatWebsocketService.broadcastChat(session, message);
+        String payload = message.getPayload();
+        ObjectMapper mapper = new ObjectMapper();
+        ChatMessage chatMessage = mapper.readValue(payload, ChatMessage.class);
+
+
+        chatWebsocketService.saveMessage(chatMessage);
+        chatWebsocketService.broadcastChat(session, chatMessage);
     }
 
     // TODO : websocket time-out 방지용 ping-pong logic
