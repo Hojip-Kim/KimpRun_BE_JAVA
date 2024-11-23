@@ -68,7 +68,7 @@ public class CategoryDaoImpl implements CategoryDao {
 
     @Override
     public Boolean deleteCategoryById(Long id){
-        Boolean isDeleted = false;
+        Boolean isDeleted = true;
 
         Category category = getCategoryById(id);
 
