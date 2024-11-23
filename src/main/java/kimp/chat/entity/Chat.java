@@ -20,6 +20,8 @@ public class Chat {
 
     private String content;
 
+    private String authenticated;
+
     @CreatedDate
     @Indexed
     @Field("registed_at")
@@ -30,9 +32,10 @@ public class Chat {
     private LocalDateTime updatedAt;
 
     public Chat(){};
-    public Chat(String chatID, String content){
+    public Chat(String chatID, String content, String authenticated){
         this.chatID = chatID;
         this.content = content;
+        this.authenticated = authenticated;
     };
 
 }
