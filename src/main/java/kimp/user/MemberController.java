@@ -2,10 +2,10 @@ package kimp.user;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
-import kimp.member.dto.response.AdminResponse;
 import kimp.user.dto.UserDto;
 import kimp.user.dto.UserWithIdNameEmailDto;
 import kimp.user.dto.request.*;
+import kimp.user.dto.response.AdminResponse;
 import kimp.user.entity.Member;
 import kimp.user.service.MemberService;
 import lombok.extern.slf4j.Slf4j;
@@ -99,21 +99,30 @@ public class MemberController {
         return new UserWithIdNameEmailDto(member.getEmail(), member.getNickname(), member.getRole().name());
     }
 
+    @DeleteMapping("/softDelete")
+    public ResponseEntity<Boolean> deActivateMember(@AuthenticationPrincipal UserDetails UserDetails, DeActivateUserDTO deActivateUserDTO ) {
+
+        CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
+
+        if(deActivateUserDTO == null) {
+            throw new IllegalArgumentException("deActivateUserDTO is null");
+        }
+
+        Boolean isSuccessDeActivate = memberService.deActivateMember(customUserDetails.getId(), deActivateUserDTO);
+
+        return isSuccessDeActivate? ResponseEntity.ok(true) : ResponseEntity.ok(false);
+    }
+
+    @PreAuthorize("hasAnyAuthority('MANAGER', 'OPERATOR')")
     @DeleteMapping("/delete")
-    public ResponseEntity<Boolean> deletemember(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody DeleteUserDTO request) {
+    public ResponseEntity<Boolean> deleteMember(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody DeleteUserDTO request) {
         if(request == null) {
             throw new IllegalArgumentException("request is null");
         }
 
-        CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
+        Boolean isDeleted = memberService.deleteMember(request);
 
-        Boolean isDeleted = memberService.deletemember(customUserDetails.getId(), request);
-
-        if(isDeleted){
-            return ResponseEntity.ok(true);
-        }else{
-            return ResponseEntity.ok(false);
-        }
+        return isDeleted? ResponseEntity.ok(true) : ResponseEntity.ok(false);
     }
 
     @PreAuthorize("hasAuthority('OPERATOR')")

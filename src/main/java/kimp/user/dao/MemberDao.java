@@ -8,5 +8,5 @@ public interface MemberDao {
     public Member findMemberByEmail(String email);
     public Member createMember(String email, String nickname, String password);
     public Member updateMember(Member member, String newHashedPassword);
-    public Boolean deletemember(Long id);
+    public Boolean deleteMember(Long id);
 }

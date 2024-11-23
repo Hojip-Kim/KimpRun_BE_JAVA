@@ -35,6 +35,9 @@ public class Member extends TimeStamp {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
+    @Column(name="is_active", nullable = false)
+    private boolean isActive = true;
+
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL)
     @JsonIgnore
     private Oauth oauth;
@@ -111,6 +114,10 @@ public class Member extends TimeStamp {
             oauth.setMember(this);
         }
         return this;
+    }
+
+    public void deActivate(){
+        this.isActive = false;
     }
 
 }

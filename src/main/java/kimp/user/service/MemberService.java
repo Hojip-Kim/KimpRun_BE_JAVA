@@ -2,10 +2,7 @@ package kimp.user.service;
 
 import kimp.user.dto.UserCopyDto;
 import kimp.user.dto.UserDto;
-import kimp.user.dto.request.CreateUserDTO;
-import kimp.user.dto.request.DeleteUserDTO;
-import kimp.user.dto.request.UpdateUserNicknameDTO;
-import kimp.user.dto.request.UpdateUserPasswordDTO;
+import kimp.user.dto.request.*;
 import kimp.user.entity.Member;
 import kimp.user.enums.UserRole;
 
@@ -23,11 +20,11 @@ public interface MemberService {
 
     public Member updateNickname(Long id, UpdateUserNicknameDTO UpdateUserNicknameDTO);
 
-    public Boolean deletemember(Long id, DeleteUserDTO DeleteUserDTO);
+    public Boolean deActivateMember(Long id, DeActivateUserDTO deleteUserDTO);
+
+    public Boolean deleteMember(DeleteUserDTO DeleteUserDTO);
 
     public UserDto convertUserToUserDto(Member member);
-
-    public Boolean isMatchedPassword(String password, String hashedPassword);
 
     public Member grantRole(Long memberId, UserRole grantRole);
 }
