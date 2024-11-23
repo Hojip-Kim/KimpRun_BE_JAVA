@@ -1,6 +1,5 @@
 package kimp.community.service.impl;
 
-import jakarta.transaction.Transactional;
 import kimp.community.dao.CommentCountDao;
 import kimp.community.dao.CommentDao;
 import kimp.community.dao.CommentLikeCountDao;
@@ -12,11 +11,13 @@ import kimp.community.entity.Comment;
 import kimp.community.entity.CommentCount;
 import kimp.community.entity.CommentLikeCount;
 import kimp.community.service.CommentService;
-import kimp.user.entity.User;
+import kimp.user.entity.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,11 +35,13 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Page<Comment> getCommentByBoardId(long boardId, int page) {
+    public Page<Comment> getCommentByBoard(Board board, int page) {
 
         PageRequest pageRequest = PageRequest.of(page, 30);
 
-        Page<Comment> comments = commentDao.getComments(boardId, pageRequest);
+
+
+        Page<Comment> comments = commentDao.getComments(board, pageRequest);
 
 
         return comments;
@@ -50,15 +53,15 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Comment createComment(User user, Board board, RequestCreateCommentDto createCommentDto) {
-        if(user == null){
-            throw new IllegalArgumentException("user must not be null");
+    public Comment createComment(Member member, Board board, RequestCreateCommentDto createCommentDto) {
+        if(member == null){
+            throw new IllegalArgumentException("member must not be null");
         }
         if(board == null){
             throw new IllegalArgumentException("board must not be null");
         }
 
-        return commentDao.createComment(user, board, createCommentDto.getContent(), createCommentDto.getParentCommentId(), createCommentDto.getDepth());
+        return commentDao.createComment(member, board, createCommentDto.getContent(), createCommentDto.getParentCommentId(), createCommentDto.getDepth());
     }
 
     @Override
@@ -68,10 +71,10 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public Comment updateComment(long userId, RequestUpdateCommentDto updateCommentDto) {
+    public Comment updateComment(long memberId, RequestUpdateCommentDto updateCommentDto) {
 
         Comment comment = commentDao.getComment(updateCommentDto.getCommentId());
-        if(!comment.user.getId().equals(userId)){
+        if(!comment.member.getId().equals(memberId)){
             throw new IllegalArgumentException("comment id mismatch");
         }
 
@@ -79,9 +82,9 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Boolean deleteComment(long userId, long commentId) {
+    public Boolean deleteComment(long memberId, long commentId) {
         Comment comment = commentDao.getComment(commentId);
-        if(!comment.user.getId().equals(userId)){
+        if(!comment.member.getId().equals(memberId)){
             throw new IllegalArgumentException("comment id mismatch");
         }
 
@@ -100,9 +103,11 @@ public class CommentServiceImpl implements CommentService {
         long parentCommentId = comment.getParentCommentId();
         String content = comment.getContent();
         int depth = comment.getDepth();
-        String userLoginId = comment.getUser().getLoginId();
-        String userNickName = comment.getUser().getNickname();
-        return new ResponseCommentDto(commentId, parentCommentId, content, depth, userLoginId, userNickName);
+        String memberEmail = comment.getMember().getEmail();
+        String memberNickName = comment.getMember().getNickname();
+        LocalDateTime createdAt = comment.getRegistedAt();
+        LocalDateTime updatedAt = comment.getUpdatedAt();
+        return new ResponseCommentDto(commentId, parentCommentId, content, depth, memberEmail, memberNickName, createdAt, updatedAt);
     }
 
     @Override

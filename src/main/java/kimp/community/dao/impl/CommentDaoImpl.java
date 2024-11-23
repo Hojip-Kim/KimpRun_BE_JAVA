@@ -5,7 +5,7 @@ import kimp.community.dao.CommentDao;
 import kimp.community.entity.Board;
 import kimp.community.entity.Comment;
 import kimp.community.repository.CommentRepository;
-import kimp.user.entity.User;
+import kimp.user.entity.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -36,16 +36,16 @@ public class CommentDaoImpl implements CommentDao {
     }
 
     @Override
-    public Comment createComment(User user, Board board, String content, long parentCommentId, int depth) {
+    public Comment createComment(Member member, Board board, String content, long parentCommentId, int depth) {
 
-        Comment comment = new Comment(user, board, content, parentCommentId, depth);
+        Comment comment = new Comment(member, board, content, parentCommentId, depth);
 
         return commentRepository.save(comment);
     }
 
     @Override
-    public Page<Comment> getComments(long boardId, Pageable pageable) {
-        return this.commentRepository.findByBoardId(boardId, pageable);
+    public Page<Comment> getComments(Board board, Pageable pageable) {
+        return this.commentRepository.findByBoard(board, pageable);
     }
 
     @Override
