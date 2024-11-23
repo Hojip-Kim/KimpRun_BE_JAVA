@@ -1,6 +1,5 @@
 package kimp.community.service.impl;
 
-import jakarta.transaction.Transactional;
 import kimp.community.dao.BoardCountDao;
 import kimp.community.dao.CategoryDao;
 
@@ -11,6 +10,7 @@ import kimp.community.entity.BoardCount;
 import kimp.community.entity.Category;
 import kimp.community.service.CategoryService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
