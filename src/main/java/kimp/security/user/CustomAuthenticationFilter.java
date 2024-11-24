@@ -5,6 +5,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import kimp.security.user.dto.LoginResponseDto;
+import kimp.user.entity.Member;
+import kimp.user.service.MemberService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,11 +27,14 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 
     private final SecurityContextRepository securityContextRepository;
 
-    public CustomAuthenticationFilter(AuthenticationManager authenticationManager) {
+    private final MemberService memberService;
+
+    public CustomAuthenticationFilter(AuthenticationManager authenticationManager, MemberService memberService) {
         super();
         setAuthenticationManager(authenticationManager); // AuthenticationManager 설정
         setFilterProcessesUrl("/login");
         this.securityContextRepository = new HttpSessionSecurityContextRepository();
+        this.memberService = memberService;
     }
 
     @Override
@@ -65,8 +71,40 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
                                             FilterChain chain, Authentication authResult)
-            throws IOException, ServletException {
-        log.info("로그인 성공 - memberName: {}", authResult.getName());
+            throws IOException {
+
+
+        CustomUserDetails customUserDetails = (CustomUserDetails) authResult.getPrincipal();
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        String ip = getIpFromRequestHeader(request);
+
+        log.info("로그인 성공 - memberName: {}", customUserDetails.getEmail());
+
+        Member member = memberService.getmemberByEmail(customUserDetails.getEmail());
+
+        LoginResponseDto loginResponseDto = new LoginResponseDto();
+
+        if(memberService.isFirstLogin(member)) {
+
+            memberService.setMemberIP(member, ip);
+            loginResponseDto.setResult("success");
+            loginResponseDto.setMessage("로그인에 성공하였습니다.");
+
+        }else{
+            if(!memberService.isEqualIpBeforeLogin(member, ip)){
+                String beforeIp = member.getMemberAgent().getIp();
+
+                loginResponseDto.setResult("check");
+                loginResponseDto.setMessage("IP 확인 필요");
+                loginResponseDto.setData(beforeIp);
+
+            }else{
+                loginResponseDto.setResult("success");
+                loginResponseDto.setMessage("로그인에 성공하였습니다.");
+            }
+        }
 
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authResult);
@@ -76,8 +114,31 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
         securityContextRepository.saveContext(context, request, response);
 
         response.setStatus(HttpServletResponse.SC_OK);
+
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write("{\"result\":\"success\",\"message\":\"로그인에 성공하였습니다.\"}");
+
+        String jsonResponse = mapper.writeValueAsString(loginResponseDto);
+
+        response.getWriter().write(jsonResponse);
+
         response.getWriter().flush();
     }
+
+    public String getIpFromRequestHeader(HttpServletRequest request) {
+        String[] headersToCheck = {
+                "X-Forwarded-For",
+                "Proxy-Client-IP",
+                "WL-Proxy-Client-IP",
+        };
+
+        for(String header : headersToCheck) {
+            String ip = request.getHeader(header);
+            if(ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
+                return ip.split(",")[0].trim();
+            }
+        }
+
+        return request.getRemoteAddr();
+    }
+
 }
