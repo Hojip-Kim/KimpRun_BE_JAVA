@@ -5,14 +5,14 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Getter
-public class UpdateUserDTO {
+public class UpdateUserPasswordDTO {
 
     public String oldPassword;
 
     public String newPassword;
 
 
-    public UpdateUserDTO(String oldPassword, String newPassword) {
+    public UpdateUserPasswordDTO(String oldPassword, String newPassword) {
         if(!isPasswordValid(oldPassword)){
             throw new IllegalArgumentException("Invalid password");
         }
