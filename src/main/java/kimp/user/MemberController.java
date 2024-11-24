@@ -6,6 +6,8 @@ import kimp.user.dto.UserDto;
 import kimp.user.dto.UserWithIdNameEmailDto;
 import kimp.user.dto.request.*;
 import kimp.user.dto.response.AdminResponse;
+import kimp.user.dto.response.EmailVerifyCodeResponseDTO;
+import kimp.user.dto.response.EmailVerifyResponseDTO;
 import kimp.user.entity.Member;
 import kimp.user.service.MemberService;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +57,35 @@ public class MemberController {
         return memberService.convertUserToUserDto(member);
     }
 
+    @PostMapping("/email/verify")
+    public EmailVerifyCodeResponseDTO verifyEmailCode(@RequestBody EmailVerifyCodeRequestDTO requestDTO){
+        Boolean isVerify = this.memberService.verifyCode(requestDTO.getEmail(),requestDTO.getVerifyCode());
+
+        EmailVerifyCodeResponseDTO responseDTO = new EmailVerifyCodeResponseDTO();
+
+        return isVerify ? responseDTO.successVerified() : responseDTO.failureVerified();
+    }
+
+    @PostMapping("/email")
+    public EmailVerifyResponseDTO sendEmailVerificationCode(@RequestBody EmailVerifyRequestDTO requestDTO) {
+        Member member = memberService.getmemberByEmail(requestDTO.getEmail());
+
+        EmailVerifyResponseDTO responseDTO = new EmailVerifyResponseDTO();
+
+        if(member != null){
+            responseDTO.setIsExisted(true);
+            return responseDTO;
+        }
+
+        String verifyCode = memberService.sendEmailVerifyCode(requestDTO.getEmail());
+
+        responseDTO.setIsExisted(false);
+        responseDTO.setVerificationCode(verifyCode);
+
+        return responseDTO;
+
+
+    }
 
     @PostMapping("/sign-up")
     public UserDto createMember(@RequestBody CreateUserDTO request){

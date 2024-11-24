@@ -12,9 +12,19 @@ public interface MemberService {
 
     public Member getmemberByEmail(String email);
 
+    public String sendEmailVerifyCode(String email);
+
     public UserCopyDto createCopyUserDtoByEmail(String email);
 
+    public Boolean verifyCode(String email, String code);
+
     public Member getmemberById(Long id);
+
+    public Boolean isFirstLogin(Member member);
+
+    public Boolean isEqualIpBeforeLogin(Member member, String ip);
+
+    public void setMemberIP(Member member, String ip);
 
     public Member updateMember(Long id, UpdateUserPasswordDTO UpdateUserPasswordDTO);
 
