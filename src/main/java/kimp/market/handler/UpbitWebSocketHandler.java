@@ -61,14 +61,13 @@ public class UpbitWebSocketHandler extends TextWebSocketHandler {
         try {
             String mapToJson = objectMapper.writeValueAsString(dataHashMap);
             log.info(String.valueOf(dataHashMap.size()));
-            dataHashMap.clear();
             TextMessage textMessage = new TextMessage(mapToJson);
             for (WebSocketSession session : sessions.values()) {
                 if (session.isOpen()) {
                     session.sendMessage(textMessage);
                 }
             }
-
+            dataHashMap.clear();
         }catch (Exception e){
             log.error(e.getMessage());
         }
