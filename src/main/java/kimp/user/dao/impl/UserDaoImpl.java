@@ -59,7 +59,7 @@ public class UserDaoImpl implements MemberDao {
     }
 
     @Override
-    public Boolean deletemember(Long id) {
+    public Boolean deleteMember(Long id) {
         Member member = findMemberById(id);
         this.memberRepository.delete(member);
 
