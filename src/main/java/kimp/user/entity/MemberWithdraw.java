@@ -19,12 +19,11 @@ public class MemberWithdraw extends TimeStamp {
     private Member member;
 
     @Column(name="is_withdraw")
-    private Boolean isWithdraw;
+    private Boolean isWithdraw = false;
 
     public MemberWithdraw() {}
 
-    public MemberWithdraw(Member member, Boolean isWithdraw) {
+    public MemberWithdraw(Member member) {
         this.member = member;
-        this.isWithdraw = isWithdraw;
     }
 }
