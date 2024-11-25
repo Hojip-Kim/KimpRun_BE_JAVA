@@ -63,7 +63,12 @@ public class MemberController {
 
         EmailVerifyCodeResponseDTO responseDTO = new EmailVerifyCodeResponseDTO();
 
-        return isVerify ? responseDTO.successVerified() : responseDTO.failureVerified();
+        if(isVerify){
+            responseDTO.successVerified();
+        }else{
+            responseDTO.failureVerified();
+        }
+        return responseDTO;
     }
 
     @PostMapping("/email")
