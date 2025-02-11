@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class Upbit extends Market{
     private final ObjectMapper objectMapper;
     private final MarketCommonMethod marketCommonMethod;
     private final MarketListProvider upbitMarketListProvider;
+
 
     public Upbit(RestTemplate restTemplate, ObjectMapper objectMapper, MarketCommonMethod marketCommonMethod, @Qualifier("upbitName") MarketListProvider upbitMarketListProvider) {
         this.restTemplate = restTemplate;
@@ -39,6 +41,9 @@ public class Upbit extends Market{
     public MarketList upbitMarketPair = null;
 
     public MarketDataList<UpbitDto> upbitMarketDataList;
+
+    @Value("${tether.url}")
+    private String tetherApiUrl;
 
     @Value("${upbit.api.url}")
     private String upbitApiUrl;
@@ -108,6 +113,15 @@ public class Upbit extends Market{
             e.printStackTrace();
         }
 
+    }
+
+    public BigDecimal getUpbitTether(){
+        UpbitTicker[] tickers = restTemplate.getForObject(tetherApiUrl, UpbitTicker[].class);
+        if (tickers != null && tickers.length > 0) {
+            return tickers[0].getTrade_price();
+        } else {
+            return BigDecimal.ZERO;
+        }
     }
 
     @PostConstruct
