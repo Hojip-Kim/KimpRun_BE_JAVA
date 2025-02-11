@@ -2,6 +2,7 @@ package kimp.community.controller;
 
 import kimp.community.dto.board.request.CreateBoardRequestDto;
 import kimp.community.dto.board.request.UpdateBoardRequestDto;
+import kimp.community.dto.board.response.AllBoardResponseDto;
 import kimp.community.dto.board.response.BoardResponseDto;
 import kimp.community.dto.board.response.BoardWithCommentResponseDto;
 import kimp.community.dto.board.response.BoardWithCountResponseDto;
@@ -70,14 +71,15 @@ public class BoardController {
     }
 
     @GetMapping("/all/page")
-    private List<BoardResponseDto> getAllCategoryBoards(@RequestParam("page") int page){
+    private AllBoardResponseDto getAllCategoryBoards(@RequestParam("page") int page){
         if(page < 1){
             throw new IllegalArgumentException("page must greater than 1");
         }
 
         Page<Board> boardList = this.boardService.getBoardsByPage(page-1);
+        Long boardCount = this.boardService.getBoardsCount();
 
-        return this.boardService.convertBoardPagesToBoardResponseDtos(boardList);
+        return this.boardService.convertBoardPagesToAllBoardResponseDtos(boardList, boardCount);
     }
 
     // 필요한 field : memberId, member name, boardId, registed_at, boardTitle, boardViews, boardLikeCount
