@@ -13,5 +13,6 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 
 
     public Page<Board> findByCategoryOrderByRegistedAtDesc(Category category, Pageable pageable);
+    public Page<Board> findAllByOrderByRegistedAtDesc(Pageable pageable);
 
 }
