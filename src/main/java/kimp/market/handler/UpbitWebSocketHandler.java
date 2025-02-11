@@ -55,7 +55,6 @@ public class UpbitWebSocketHandler extends TextWebSocketHandler {
     }
 
 
-    @Async
     @Scheduled(fixedRate = 3000)
     public void sendMessageToAll() throws Exception {
         try {
