@@ -1,8 +1,8 @@
-package unit.kimp.chat.controller;
+package kimp.unit.kimp.chat.controller;
 
 import kimp.chat.controller.ChatController;
-import kimp.chat.dto.request.ChatLogRequestDto;
 import kimp.chat.service.ChatService;
+import kimp.common.dto.PageRequestDto;
 import org.apache.coyote.BadRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,30 +39,34 @@ public class ChatControllerTest {
         this.mockMvc = MockMvcBuilders.standaloneSetup(chatController).build();
     }
 
+    @Test
+    @DisplayName("PageRequestDto 생성 시 유효하지 않은 page 또는 size 값으로 IllegalArgumentException 발생")
+    void pageRequestDtoInvalidTest() {
+        // page < 0인 경우
+        assertThrows(IllegalArgumentException.class, () -> {
+            new PageRequestDto(-1, 10);
+        });
+
+        // size <= 0인 경우
+        assertThrows(IllegalArgumentException.class, () -> {
+            new PageRequestDto(0, 0);
+        });
+
+        // page < 0이고 size <= 0인 경우
+        assertThrows(IllegalArgumentException.class, () -> {
+            new PageRequestDto(-1, 0);
+        });
+    }
 
     @Test
-    @DisplayName("Get /allLog : page < 0이거나 size <= 0이면 BadRequestException 발생")
-    void chatLogTransferFailure() throws Exception{
+    @DisplayName("Get /allLog: 유효하지 않은 page 또는 size 값으로 BadRequestException 발생")
+    void chatLogTransferFailure() throws Exception {
         // given
-        List<ChatLogRequestDto> pageAndSizeList = new ArrayList<>();
+        PageRequestDto invalidDto1 = null;
 
-
-        // when
-        ChatLogRequestDto invalidDto1 = new ChatLogRequestDto(-1, 10); // page < 0
-        ChatLogRequestDto invalidDto2 = new ChatLogRequestDto(10, 0);   // size <= 0
-        ChatLogRequestDto invalidDto3 = new ChatLogRequestDto(-1, 0);   // page < 0 && size <= 0
-
-        // then
+        // when, then
         assertThrows(BadRequestException.class, () -> {
             chatController.getChats(invalidDto1, request);
-        });
-
-        assertThrows(BadRequestException.class, () -> {
-            chatController.getChats(invalidDto2, request);
-        });
-
-        assertThrows(BadRequestException.class, () -> {
-            chatController.getChats(invalidDto3, request);
         });
 
     }
@@ -71,11 +75,11 @@ public class ChatControllerTest {
     @DisplayName("Get /allLog : page >= 0이거나 size > 0이면 통과")
     void chatLogTransferSuccess() throws Exception {
         // given
-        List<ChatLogRequestDto> pageAndSizeList = new ArrayList<>();
+        List<PageRequestDto> pageAndSizeList = new ArrayList<>();
 
         // when
-        ChatLogRequestDto validDto1 = new ChatLogRequestDto(0, 10); // page >= 0
-        ChatLogRequestDto validDto2 = new ChatLogRequestDto(0, 5);   // size > 1
+        PageRequestDto validDto1 = new PageRequestDto(0, 10); // page >= 0
+        PageRequestDto validDto2 = new PageRequestDto(0, 5);   // size > 1
 
         // then
 
