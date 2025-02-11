@@ -68,7 +68,7 @@ public class BoardPacadeService {
 
         List<ResponseCommentDto> commentDtos =  commentService.converCommentsToResponseDtoList(comments.getContent());
 
-        return new BoardWithCommentResponseDto(board.getId(), board.getMember().getId(), board.getMember().getNickname(), board.getTitle(), board.getContent(), board.getViews().getViews(), board.getBoardLikeCount().getLikes(), board.getRegistedAt(), board.getUpdatedAt(), commentDtos, board.getCommentCount().getCounts());
+        return new BoardWithCommentResponseDto(board.getId(), board.getMember().getId(),board.getCategory().getId(),board.getCategory().getCategoryName(), board.getMember().getNickname(), board.getTitle(), board.getContent(), board.getViews().getViews(), board.getBoardLikeCount().getLikes(), board.getRegistedAt(), board.getUpdatedAt(), commentDtos, board.getCommentCount().getCounts());
 
     }
 
@@ -105,12 +105,12 @@ public class BoardPacadeService {
 
 
     public BoardResponseDto convertBoardToBoardResponseDto(Board board){
-        return new BoardResponseDto(board.getId(), board.getMember().getId(), board.getMember().getNickname(), board.getTitle(), board.getContent(),board.getViews().getViews(), board.getBoardLikeCount().getLikes(), board.getRegistedAt(), board.getUpdatedAt(), board.getCommentCount().getCounts());
+        return new BoardResponseDto(board.getId(), board.getMember().getId(),board.getCategory().getId(),board.getCategory().getCategoryName(), board.getMember().getNickname(), board.getTitle(), board.getContent(),board.getViews().getViews(), board.getBoardLikeCount().getLikes(), board.getRegistedAt(), board.getUpdatedAt(), board.getCommentCount().getCounts());
     }
 
     public String summaryContent(String content) {
-        if (content.length() > 200) {
-            return content.substring(0, 200) + "...";
+        if (content.length() > 100) {
+            return content.substring(0, 100) + "...";
         }
         return content;
     }
@@ -121,7 +121,7 @@ public class BoardPacadeService {
 
         String summaryContent = summaryContent(board.getContent());
 
-        return new BoardResponseDto(board.getId(), board.getMember().getId(), board.getMember().getNickname(), board.getTitle(), summaryContent, board.getViews().getViews(), board.getBoardLikeCount().getLikes(), board.getRegistedAt(), board.getUpdatedAt(), board.getCommentCount().getCounts());
+        return new BoardResponseDto(board.getId(), board.getMember().getId(),board.getCategory().getId(),board.getCategory().getCategoryName(), board.getMember().getNickname(), board.getTitle(), summaryContent, board.getViews().getViews(), board.getBoardLikeCount().getLikes(), board.getRegistedAt(), board.getUpdatedAt(), board.getCommentCount().getCounts());
     }
 
     public List<BoardResponseDto> convertBoardsToBoardResponseDtos(Page<Board> boards){
