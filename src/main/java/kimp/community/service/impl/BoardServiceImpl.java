@@ -11,9 +11,12 @@ import kimp.community.entity.BoardLikeCount;
 import kimp.community.entity.BoardViews;
 import kimp.community.entity.Category;
 import kimp.community.service.BoardService;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +52,9 @@ public class BoardServiceImpl implements BoardService {
     @Transactional
     public Page<Board> getBoardsPageByCategory(Category category, Pageable pageable){
         Page<Board> boardPages = boardDao.findByCategoryWithPage(category, pageable);
+        if(boardPages.isEmpty()){
+            throw new KimprunException(KimprunExceptionEnum.REQUEST_ACCEPTED, "Not have data", HttpStatus.ACCEPTED, "hello");
+        }
         return boardPages;
     }
 
