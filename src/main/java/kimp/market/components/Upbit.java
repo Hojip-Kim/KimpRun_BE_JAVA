@@ -2,7 +2,6 @@ package kimp.market.components;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
-import kimp.market.dto.common.UpbitMarketData;
 import kimp.market.dto.response.MarketList;
 import kimp.market.common.MarketCommonMethod;
 import kimp.market.dto.response.MarketDataList;
@@ -10,6 +9,7 @@ import kimp.market.dto.response.UpbitMarketList;
 import kimp.market.dto.response.UpbitTicker;
 import kimp.websocket.dto.response.UpbitDto;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -25,11 +25,13 @@ public class Upbit extends Market{
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final MarketCommonMethod marketCommonMethod;
+    private final MarketListProvider upbitMarketListProvider;
 
-    public Upbit(RestTemplate restTemplate, ObjectMapper objectMapper, MarketCommonMethod marketCommonMethod) {
+    public Upbit(RestTemplate restTemplate, ObjectMapper objectMapper, MarketCommonMethod marketCommonMethod, @Qualifier("upbitName") MarketListProvider upbitMarketListProvider) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.marketCommonMethod = marketCommonMethod;
+        this.upbitMarketListProvider = upbitMarketListProvider;
     }
 
     public MarketList upbitMarketList = null;
@@ -54,7 +56,6 @@ public class Upbit extends Market{
 
     @Override
     public MarketList getMarketPair() throws IOException {
-
         if(this.upbitMarketPair == null) {
             setUpbitMarketList();
         }
@@ -118,15 +119,10 @@ public class Upbit extends Market{
     }
 
     public void setUpbitMarketList() throws IOException{
-        String url = upbitApiUrl;
-        // marketList : 업비트의 마켓이름 데이터
-        List<String> marketList = marketCommonMethod.getMarketListByURLAndStartWith(url, "KRW-", "getMarket", UpbitMarketData[].class);
 
-        List<String> marketPair = new ArrayList<>();
-        for (int i = 0; i < marketList.size(); i++) {
-            String modifiedString = marketList.get(i).replace("KRW-", "");
-            marketPair.add(modifiedString);
-        }
+        List<String> marketList = upbitMarketListProvider.getMarketListWithTicker();
+
+        List<String> marketPair = upbitMarketListProvider.getMarketList();
 
         // "KRW-"가 붙은 market List
         this.upbitMarketList = new UpbitMarketList(marketList);
