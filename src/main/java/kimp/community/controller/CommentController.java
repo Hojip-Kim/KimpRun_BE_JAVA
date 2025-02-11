@@ -7,10 +7,10 @@ import kimp.community.entity.Comment;
 import kimp.community.service.BoardPacadeService;
 import kimp.community.service.CommentPacadeService;
 import kimp.community.service.CommentService;
-import kimp.security.user.CustomUserDetails;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import kimp.security.user.CustomUserDetails;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,39 +38,39 @@ public class CommentController {
     }
 
     @PostMapping("/{boardId}/create")
-    public ResponseCommentDto createComment(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long boardId, @RequestBody RequestCreateCommentDto requestCreateCommentDto){
-        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
+    public ResponseCommentDto createComment(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable Long boardId, @RequestBody RequestCreateCommentDto requestCreateCommentDto){
+        CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
-        long userId = customUserDetails.getId();
+        long memberId = customUserDetails.getId();
 
-        Comment comment = boardPacadeService.createComment(userId, boardId, requestCreateCommentDto);
+        Comment comment = boardPacadeService.createComment(memberId, boardId, requestCreateCommentDto);
 
         return commentService.convertCommentToResponseDto(comment);
     }
 
     @PatchMapping("/update")
-    public ResponseCommentDto updateComment(@AuthenticationPrincipal UserDetails userDetails, @RequestBody RequestUpdateCommentDto requestUpdateCommentDto){
-        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
-        long userId = customUserDetails.getId();
-        Comment comment = commentService.updateComment(userId, requestUpdateCommentDto);
+    public ResponseCommentDto updateComment(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody RequestUpdateCommentDto requestUpdateCommentDto){
+        CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
+        long memberId = customUserDetails.getId();
+        Comment comment = commentService.updateComment(memberId, requestUpdateCommentDto);
         return commentService.convertCommentToResponseDto(comment);
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<Boolean> deleteComment(@AuthenticationPrincipal UserDetails userDetails, @RequestBody long commentId){
-        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
-        long userId = customUserDetails.getId();
-        Boolean isDeleted = commentService.deleteComment(userId, commentId);
+    public ResponseEntity<Boolean> deleteComment(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody long commentId){
+        CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
+        long memberId = customUserDetails.getId();
+        Boolean isDeleted = commentService.deleteComment(memberId, commentId);
 
         return ResponseEntity.ok(isDeleted);
     }
 
     @PatchMapping("/like")
-    public ResponseEntity<Boolean> likeComment(@AuthenticationPrincipal UserDetails userDetails, @RequestBody long commentId){
-        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
-        long userId = customUserDetails.getId();
+    public ResponseEntity<Boolean> likeComment(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody long commentId){
+        CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
+        long memberId = customUserDetails.getId();
 
-        Boolean isCompleted = commentPacadeService.commentLikeById(userId, commentId);
+        Boolean isCompleted = commentPacadeService.commentLikeById(memberId, commentId);
 
         return ResponseEntity.ok(isCompleted);
     }

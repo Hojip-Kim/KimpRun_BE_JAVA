@@ -2,30 +2,32 @@ package kimp.security.user.service;
 
 import kimp.security.user.CustomUserDetails;
 import kimp.user.dto.UserCopyDto;
-import kimp.user.service.UserService;
+import kimp.user.service.MemberService;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+
 @Slf4j
 @Service
 public class CustomUserDetailService implements UserDetailsService {
-    private final UserService userService;
+    private final MemberService memberService;
 
-    public CustomUserDetailService(UserService userService) {
-        this.userService = userService;
+    public CustomUserDetailService(MemberService memberService) {
+        this.memberService = memberService;
     }
 
     @Override
-    public UserDetails loadUserByUsername(String loginId) throws UsernameNotFoundException {
-        UserCopyDto userDto = userService.createCopyUserDtoByLoginId(loginId);
+    public UserDetails loadUserByUsername(String email) {
+        UserCopyDto UserDto = memberService.createCopyUserDtoByEmail(email);
 
-        if(userDto != null) {
-            return new CustomUserDetails(userDto);
+        if(UserDto != null) {
+            return new CustomUserDetails(UserDto);
         }else{
-            throw new UsernameNotFoundException(loginId);
+            throw new UsernameNotFoundException(email);
         }
     }
 }

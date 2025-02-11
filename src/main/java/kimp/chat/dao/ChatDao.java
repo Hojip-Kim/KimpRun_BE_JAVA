@@ -1,6 +1,5 @@
 package kimp.chat.dao;
 
-import kimp.chat.dto.response.ChatLogResponseDto;
 import kimp.chat.entity.Chat;
 import kimp.chat.repository.ChatRepository;
 import org.springframework.data.domain.PageRequest;
@@ -21,8 +20,8 @@ public class ChatDao {
         this.chatRepository = chatRepository;
     }
 
-    public Chat insertChat(String chatId, String content) {
-        Chat chat = new Chat(chatId, content);
+    public Chat insertChat(String nickname, String content, String authenticated) {
+        Chat chat = new Chat(nickname, content, authenticated);
 
         return chatRepository.insert(chat);
     }

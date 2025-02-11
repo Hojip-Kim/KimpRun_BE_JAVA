@@ -2,6 +2,7 @@ package kimp.community.service;
 
 import kimp.community.dto.board.request.CreateBoardRequestDto;
 import kimp.community.dto.board.request.UpdateBoardRequestDto;
+import kimp.community.dto.board.response.AllBoardResponseDto;
 import kimp.community.dto.board.response.BoardResponseDto;
 import kimp.community.entity.*;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,8 @@ public interface BoardService {
 
     public Board getBoardById(long id);
 
+    public Long getBoardsCount();
+
     public Board createBoard(CreateBoardRequestDto createBoardRequestDto);
 
     public Board updateBoard(Board board, UpdateBoardRequestDto updateBoardRequestDto );
@@ -32,6 +35,6 @@ public interface BoardService {
 
     public BoardResponseDto convertBoardToBoardResponseDto(Board board);
 
-    public List<BoardResponseDto> convertBoardPagesToBoardResponseDtos(Page<Board> boardPages);
+    public AllBoardResponseDto convertBoardPagesToAllBoardResponseDtos(Page<Board> boardPages, Long boardCount);
 
 }

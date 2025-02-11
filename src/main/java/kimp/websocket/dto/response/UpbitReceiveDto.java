@@ -65,7 +65,7 @@ public class UpbitReceiveDto {
     @JsonProperty("is_trading_suspended")
     private Boolean isTradingSuspended;
     @JsonProperty("delisting_date")
-    private String delistingDate;
+    private Object delistingDate;
 
     public String getType() {
         return type;
@@ -183,7 +183,7 @@ public class UpbitReceiveDto {
         return isTradingSuspended;
     }
 
-    public String getDelistingDate() {
+    public Object getDelistingDate() {
         return delistingDate;
     }
 

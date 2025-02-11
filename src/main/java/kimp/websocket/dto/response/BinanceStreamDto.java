@@ -19,7 +19,7 @@ public class BinanceStreamDto {
     }
 
     private BigDecimal setScale(BigDecimal input) {
-        return input.setScale(3, RoundingMode.HALF_UP);
+        return input.setScale(7, RoundingMode.HALF_UP);
     }
 
 

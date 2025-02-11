@@ -18,15 +18,14 @@ public class BinanceWebSocketClient extends WebSocketClient {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final BinanceWebsocketHandler binanceWebsocketHandler;
 
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    private ScheduledFuture<?> pingTask;
-    private ScheduledFuture<?> reconnectTask;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    private Future<?> reconnectTask;
 
     private static final int RECONNECT_DELAY_SECONDS = 5;
-    private static final int PING_INTERVAL_SECONDS = 60; // 60초마다 Ping 전송
 
     private final Object reconnectLock = new Object();
-    private boolean isReconnecting = false;
+    private volatile boolean isReconnecting = false;
 
     private volatile boolean isConnected = false;
 
@@ -39,7 +38,6 @@ public class BinanceWebSocketClient extends WebSocketClient {
     public void onOpen(ServerHandshake handshakedata) {
         isConnected = true;
         log.info(">>> [바이낸스] 웹소켓 연결 성공");
-        schedulePing();
     }
 
     @Override
@@ -52,7 +50,7 @@ public class BinanceWebSocketClient extends WebSocketClient {
             );
             binanceWebsocketHandler.inputDataToHashMap(binanceDto);
         } catch (Exception e) {
-            log.error("Failed to parse message: {}", message, e);
+            log.error("[바이낸스] 메시지 파싱 실패: {}", message, e);
         }
     }
 
@@ -60,79 +58,86 @@ public class BinanceWebSocketClient extends WebSocketClient {
     public void onClose(int code, String reason, boolean remote) {
         isConnected = false;
         log.warn(">>> [바이낸스] 웹소켓 연결 종료. 코드: {}, 원인: {}", code, reason);
-        cancelPing();
         attemptReConnect();
     }
 
     @Override
     public void onError(Exception ex) {
-        isConnected = false;
         log.error("[바이낸스] 웹소켓 에러 발생: {}", ex.getMessage(), ex);
-        // 에러 발생 시 연결 상태 변경 및 재연결 시도
         if (!this.isOpen()) {
+            isConnected = false;
             attemptReConnect();
         }
     }
 
     @Override
     public void onWebsocketPong(WebSocket conn, org.java_websocket.framing.Framedata f) {
-        log.info("[바이낸스] 웹소켓 Pong메시지 수신완료");
+        log.info("[바이낸스] 웹소켓 Pong 메시지 수신 완료");
     }
 
-    private void schedulePing() {
-        pingTask = scheduler.scheduleAtFixedRate(() -> {
-            if (this.isOpen()) {
-                try {
-                    log.debug("[바이낸스] ping 메시지 송신 성공");
-                    this.sendPing();
-                } catch (Exception e) {
-                    log.error("[바이낸스] ping 메시지 송신 실패", e);
-                }
-            }
-        }, PING_INTERVAL_SECONDS, PING_INTERVAL_SECONDS, TimeUnit.SECONDS);
-    }
-
-    private void cancelPing() {
-        if (pingTask != null && !pingTask.isCancelled()) {
-            pingTask.cancel(true);
+    private boolean checkNetworkConnect() {
+        try {
+            this.sendPing();
+            Thread.sleep(3000); // 3초 대기
+            return this.isOpen();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("[바이낸스] 네트워크 상태 확인 중 인터럽트 발생", e);
+            return false;
+        } catch (Exception e) {
+            log.error("[바이낸스] 네트워크 상태 확인 중 오류 발생", e);
+            return false;
         }
     }
 
-    private void attemptReConnect() {
+    public void attemptReConnect() {
         synchronized (reconnectLock) {
             if (isReconnecting) {
-                log.info("[바이낸스] 이미 재 연결 시도중.");
+                // 이미 재연결 중이면 추가 작업하지 않음
                 return;
             }
             isReconnecting = true;
         }
 
-        reconnectTask = scheduler.schedule(() -> {
-            log.info("[바이낸스] 웹소켓 재연결중...");
+        if (reconnectTask != null && !reconnectTask.isDone()) {
+            reconnectTask.cancel(true); // 기존 재연결 작업 취소
+        }
+
+        reconnectTask = executor.submit(() -> {
             try {
-                this.reconnectBlocking();
-                if (this.isOpen()) {
-                    isConnected = true;
-                    log.info("[바이낸스] 웹소켓 재연결 성공");
-                    schedulePing();
-                } else {
-                    log.warn("[바이낸스] 외부 요인(네트워크)으로 인한 재연결 실패. 재 연결 재시도...");
-                    // 재연결 실패 시 재시도
-                    scheduler.schedule(this::attemptReConnect, RECONNECT_DELAY_SECONDS, TimeUnit.SECONDS);
+                while (!isConnected) {
+                    try {
+                        Thread.sleep(RECONNECT_DELAY_SECONDS * 1000L);
+                        log.info("[바이낸스] 웹소켓 재연결 시도");
+
+                        // 이전 연결이 열려 있다면 닫기
+                        if (this.isOpen()) {
+                            this.closeBlocking();
+                        }
+
+                        // 재연결 시도
+                        this.reconnectBlocking();
+
+                        if (this.isOpen() && checkNetworkConnect()) {
+                            isConnected = true;
+                            log.info("[바이낸스] 웹소켓 재연결 성공");
+                        } else {
+                            log.warn("[바이낸스] 재연결 성공했지만 네트워크 상태 불안정. 재시도 예정");
+                            isConnected = false;
+                        }
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        log.error("[바이낸스] 웹소켓 재연결 중단됨", e);
+                        break;
+                    } catch (Exception e) {
+                        log.error("[바이낸스] 웹소켓 재연결 실패", e);
+                    }
                 }
-            } catch (InterruptedException e) {
-                log.error("[바이낸스] 웹소켓 재연결 방해됨", e);
-                Thread.currentThread().interrupt();
-            } catch (Exception e) {
-                log.error("[바이낸스] 웹소켓 재연결 Exception", e);
-                // 재연결 실패 시 재시도
-                scheduler.schedule(this::attemptReConnect, RECONNECT_DELAY_SECONDS, TimeUnit.SECONDS);
             } finally {
                 synchronized (reconnectLock) {
                     isReconnecting = false;
                 }
             }
-        }, RECONNECT_DELAY_SECONDS, TimeUnit.SECONDS);
+        });
     }
-
 }

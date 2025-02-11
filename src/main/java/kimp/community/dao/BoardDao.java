@@ -11,6 +11,8 @@ public interface BoardDao {
 
     public Board getBoardById(Long id);
 
+    public Long getBoardCount();
+
     public Board updateBoardById(Long id, String title, String content);
 
     public Board updateBoard(Board board, String title, String content);

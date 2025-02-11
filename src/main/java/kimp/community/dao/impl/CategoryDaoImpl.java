@@ -5,6 +5,9 @@ import kimp.community.dto.category.request.CreateCategoryRequestDto;
 import kimp.community.dto.category.request.UpdateCategoryRequestDto;
 import kimp.community.entity.Category;
 import kimp.community.repository.CategoryRepository;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -35,7 +38,7 @@ public class CategoryDaoImpl implements CategoryDao {
         Optional<Category> optionalCategory = this.categoryRepository.findById(id);
 
         if(optionalCategory.isEmpty()){
-            throw new IllegalArgumentException("Category not found for id : " + id);
+            throw new KimprunException(KimprunExceptionEnum.INTERNAL_SERVER_ERROR, "Not have category Id : " + id, HttpStatus.ACCEPTED, "trace");
         }
 
         return optionalCategory.get();
@@ -68,7 +71,7 @@ public class CategoryDaoImpl implements CategoryDao {
 
     @Override
     public Boolean deleteCategoryById(Long id){
-        Boolean isDeleted = false;
+        Boolean isDeleted = true;
 
         Category category = getCategoryById(id);
 

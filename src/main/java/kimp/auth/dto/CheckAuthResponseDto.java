@@ -9,10 +9,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CheckAuthResponseDto {
 
-    @JsonProperty("user")
-    public UserWithIdNameEmailDto userWithIdNameEmailDto;
+    @JsonProperty("isAuthenticated")
+    public boolean isAuthenticated;
 
-    public CheckAuthResponseDto(UserWithIdNameEmailDto userWithIdNameEmailDto) {
-        this.userWithIdNameEmailDto = userWithIdNameEmailDto;
+    @JsonProperty("member")
+    public UserWithIdNameEmailDto member;
+
+    public CheckAuthResponseDto(boolean authenticated, UserWithIdNameEmailDto UserWithIdNameEmailDto) {
+        this.isAuthenticated = authenticated;
+        this.member = UserWithIdNameEmailDto;
     }
 }

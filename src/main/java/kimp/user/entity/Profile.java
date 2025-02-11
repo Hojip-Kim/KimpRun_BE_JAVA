@@ -9,12 +9,13 @@ import lombok.Getter;
 @Getter
 public class Profile extends TimeStamp {
 
-    @OneToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column
-    private String nickname;
+    @OneToOne
+    @JoinColumn(name = "member_id")
+    private Member member;
 
     @Column(name="image_url")
     private String imageUrl;
@@ -30,9 +31,8 @@ public class Profile extends TimeStamp {
     public Profile() {
     }
 
-    public Profile(User user, String nickname, String imageUrl, SeedMoneyRange seedRange, ActivityRank activityRank) {
-        this.user = user;
-        this.nickname = nickname;
+    public Profile(Member member, String imageUrl, SeedMoneyRange seedRange, ActivityRank activityRank) {
+        this.member = member;
         this.imageUrl = imageUrl;
         this.seedRange = seedRange;
         this.activityRank = activityRank;

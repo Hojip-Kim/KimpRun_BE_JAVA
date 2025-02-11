@@ -1,37 +1,37 @@
 package kimp.community.service;
 
-import jakarta.transaction.Transactional;
 import kimp.community.dto.comment.request.RequestCreateCommentDto;
 import kimp.community.entity.Board;
 import kimp.community.entity.Comment;
 import kimp.community.entity.CommentLikeCount;
-import kimp.user.entity.User;
-import kimp.user.service.UserService;
+import kimp.user.entity.Member;
+import kimp.user.service.MemberService;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
 public class CommentPacadeService {
 
-    private final UserService userService;
+    private final MemberService memberService;
     private final CommentService commentService;
     private final BoardService boardService;
 
-    public CommentPacadeService(UserService userService, CommentService commentService, BoardService boardService) {
-        this.userService = userService;
+    public CommentPacadeService(MemberService memberService, CommentService commentService, BoardService boardService) {
+        this.memberService = memberService;
         this.commentService = commentService;
         this.boardService = boardService;
     }
 
     @Transactional
-    public Comment createComment(long userId, long boardId, RequestCreateCommentDto requestCreateCommentDto) {
+    public Comment createComment(long memberId, long boardId, RequestCreateCommentDto requestCreateCommentDto) {
         Board board = boardService.getBoardById(boardId);
-        User user = userService.getUserById(userId);
-        Comment comment = commentService.createComment(user, board, requestCreateCommentDto);
+        Member member = memberService.getmemberById(memberId);
+        Comment comment = commentService.createComment(member, board, requestCreateCommentDto);
         CommentLikeCount commentLikeCount = commentService.createCommentLikeCount(comment);
         comment.setCommentLikeCount(commentLikeCount);
-        user.addComment(comment);
+        member.addComment(comment);
         board.addComment(comment);
         board.getCommentCount().addCount();
 
@@ -39,18 +39,19 @@ public class CommentPacadeService {
     }
 
     public Page<Comment> getComments(long boardId, int page) {
-        Page<Comment> comments = commentService.getCommentByBoardId(boardId, page);
+        Board board = boardService.getBoardById(boardId);
+        Page<Comment> comments = commentService.getCommentByBoard(board, page);
 
         return comments;
     }
 
     @Transactional
-    public Boolean commentLikeById(long commentId, long userId) {
-        User user = userService.getUserById(userId);
+    public Boolean commentLikeById(long commentId, long memberId) {
+        Member member = memberService.getmemberById(memberId);
         Comment comment = commentService.getCommentById(commentId);
         CommentLikeCount commentLikeCount = comment.getLikeCount();
         int beforeLikeCount = commentLikeCount.getLikes();
-        commentLikeCount.addLikes(user);
+        commentLikeCount.addLikes(member);
         int prevLikeCount = commentLikeCount.getLikes();
         if(beforeLikeCount + 1 == prevLikeCount) {
             return true;

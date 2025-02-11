@@ -1,23 +1,14 @@
 package kimp.user.enums;
 
 public enum UserRole {
-    USER(1),
-    INFLUENCER(2),
-    MANAGER(3),
-    OPERATOR(4);
+    USER("ROLE_USER"),
+    INFLUENCER("ROLE_INFLUENCER"),
+    MANAGER("ROLE_MANAGER"),
+    OPERATOR("ROLE_OPERATOR");
 
-    private final int weight;
+    private final String name;
 
-    UserRole(int weight) {
-        this.weight = weight;
+    UserRole(String name) {
+        this.name = name;
     }
-
-    public boolean isHigherThan(UserRole userRole){
-        return this.getWeight() >= userRole.getWeight();
-    }
-
-    public int getWeight() {
-        return weight;
-    }
-
 }

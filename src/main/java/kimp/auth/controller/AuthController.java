@@ -1,7 +1,12 @@
 package kimp.auth.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import kimp.auth.dto.CheckAuthResponseDto;
 import kimp.auth.service.AuthService;
+
+import kimp.security.user.CustomUserDetails;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
+@Slf4j
 public class AuthController {
 
     private final AuthService authService;
@@ -19,14 +25,15 @@ public class AuthController {
     }
 
     @GetMapping("/status")
-    public CheckAuthResponseDto checkUserStatus(@AuthenticationPrincipal UserDetails user) {
-        if(user == null){
-            throw new IllegalArgumentException("userDetails user is null");
+    public CheckAuthResponseDto checkmemberStatus(@AuthenticationPrincipal UserDetails member, HttpServletRequest request, HttpServletResponse response) {
+
+        if(member == null){
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return null;
         }
 
-        return authService.checkAuthStatus(user);
+        CustomUserDetails customUserDetails = (CustomUserDetails) member;
+
+            return authService.checkAuthStatus(customUserDetails);
     }
-
-
-
 }

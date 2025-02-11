@@ -1,6 +1,5 @@
 package kimp.community.service.impl;
 
-import jakarta.transaction.Transactional;
 import kimp.community.dao.BoardCountDao;
 import kimp.community.dao.CategoryDao;
 
@@ -10,7 +9,11 @@ import kimp.community.dto.category.request.UpdateCategoryRequestDto;
 import kimp.community.entity.BoardCount;
 import kimp.community.entity.Category;
 import kimp.community.service.CategoryService;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,9 +31,12 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<Category> getAllCategories(){
-        List<Category> categories = categoryDao.getAllCategory();
-
-        return categories;
+        try {
+            List<Category> categories = categoryDao.getAllCategory();
+            return categories;
+        }catch(Exception e){
+            throw new KimprunException(KimprunExceptionEnum.REQUEST_ACCEPTED, "Not have data", HttpStatus.ACCEPTED, "trace");
+        }
     }
 
     @Override

@@ -21,6 +21,12 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 public class LoggingFilter extends OncePerRequestFilter {
 
+    private static final long MAX_LOG_LENGTH = 1000;
+
+    public String maskSensitiveData(String requestBody) {
+        return requestBody.replaceAll("\"password\"\\s*:\\s*\"(.*?)\"", "\"password\":\"****\"");
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain filterChain) throws ServletException, IOException {
 
@@ -31,13 +37,13 @@ public class LoggingFilter extends OncePerRequestFilter {
         log.info("\n" + "========= [ {} ] {} =========" + "\n" +
                         ">>> content-type   : {}" + "\n" +
                         ">>> authorization  : {}" + "\n" +
-                        ">>> user-agent     : {}" + "\n" +
+                        ">>> member-agent     : {}" + "\n" +
                         ">>> host           : {}" + "\n" +
                         ">>> content-length : {}"
                 , req.getMethod(), req.getRequestURI(),
                 req.getHeader("content-type"),
                 req.getHeader("authorization"),
-                req.getHeader("user-agent"),
+                req.getHeader("member-agent"),
                 req.getHeader("host"),
                 req.getHeader("content-length")
         );
@@ -50,16 +56,21 @@ public class LoggingFilter extends OncePerRequestFilter {
             String requestBody = new String(wrappedReq.getContentAsByteArray(), StandardCharsets.UTF_8).trim();
 
             if(!requestBody.isEmpty()) {
+                requestBody = maskSensitiveData(requestBody);
                 log.info(">>> request-body : {}", requestBody);
             }
 
             byte[] contentAsByteArray = wrappedRes.getContentAsByteArray();
             if(contentAsByteArray.length > 0) {
                 String responseBody = new String(contentAsByteArray, StandardCharsets.UTF_8).trim();
-                log.info(">>> response-body : {}", formatResponseBody(responseBody));
 
+                // response body가 너무 크면 skip
+                if(responseBody.length() > MAX_LOG_LENGTH){
+                    log.info(">>> Response-body too large, skipping.");
+                }else{
+                    log.info(">>> response-body : {}", formatResponseBody(responseBody));
+                }
                 wrappedRes.copyBodyToResponse(); // 캐시된 응답 본문을 실제 응답에 복사
-
             }
         }
 
