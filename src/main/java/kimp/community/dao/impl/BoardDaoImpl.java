@@ -40,6 +40,11 @@ public class BoardDaoImpl implements BoardDao {
     }
 
     @Override
+    public Long getBoardCount() {
+        return boardRepository.count();
+    }
+
+    @Override
     public Board updateBoardById(Long id, String title, String content){
         Board board = getBoardById(id);
 
@@ -77,7 +82,8 @@ public class BoardDaoImpl implements BoardDao {
     }
 
     @Override
+    @Transactional
     public Page<Board> findAllWithPage(Pageable pageable){
-        return this.boardRepository.findAll(pageable);
+        return this.boardRepository.findAllByOrderByRegistedAtDesc(pageable);
     }
 }
