@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.market.dto.response.InfoResponseDto;
 import kimp.market.service.MarketInfoService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -47,14 +46,14 @@ public class MarketInfoHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
     }
 
-    @Async
     @Scheduled(fixedRate = 5000)
     public void sendMessageToAll() throws Exception {
         try {
             double dollarData = this.marketInfoService.getDollarKRW();
-            int sessionSize = sessions.size()+231;
+            double tetherData = this.marketInfoService.getTetherKRW();
+            int sessionSize = sessions.size();
 
-            InfoResponseDto responseDto = new InfoResponseDto(sessionSize, dollarData);
+            InfoResponseDto responseDto = new InfoResponseDto(sessionSize, dollarData, tetherData);
             String responseInfo = objectMapper.writeValueAsString(responseDto);
             TextMessage textMessage = new TextMessage(responseInfo);
             for (WebSocketSession session : sessions.values()) {

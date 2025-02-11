@@ -1,6 +1,7 @@
 package kimp.market.controller;
 
 import kimp.market.dto.response.MarketDollarResponseDto;
+import kimp.market.dto.response.MarketTetherResponseDto;
 import kimp.market.service.MarketInfoService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,5 +21,10 @@ public class MarketInfoController {
     @GetMapping("/dollar")
     public MarketDollarResponseDto getDollar() {
         return new MarketDollarResponseDto(marketInfoService.getDollarKRW());
+    }
+
+    @GetMapping("/tether")
+    public MarketTetherResponseDto getTether(){
+        return new MarketTetherResponseDto(marketInfoService.getTetherKRW());
     }
 }
