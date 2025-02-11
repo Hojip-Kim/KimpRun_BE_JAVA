@@ -1,14 +1,15 @@
-package unit.kimp.market.component;
+package kimp.unit.kimp.market.component;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kimp.market.components.Dollar;
 import kimp.market.dto.response.DollarResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -17,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
+@SpringBootTest(classes = {Dollar.class})
 public class DollarTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -29,7 +31,7 @@ public class DollarTest {
     @DisplayName("dollar 데이터 Fetch가 잘 되는지에 대한 Test.")
     void fetchDollarData() throws IOException {
         String data = restTemplate.getForObject(dollarApiUrl, String.class);
-        System.out.println(data);
+
         DollarResponseDto dollarDto = objectMapper.readValue(data, DollarResponseDto.class);
 
         // 데이터가 null이 아닌지 확인
