@@ -1,8 +1,9 @@
-package unit.kimp.chat.service;
+package kimp.unit.kimp.chat.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kimp.chat.dao.daoImpl.ChatDao;
+import kimp.chat.dao.ChatDao;
 import kimp.chat.service.serviceImpl.ChatWebsocketServiceImpl;
+import kimp.market.dto.response.DollarResponseDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,10 +13,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.socket.WebSocketSession;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -28,8 +31,10 @@ public class ChatWebsocketServiceImplTest {
     @Mock
     private ChatDao chatDao;
 
-    @Mock
-    private ObjectMapper objectMapper;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    private RestTemplate restTemplate = new RestTemplate();
 
 
     private MockMvc mockMvc;
@@ -37,6 +42,25 @@ public class ChatWebsocketServiceImplTest {
     @BeforeEach
     public void init(){
         this.mockMvc = MockMvcBuilders.standaloneSetup(chatWebsocketServiceImpl).build();
+    }
+
+
+    @Test
+    @DisplayName("dollar 데이터가 잘 받아오는지 확인.")
+    void fetchDollarData() throws IOException {
+        String data = restTemplate.getForObject("https://open.er-api.com/v6/latest/USD", String.class);
+
+        DollarResponseDto dollarDto = objectMapper.readValue(data, DollarResponseDto.class);
+
+        // 데이터가 null이 아닌지 확인
+        assertNotNull(dollarDto, "DollarResponseDto 데이터가 null입니다.");
+
+        DollarResponseDto.Rates rates = dollarDto.getRates();
+        assertNotNull(rates, "Rates 데이터가 null입니다.");
+
+        // KRW 환율이 0보다 큰지 확인
+        double krwRate = dollarDto.getRates().getKRW();
+        assertTrue(krwRate > 0, "KRW 환율이 0보다 커야 합니다.");
     }
 
 
