@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static kimp.community.entity.QBoard.board;
+
 
 @Service
 public class BoardServiceImpl implements BoardService {
@@ -53,6 +55,30 @@ public class BoardServiceImpl implements BoardService {
     public Long getBoardsCount() {
 
         return boardDao.getBoardCount();
+    }
+
+    @Override
+    @Transactional
+    public List<Board> activatePinWithBoard(List<Long> boardIds) {
+        if(board == null){
+            throw new IllegalArgumentException("board object is null");
+        }
+
+        List<Board> boards = this.boardDao.findAllByIds(boardIds);
+
+        return this.boardDao.activateBoardsPin(boards);
+    }
+
+    @Override
+    @Transactional
+    public List<Board> deactivatePinWithBoard(List<Long> boardIds) {
+        if(board == null){
+            throw new IllegalArgumentException("board object is null");
+        }
+
+        List<Board> boards = this.boardDao.findAllByIds(boardIds);
+
+        return this.boardDao.deActivateBoardsPin(boards);
     }
 
     @Override
@@ -116,4 +142,5 @@ public class BoardServiceImpl implements BoardService {
                 .collect(Collectors.toList());
         return new AllBoardResponseDto(boardResponseDto, boardCount);
     }
+
 }

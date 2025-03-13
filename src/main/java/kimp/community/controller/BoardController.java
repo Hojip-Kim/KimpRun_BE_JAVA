@@ -1,17 +1,21 @@
 package kimp.community.controller;
 
+import kimp.community.dto.board.request.BoardInsertDto;
 import kimp.community.dto.board.request.CreateBoardRequestDto;
+import kimp.community.dto.board.request.RequestBoardPin;
 import kimp.community.dto.board.request.UpdateBoardRequestDto;
 import kimp.community.dto.board.response.AllBoardResponseDto;
 import kimp.community.dto.board.response.BoardResponseDto;
 import kimp.community.dto.board.response.BoardWithCommentResponseDto;
 import kimp.community.dto.board.response.BoardWithCountResponseDto;
 import kimp.community.entity.Board;
+import kimp.community.service.BoardPerformanceService;
 import kimp.community.service.BoardService;
 import kimp.community.service.BoardPacadeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import kimp.security.user.CustomUserDetails;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,10 +30,12 @@ public class BoardController {
 
     private final BoardService boardService;
     private final BoardPacadeService boardPacadeService;
+    private final BoardPerformanceService boardPerformanceService;
 
-    public BoardController(BoardService boardService, BoardPacadeService boardPacadeService) {
+    public BoardController(BoardService boardService, BoardPacadeService boardPacadeService, BoardPerformanceService boardPerformanceService) {
         this.boardService = boardService;
         this.boardPacadeService = boardPacadeService;
+        this.boardPerformanceService = boardPerformanceService;
     }
 
 
@@ -102,7 +108,7 @@ public class BoardController {
     }
 
     @PostMapping("/{categoryId}/create")
-    private BoardResponseDto createBoard(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("categoryId") long categoryId, @RequestBody CreateBoardRequestDto createBoardRequestDto) {
+    private void createBoard(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("categoryId") long categoryId, @RequestBody CreateBoardRequestDto createBoardRequestDto) {
 
         if(categoryId < 0) {
             throw new IllegalArgumentException("request parameter categoryId must be greater than 0");
@@ -113,11 +119,29 @@ public class BoardController {
 
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
-        Board board = this.boardPacadeService.createBoard(customUserDetails.getId(),categoryId, createBoardRequestDto);
+        BoardInsertDto boardInsertDto = new BoardInsertDto(customUserDetails.getId(), categoryId, createBoardRequestDto.getTitle(), createBoardRequestDto.getContent());
 
-        return this.boardPacadeService.convertBoardToBoardResponseDto(board);
+        this.boardPerformanceService.enqueueBoardQueue(boardInsertDto);
 
     }
+
+//    @PostMapping("/{categoryId}/create")
+//    private BoardResponseDto createBoard(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("categoryId") long categoryId, @RequestBody CreateBoardRequestDto createBoardRequestDto) {
+//
+//        if(categoryId < 0) {
+//            throw new IllegalArgumentException("request parameter categoryId must be greater than 0");
+//        }
+//        if(createBoardRequestDto == null){
+//            throw new IllegalArgumentException("request parameter createBoardRequestDto must not be null");
+//        }
+//
+//        CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
+//
+//        Board board = this.boardPacadeService.createBoard(customUserDetails.getId(),categoryId, createBoardRequestDto);
+//
+//        return this.boardPacadeService.convertBoardToBoardResponseDto(board);
+//
+//    }
 
     @PatchMapping("/{boardId}")
     private BoardResponseDto updateBoard(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("boardId") long boardId, @RequestBody UpdateBoardRequestDto updateBoardRequestDto){
@@ -146,6 +170,25 @@ public class BoardController {
         }
 
         return ResponseEntity.notFound().build();
+    }
+
+    @PreAuthorize("hasAnyAuthority('MANAGER','OPERATOR')")
+    @PatchMapping("/activate")
+    private ResponseEntity<Boolean> activateBoardsPin(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody RequestBoardPin requestBoardPin) {
+
+        this.boardService.activatePinWithBoard(requestBoardPin.getBoardIds());
+
+        return ResponseEntity.ok(true);
+    }
+
+    @PreAuthorize("hasAnyAuthority('MANAGER','OPERATOR')")
+    @PatchMapping("/deActivate")
+    private ResponseEntity<Boolean> deActivateBoardsPin(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody RequestBoardPin requestBoardPin) {
+
+        this.boardService.deactivatePinWithBoard(requestBoardPin.getBoardIds());
+
+        return ResponseEntity.ok(true);
+
     }
 
     @PatchMapping("/like")
