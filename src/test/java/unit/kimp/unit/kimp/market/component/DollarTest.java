@@ -1,4 +1,4 @@
-package kimp.unit.kimp.market.component;
+package unit.kimp.unit.kimp.market.component;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;

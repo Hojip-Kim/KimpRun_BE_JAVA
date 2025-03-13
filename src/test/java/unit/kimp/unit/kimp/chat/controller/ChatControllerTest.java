@@ -1,4 +1,4 @@
-package kimp.unit.kimp.chat.controller;
+package unit.kimp.unit.kimp.chat.controller;
 
 import kimp.chat.controller.ChatController;
 import kimp.chat.service.ChatService;

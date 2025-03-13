@@ -1,4 +1,4 @@
-package kimp.unit.kimp.chat.service;
+package unit.kimp.unit.kimp.chat.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.chat.dao.ChatDao;
