@@ -102,6 +102,7 @@ public class BithumbScrapTest {
             i = 0;
             for(Element date : noticeDate ) {
                 noticeArray[i] += " " + date.text();
+                System.out.println(date.text());
                 i++;
             }
             i = 0;

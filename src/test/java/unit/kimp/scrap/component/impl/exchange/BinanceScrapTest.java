@@ -64,9 +64,6 @@ public class BinanceScrapTest {
 
             HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, headers);
 
-//            HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-//            restTemplate = new RestTemplate(factory);
-
             ResponseEntity<BinanceNoticeDto> res = restTemplate.exchange(
                     localUrl,
                     HttpMethod.POST,

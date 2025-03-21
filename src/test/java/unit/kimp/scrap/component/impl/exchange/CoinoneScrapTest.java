@@ -70,15 +70,13 @@ public class CoinoneScrapTest {
         );
 
         CoinoneNoticeDto dto = response.getBody();
-        System.out.println(dto.getCount());
-        System.out.println(dto.getNext());
-        System.out.println(dto.getCount());
 
         List<CoinoneNoticeResultDto> coinoneNoticeResultDto = dto.getResults();
 
         for (int i = 0; i < coinoneNoticeResultDto.size(); i++) {
             System.out.println(coinoneNoticeResultDto.get(i).getTitle());
-            System.out.println(coinoneNoticeResultDto.get(i).getEventStartDateTime());
+            System.out.println(coinoneNoticeResultDto.get(i).getCreatedAt());
+            System.out.println(coinoneNoticeResultDto.get(i).getGet_absolute_url());
         }
 
 
