@@ -1,7 +1,9 @@
 package kimp.market.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kimp.market.dto.response.InfoResponseDto;
+import kimp.market.dto.response.websocket.InfoResponseDto;
+import kimp.market.dto.response.websocket.MarketWebsocketResponseDto;
+import kimp.market.dto.response.websocket.UserWebsocketResponseDto;
 import kimp.market.service.MarketInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -51,9 +53,14 @@ public class MarketInfoHandler extends TextWebSocketHandler {
         try {
             double dollarData = this.marketInfoService.getDollarKRW();
             double tetherData = this.marketInfoService.getTetherKRW();
-            int sessionSize = sessions.size();
 
-            InfoResponseDto responseDto = new InfoResponseDto(sessionSize, dollarData, tetherData);
+            int userCount = sessions.size();
+
+            MarketWebsocketResponseDto marketWebsocketResponseDto = new MarketWebsocketResponseDto(dollarData, tetherData);
+            UserWebsocketResponseDto userWebsocketResponseDto = new UserWebsocketResponseDto(userCount);
+
+
+            InfoResponseDto responseDto = new InfoResponseDto(userWebsocketResponseDto, marketWebsocketResponseDto);
             String responseInfo = objectMapper.writeValueAsString(responseDto);
             TextMessage textMessage = new TextMessage(responseInfo);
             for (WebSocketSession session : sessions.values()) {

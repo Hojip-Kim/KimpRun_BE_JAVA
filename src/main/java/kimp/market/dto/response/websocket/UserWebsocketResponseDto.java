@@ -1,5 +1,4 @@
-package kimp.market.dto.response;
-
+package kimp.market.dto.response.websocket;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,10 +7,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-public class InfoResponseDto {
-
+public class UserWebsocketResponseDto {
     private int userCount;
-    private double dollar;
-    private double tether;
-
 }
