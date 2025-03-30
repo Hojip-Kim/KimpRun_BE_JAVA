@@ -1,6 +1,6 @@
-package kimp.scrap.dto.bithumb;
+package kimp.exchange.dto.bithumb;
 
-import kimp.scrap.dto.common.ExchangeNoticeDto;
+import kimp.exchange.dto.notice.ExchangeNoticeDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

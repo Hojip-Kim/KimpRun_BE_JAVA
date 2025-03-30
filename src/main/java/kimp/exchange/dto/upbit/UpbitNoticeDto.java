@@ -1,4 +1,4 @@
-package kimp.scrap.dto.coinone;
+package kimp.exchange.dto.upbit;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-public class CoinoneFlaggedContentDto {
-    private String status;
+public class UpbitNoticeDto {
+    public boolean success;
+    public UpbitDataDto data;
 }

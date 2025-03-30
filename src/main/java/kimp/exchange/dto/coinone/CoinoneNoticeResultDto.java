@@ -1,10 +1,12 @@
-package kimp.scrap.dto.coinone;
+package kimp.exchange.dto.coinone;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 @Getter
@@ -64,10 +66,12 @@ public class CoinoneNoticeResultDto {
     private boolean isRegularEvent;
 
     @JsonProperty("event_start_datetime")
-    private OffsetDateTime eventStartDateTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime eventStartDateTime;
 
     @JsonProperty("event_end_datetime")
-    private OffsetDateTime eventEndDateTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime eventEndDateTime;
 
     private boolean pin;
 

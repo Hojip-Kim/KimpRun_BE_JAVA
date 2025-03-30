@@ -1,4 +1,4 @@
-package kimp.scrap.dto.coinone;
+package kimp.exchange.dto.coinone;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

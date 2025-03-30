@@ -1,6 +1,6 @@
-package kimp.scrap.dto.binance;
+package kimp.exchange.dto.binance;
 
-import kimp.scrap.dto.common.ExchangeNoticeDto;
+import kimp.exchange.dto.notice.ExchangeNoticeDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

@@ -1,6 +1,6 @@
-package kimp.scrap.component.impl.social;
+package kimp.exchange.component.impl.social;
 
-import kimp.scrap.component.SocialScrap;
+import kimp.exchange.component.SocialScrap;
 import org.springframework.stereotype.Service;
 
 @Service
