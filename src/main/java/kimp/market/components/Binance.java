@@ -185,7 +185,6 @@ public class Binance extends Market {
         for (int i = 0; i < marketList.size(); i++) {
             String modifiedString = marketList.get(i).replace("USDT", "");
             marketPair.add(modifiedString);
-            System.out.println(marketPair.get(i));
         }
 
         // "USDT"가 붙은 market List
