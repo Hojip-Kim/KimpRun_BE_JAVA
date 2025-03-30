@@ -44,6 +44,9 @@ public class Board extends TimeStamp {
     @Column(nullable = false)
     private String content;
 
+    @Column
+    private boolean isPin = false;
+
     public Board() {
 
     }
@@ -95,5 +98,13 @@ public class Board extends TimeStamp {
             this.commentCount = commentCount;
         }
         return this;
+    }
+
+    public void activePin(){
+        this.isPin = true;
+    }
+
+    public void deactivePin(){
+        this.isPin = false;
     }
 }

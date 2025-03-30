@@ -37,4 +37,8 @@ public interface BoardService {
 
     public AllBoardResponseDto convertBoardPagesToAllBoardResponseDtos(Page<Board> boardPages, Long boardCount);
 
+    public List<Board> activatePinWithBoard(List<Long> boardIds);
+
+    public List<Board> deactivatePinWithBoard(List<Long> boardIds);
+
 }

@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -86,4 +87,62 @@ public class BoardDaoImpl implements BoardDao {
     public Page<Board> findAllWithPage(Pageable pageable){
         return this.boardRepository.findAllByOrderByRegistedAtDesc(pageable);
     }
+
+    @Override
+    @Transactional
+    public List<Board> findAllByIds(List<Long> ids) {
+
+        List<Board> boards = this.boardRepository.findAllById(ids);
+
+        if(boards.isEmpty()){
+            throw new IllegalArgumentException("not have boards");
+        }
+
+        return boards;
+    }
+
+    @Override
+    @Transactional
+    public List<Board> activateBoardsPin(List<Board> boards) {
+        for(Board board : boards){
+            board.activePin();
+        }
+
+        boolean isCompleted = true;
+
+        for(Board board : boards){
+            if(!board.isPin()){
+                isCompleted = false;
+            }
+        }
+
+        if(!isCompleted){
+            throw new IllegalArgumentException("boards activate Error occurred");
+        }
+
+        return boards;
+    }
+
+    @Override
+    @Transactional
+    public List<Board> deActivateBoardsPin(List<Board> boards) {
+        for(Board board : boards){
+            board.deactivePin();
+        }
+
+        boolean isCompleted = true;
+
+        for(Board board : boards){
+            if(board.isPin()){
+                isCompleted = false;
+            }
+        }
+
+        if(!isCompleted){
+            throw new IllegalArgumentException("boards deActivate Error occurred");
+        }
+
+        return boards;
+    }
+
 }
