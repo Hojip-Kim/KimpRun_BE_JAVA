@@ -38,3 +38,5 @@ out/
 
 ### FILE ###
 application.yml
+application-local.yml
+application-prod.yml
