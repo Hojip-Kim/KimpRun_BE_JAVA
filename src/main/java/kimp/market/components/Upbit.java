@@ -2,11 +2,11 @@ package kimp.market.components;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
-import kimp.market.dto.response.MarketList;
+import kimp.market.dto.market.response.MarketList;
 import kimp.market.common.MarketCommonMethod;
-import kimp.market.dto.response.MarketDataList;
-import kimp.market.dto.response.UpbitMarketList;
-import kimp.market.dto.response.UpbitTicker;
+import kimp.market.dto.market.response.MarketDataList;
+import kimp.market.dto.market.response.UpbitMarketList;
+import kimp.market.dto.market.response.UpbitTicker;
 import kimp.websocket.dto.response.UpbitDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
