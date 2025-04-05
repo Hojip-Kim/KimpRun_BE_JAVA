@@ -1,4 +1,4 @@
-package kimp.market.dto.common;
+package kimp.market.dto.market.common;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;

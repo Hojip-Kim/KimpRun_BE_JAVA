@@ -1,4 +1,4 @@
-package kimp.market.dto.response;
+package kimp.market.dto.market.response;
 
 
 import java.util.List;
