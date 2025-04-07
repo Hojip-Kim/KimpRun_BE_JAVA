@@ -1,4 +1,4 @@
-package kimp.market.dto.response.websocket;
+package kimp.market.dto.market.response.websocket;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
