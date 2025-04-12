@@ -5,6 +5,7 @@ import kimp.common.entity.TimeStamp;
 import kimp.user.entity.Member;
 import lombok.Getter;
 
+@Cacheable
 @Entity
 @Getter
 public class Category extends TimeStamp {
