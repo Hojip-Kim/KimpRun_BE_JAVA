@@ -6,6 +6,7 @@ import kimp.market.Enum.MarketType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -19,15 +20,15 @@ public class Coin extends TimeStamp {
     private long id;
 
     @OneToMany(mappedBy ="coin", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<CoinExchange> coinExchanges;
+    private List<CoinExchange> coinExchanges = new ArrayList<>();
 
     @Column(nullable = false)
     private String symbol;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String name;
 
-    @Column(nullable = false, name="en_name")
+    @Column(nullable = true, name="en_name")
     private String englishName;
 
     @Column(columnDefinition = "TEXT", nullable = true)
