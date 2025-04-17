@@ -4,7 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
+import kimp.market.Enum.MarketType;
 import kimp.market.common.MarketCommonMethod;
+import kimp.market.dto.coin.common.ServiceCoinDto;
+import kimp.market.dto.coin.common.ServiceCoinWrapperDto;
 import kimp.market.dto.market.response.BinanceMarketList;
 import kimp.market.dto.market.response.BinanceTicker;
 import kimp.market.dto.market.response.MarketDataList;
@@ -25,6 +28,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
+@Qualifier("binance")
 public class Binance extends Market {
 
     private final MarketCommonMethod marketCommonMethod;
@@ -63,6 +67,12 @@ public class Binance extends Market {
         this.combineMarketListProvider = combineMarketListProvider;
     }
 
+    @PostConstruct
+    public void initFirst() throws IOException {
+        if(this.binanceMarketList == null){
+            setBinanceMarketList();
+        }
+    }
 
     /**
      * @param
@@ -72,10 +82,7 @@ public class Binance extends Market {
      * @throws IOException
      */
     @Override
-    public MarketList getMarketList() throws IOException {
-        if(this.binanceMarketList == null) {
-            setBinanceMarketList();
-        }
+    public MarketList getMarketList(){
         return this.binanceMarketList;
     }
 
@@ -86,6 +93,25 @@ public class Binance extends Market {
         }
 
         return this.binanceMarketPair;
+    }
+
+    @Override
+    public ServiceCoinWrapperDto getServiceCoins(){
+        MarketList marketList = getMarketList();
+        List<String> stringMarketList = marketList.getMarkets();
+
+        List<ServiceCoinDto> serviceCoinDtos = new ArrayList<>();
+
+        for(String market : stringMarketList){
+            serviceCoinDtos.add(new ServiceCoinDto(market, null, market));
+        }
+
+        return new ServiceCoinWrapperDto(this.getMarketType(), serviceCoinDtos);
+    }
+
+    @Override
+    public MarketType getMarketType() {
+        return MarketType.BINANCE;
     }
 
     @Override
@@ -149,13 +175,6 @@ public class Binance extends Market {
         List<String> binanceMarketList = this.combineMarketListProvider.getBinanceMarketList();
         List<String> upbitMarketList = this.combineMarketListProvider.getUpbitMarketList();
         return this.combineMarketListProvider.getMarketCombineList(binanceMarketList, upbitMarketList);
-    }
-
-    @PostConstruct
-    public void initFirst() throws IOException {
-        if(this.binanceMarketList == null){
-            setBinanceMarketList();
-        }
     }
 
     public List<String> detachUsdtTicker(List<String> marketList){
