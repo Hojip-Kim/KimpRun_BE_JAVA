@@ -2,6 +2,9 @@ package kimp.market.components;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
+import kimp.market.Enum.MarketType;
+import kimp.market.dto.coin.common.ServiceCoinDto;
+import kimp.market.dto.coin.common.ServiceCoinWrapperDto;
 import kimp.market.dto.market.response.MarketList;
 import kimp.market.common.MarketCommonMethod;
 import kimp.market.dto.market.response.MarketDataList;
@@ -22,6 +25,7 @@ import java.util.List;
 
 @Component
 @Slf4j
+@Qualifier("upbit")
 public class Upbit extends Market{
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -51,22 +55,43 @@ public class Upbit extends Market{
     private String upbitTickerUrl;
 
 
+    @PostConstruct
     @Override
-    public MarketList getMarketList() throws IOException {
+    public void initFirst() throws IOException {
         if(this.upbitMarketList == null) {
             setUpbitMarketList();
         }
+    }
+
+    @Override
+    public MarketList getMarketList() {
         return this.upbitMarketList;
     }
 
     @Override
-    public MarketList getMarketPair() throws IOException {
-        if(this.upbitMarketPair == null) {
-            setUpbitMarketList();
-        }
+    public MarketList getMarketPair() {
+
         return this.upbitMarketPair;
     }
 
+    @Override
+    public ServiceCoinWrapperDto getServiceCoins(){
+        MarketList marketList = getMarketList();
+        List<String> stringMarketList = marketList.getMarkets();
+
+        List<ServiceCoinDto> serviceCoinDtos = new ArrayList<>();
+
+        for(String market : stringMarketList){
+            serviceCoinDtos.add(new ServiceCoinDto(market, null, market));
+        }
+
+        return new ServiceCoinWrapperDto(this.getMarketType(), serviceCoinDtos);
+    }
+
+    @Override
+    public MarketType getMarketType() {
+        return MarketType.UPBIT;
+    }
 
 
     @Override
@@ -121,14 +146,6 @@ public class Upbit extends Market{
             return tickers[0].getTrade_price();
         } else {
             return BigDecimal.ZERO;
-        }
-    }
-
-    @PostConstruct
-    @Override
-    public void initFirst() throws IOException {
-        if(this.upbitMarketList == null) {
-            setUpbitMarketList();
         }
     }
 
