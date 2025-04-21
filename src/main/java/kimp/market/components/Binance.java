@@ -133,40 +133,31 @@ public class Binance extends Market {
                         .map(market -> "\"" + market + "\"")
                         .collect(Collectors.joining(","))
                 + "]";
-        String tickerData = restTemplate.getForObject(requestStringURL, String.class);
+        BinanceTicker[] tickerData = restTemplate.getForObject(requestStringURL, BinanceTicker[].class);
 
         BinanceDto binanceDto = null;
         MarketDataList<BinanceDto> binanceMarketDataList = null;
 
-        try{
-            BinanceTicker[] tickers = objectMapper.readValue(tickerData, BinanceTicker[].class);
-
-            List<BinanceDto> marketDataList = new ArrayList<>();
-            String rateChange = "";
-            for (int i = 0; i < tickers.length; i++) {
-                if(tickers[i].getPriceChangePercent().compareTo(BigDecimal.ZERO) < 0){
-                    rateChange = "FALL";
-                }else if(tickers[i].getPriceChangePercent().compareTo(BigDecimal.ZERO) > 0){
-                    rateChange = "RISE";
-                }else{
-                    rateChange = "EVEN";
-                }
-
-                binanceDto = new BinanceDto(tickers[i].getSymbol().replace("USDT", ""), tickers[i].getQuoteVolume(), tickers[i].getPriceChangePercent(), tickers[i].getHighPrice(), tickers[i].getLowPrice(), tickers[i].getOpenPrice(), tickers[i].getLastPrice(), rateChange, tickers[i].getVolume());
-                marketDataList.add(binanceDto);
-            }
-
-            binanceMarketDataList = new MarketDataList<>(marketDataList);
-            if(binanceMarketDataList != null){
-                this.binanceMarketDataList = binanceMarketDataList;
+        List<BinanceDto> marketDataList = new ArrayList<>();
+        String rateChange = "";
+        for (int i = 0; i < tickerData.length; i++) {
+            if(tickerData[i].getPriceChangePercent().compareTo(BigDecimal.ZERO) < 0){
+                rateChange = "FALL";
+            }else if(tickerData[i].getPriceChangePercent().compareTo(BigDecimal.ZERO) > 0){
+                rateChange = "RISE";
             }else{
-                throw new IllegalArgumentException("Binance Market List is null");
+                rateChange = "EVEN";
             }
 
-        } catch (JsonMappingException e) {
-            throw new RuntimeException(e);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            binanceDto = new BinanceDto(tickerData[i].getSymbol().replace("USDT", ""), tickerData[i].getQuoteVolume(), tickerData[i].getPriceChangePercent(), tickerData[i].getHighPrice(), tickerData[i].getLowPrice(), tickerData[i].getOpenPrice(), tickerData[i].getLastPrice(), rateChange, tickerData[i].getVolume());
+            marketDataList.add(binanceDto);
+        }
+
+        binanceMarketDataList = new MarketDataList<>(marketDataList);
+        if(binanceMarketDataList != null){
+            this.binanceMarketDataList = binanceMarketDataList;
+        }else{
+            throw new IllegalArgumentException("Binance Market List is null");
         }
 
     }
