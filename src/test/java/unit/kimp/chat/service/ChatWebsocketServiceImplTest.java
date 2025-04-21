@@ -1,9 +1,9 @@
-package unit.kimp.unit.kimp.chat.service;
+package unit.kimp.chat.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.chat.dao.ChatDao;
 import kimp.chat.service.serviceImpl.ChatWebsocketServiceImpl;
-import kimp.market.dto.response.DollarResponseDto;
+import kimp.market.dto.market.response.DollarResponseDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
