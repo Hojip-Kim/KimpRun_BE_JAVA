@@ -18,12 +18,14 @@ public class UpbitScrapTest {
     private RestTemplate restTemplate = new RestTemplate();
     private String upbitNoticeUrl;
 
+    private String noticeUrl = "https://run.mocky.io/v3/9c847ac3-9d75-4104-a0bb-24a812b2c215";
+
     @BeforeEach
     @DisplayName("환경변수 설정")
     public void callEnvironmentValue(){
         Yaml yaml = new Yaml();
         try{
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("application.yml");
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("application-test.yml");
             if(inputStream != null){
 
                 Map<String, Object> props = yaml.load(inputStream);
@@ -33,11 +35,17 @@ public class UpbitScrapTest {
                 this.upbitNoticeUrl = (String) notice.get("url");
 
             } else {
-                throw new IllegalStateException("application.yml not found");
+                throw new IllegalStateException("yaml not found");
             }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load application.yml", e);
+            throw new RuntimeException("Failed to load yaml", e);
         }
+    }
+
+    @Test
+    @DisplayName("upbit 실시간 뉴스를 잘 받아오는 지 test")
+    public void noticeUpdateTest() {
+
     }
 
     @Test

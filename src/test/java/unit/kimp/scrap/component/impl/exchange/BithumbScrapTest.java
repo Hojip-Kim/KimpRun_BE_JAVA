@@ -33,7 +33,7 @@ public class BithumbScrapTest {
     public void callEnvironmentValue(){
         Yaml yaml = new Yaml();
         try{
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("application.yml");
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("application-test.yml");
             if(inputStream != null){
 
                 Map<String, Object> props = yaml.load(inputStream);
@@ -46,10 +46,10 @@ public class BithumbScrapTest {
                 this.bithumbNoticeUrl= (String) notice.get("url");
 
             } else {
-                throw new IllegalStateException("application.yml not found");
+                throw new IllegalStateException("yaml not found");
             }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load application.yml", e);
+            throw new RuntimeException("Failed to load yaml", e);
         }
     }
 

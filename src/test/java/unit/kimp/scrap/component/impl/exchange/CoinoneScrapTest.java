@@ -5,6 +5,9 @@ import kimp.exchange.dto.coinone.CoinoneNoticeResultDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 import org.yaml.snakeyaml.Yaml;
@@ -16,7 +19,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+@ExtendWith(MockitoExtension.class)
 public class CoinoneScrapTest {
+    @Spy
     private RestTemplate restTemplate = new RestTemplate();
 
     private String coinoneNoticeUrl;
@@ -28,7 +33,7 @@ public class CoinoneScrapTest {
     public void callEnvironmentValue(){
         Yaml yaml = new Yaml();
         try{
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("application.yml");
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("application-test.yml");
             if(inputStream != null){
 
                 Map<String, Object> props = yaml.load(inputStream);
@@ -36,17 +41,21 @@ public class CoinoneScrapTest {
                 Map<String, Object> coinone = (Map<String, Object>) props.get("coinone");
                 Map<String, Object> url = (Map<String, Object>) coinone.get("notice");
                 this.coinoneNoticeUrl= (String) url.get("url");
-
                 this.coinoneReferer = (String) coinone.get("referer");
                 this.coinoneOrigin = (String) coinone.get("origin");
 
+                System.out.println(this.coinoneNoticeUrl);
+                System.out.println(this.coinoneReferer);
+                System.out.println(this.coinoneOrigin);
+
             } else {
-                throw new IllegalStateException("application.yml not found");
+                throw new IllegalStateException("yaml not found");
             }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load application.yml", e);
+            throw new RuntimeException("Failed to load yaml", e);
         }
     }
+
 
     @Test
     @DisplayName("Coinone Notice data를 잘 받아오는 지 test - pin")
