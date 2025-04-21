@@ -1,6 +1,5 @@
 package kimp.community.dao.impl;
 
-import jakarta.transaction.Transactional;
 import kimp.community.dao.BoardDao;
 import kimp.community.entity.Board;
 import kimp.community.entity.Category;
@@ -8,6 +7,10 @@ import kimp.community.repository.BoardRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class BoardDaoImpl implements BoardDao {
@@ -30,11 +33,16 @@ public class BoardDaoImpl implements BoardDao {
 
     @Override
     public Board getBoardById(Long id) {
-        Board board = boardRepository.findBoardById(id);
-        if(board == null){
+        Optional<Board> board = boardRepository.findById(id);
+        if(board.isEmpty()){
             throw new IllegalArgumentException("not have board id :" + id);
         }
-        return board;
+        return board.orElse(null);
+    }
+
+    @Override
+    public Long getBoardCount() {
+        return boardRepository.count();
     }
 
     @Override
@@ -59,7 +67,7 @@ public class BoardDaoImpl implements BoardDao {
 
     @Override
     public Boolean deleteBoardById(Long id) {
-        this.boardRepository.deleteBoardById(id);
+        this.boardRepository.deleteById(id);
 
         if(getBoardById(id) != null){
             throw new IllegalArgumentException("board not deleted : id " + id);
@@ -69,12 +77,72 @@ public class BoardDaoImpl implements BoardDao {
     }
 
     @Override
+    @Transactional
     public Page<Board> findByCategoryWithPage(Category category, Pageable pageable){
-        return this.boardRepository.findByCategory(category, pageable);
+        return this.boardRepository.findByCategoryOrderByRegistedAtDesc(category, pageable);
     }
 
     @Override
+    @Transactional
     public Page<Board> findAllWithPage(Pageable pageable){
-        return this.boardRepository.findAll(pageable);
+        return this.boardRepository.findAllByOrderByRegistedAtDesc(pageable);
     }
+
+    @Override
+    @Transactional
+    public List<Board> findAllByIds(List<Long> ids) {
+
+        List<Board> boards = this.boardRepository.findAllById(ids);
+
+        if(boards.isEmpty()){
+            throw new IllegalArgumentException("not have boards");
+        }
+
+        return boards;
+    }
+
+    @Override
+    @Transactional
+    public List<Board> activateBoardsPin(List<Board> boards) {
+        for(Board board : boards){
+            board.activePin();
+        }
+
+        boolean isCompleted = true;
+
+        for(Board board : boards){
+            if(!board.isPin()){
+                isCompleted = false;
+            }
+        }
+
+        if(!isCompleted){
+            throw new IllegalArgumentException("boards activate Error occurred");
+        }
+
+        return boards;
+    }
+
+    @Override
+    @Transactional
+    public List<Board> deActivateBoardsPin(List<Board> boards) {
+        for(Board board : boards){
+            board.deactivePin();
+        }
+
+        boolean isCompleted = true;
+
+        for(Board board : boards){
+            if(board.isPin()){
+                isCompleted = false;
+            }
+        }
+
+        if(!isCompleted){
+            throw new IllegalArgumentException("boards deActivate Error occurred");
+        }
+
+        return boards;
+    }
+
 }

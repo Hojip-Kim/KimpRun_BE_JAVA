@@ -1,7 +1,6 @@
 package kimp.market.common;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -87,7 +86,7 @@ public class MarketCommonMethod {
     }
 
     public static BigDecimal setScale(BigDecimal input) {
-        return input.setScale(3, RoundingMode.HALF_UP);
+        return input.setScale(7, RoundingMode.HALF_UP);
     }
 
 

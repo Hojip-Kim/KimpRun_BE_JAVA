@@ -2,36 +2,63 @@ package kimp.user.entity;
 
 import jakarta.persistence.*;
 import kimp.common.entity.TimeStamp;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Entity
-@Table(name = "user_agent")
+@Table(name = "member_agent")
 @Getter
 public class UserAgent extends TimeStamp {
 
-    @OneToOne()
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column
-    private String ip;
+    @OneToOne
+    @JoinColumn(name = "member_id")
+    private Member member;
+
+    @Column(nullable = true)
+    private String ip = null;
 
     @Column(name="is_banned")
-    private Boolean isBanned;
+    private Boolean isBanned = false;
 
-    @OneToOne(mappedBy = "agent")
+    @OneToOne(mappedBy = "memberAgent")
     private BannedCount bannedCount;
 
 
     public UserAgent() {
     }
 
-    public UserAgent(User user, String ip, Boolean isBanned, BannedCount bannedCount) {
-        this.user = user;
+    public UserAgent(Member member) {
+        this.member = member;
+    }
+
+    public UserAgent setMember(Member member) {
+        this.member = member;
+        return this;
+    }
+
+    public UserAgent setIp(String ip) {
         this.ip = ip;
-        this.isBanned = isBanned;
+        return this;
+    }
+
+    public UserAgent setBanned(BannedCount bannedCount) {
         this.bannedCount = bannedCount;
+        return this;
+    }
+
+    public void Banned() {
+        this.isBanned = true;
+    }
+
+    public UserAgent setBannedCount(BannedCount bannedCount) {
+        this.bannedCount = bannedCount;
+        return this;
+    }
+
+    public void unBanned() {
+        this.isBanned = false;
     }
 }

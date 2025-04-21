@@ -11,8 +11,8 @@ public class BoardWithCommentResponseDto extends BoardResponseDto{
 
     List<ResponseCommentDto> comments;
 
-    public BoardWithCommentResponseDto(Long boardId, Long userId, String userNickName, String title, String content, Integer boardViewsCount, Integer boardLikesCount, LocalDateTime createdAt, LocalDateTime updatedAt, List<ResponseCommentDto> comments) {
-        super(boardId, userId, userNickName, title, content, boardViewsCount, boardLikesCount, createdAt, updatedAt);
+    public BoardWithCommentResponseDto(Long boardId, Long memberId,Long categoryId,String categoryName, String memberNickName, String title, String content, Integer boardViewsCount, Integer boardLikesCount, LocalDateTime createdAt, LocalDateTime updatedAt, List<ResponseCommentDto> comments, Integer commentsCount) {
+        super(boardId, memberId,categoryId,categoryName, memberNickName, title, content, boardViewsCount, boardLikesCount, createdAt, updatedAt, commentsCount);
         this.comments = comments;
     }
 }

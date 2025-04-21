@@ -11,9 +11,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface BoardRepository extends JpaRepository<Board, Long> {
 
-    public Board findBoardById(Long id);
-    public void deleteBoardById(Long id);
 
-    public Page<Board> findByCategory(Category category, Pageable pageable);
+    public Page<Board> findByCategoryOrderByRegistedAtDesc(Category category, Pageable pageable);
+    public Page<Board> findAllByOrderByRegistedAtDesc(Pageable pageable);
 
 }

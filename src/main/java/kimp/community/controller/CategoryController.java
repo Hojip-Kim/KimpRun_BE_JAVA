@@ -7,10 +7,10 @@ import kimp.community.dto.category.request.UpdateCategoryRequestDto;
 import kimp.community.entity.Category;
 import kimp.community.service.CategoryPacadeService;
 import kimp.community.service.CategoryService;
-import kimp.security.user.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import kimp.security.user.CustomUserDetails;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,29 +47,29 @@ public class CategoryController {
         return new CategoryDto(category.getId(), category.getCategoryName());
     }
 
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyAuthority('MANAGER','OPERATOR')")
     @PostMapping
-    public CategoryDto createCategory(@AuthenticationPrincipal UserDetails userDetails, @RequestBody CreateCategoryRequestDto createCategoryRequestDto){
+    public CategoryDto createCategory(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody CreateCategoryRequestDto createCategoryRequestDto){
 
-        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
+        CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
         Category category = categoryPacadeService.createCategory(customUserDetails.getId(),createCategoryRequestDto);
 
         return categoryService.convertCategoryToDto(category);
     }
 
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyAuthority('MANAGER','OPERATOR')")
     @PatchMapping
-    public CategoryDto patchCategory(@AuthenticationPrincipal UserDetails userDetails, @RequestBody UpdateCategoryRequestDto updateCategoryRequestDto){
+    public CategoryDto patchCategory(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody UpdateCategoryRequestDto updateCategoryRequestDto){
 
         Category category = categoryService.updatedCategory(updateCategoryRequestDto);
 
         return new CategoryDto(category.getId(), category.getCategoryName());
     }
 
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyAuthority('MANAGER','OPERATOR')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long id){
+    public ResponseEntity<Void> deleteCategory(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable Long id){
         if(id < 0){
             throw new IllegalArgumentException("category Id is not available");
         }

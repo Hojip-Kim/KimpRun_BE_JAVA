@@ -2,7 +2,7 @@ package kimp.community.entity;
 
 import jakarta.persistence.*;
 import kimp.common.entity.TimeStamp;
-import kimp.user.entity.User;
+import kimp.user.entity.Member;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -13,6 +13,10 @@ import java.util.List;
 @Table(name = "board")
 public class Board extends TimeStamp {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id")
     private Category category;
@@ -21,8 +25,8 @@ public class Board extends TimeStamp {
     private String title;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "member_id")
+    private Member member;
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Comment> comments = new ArrayList<>();
@@ -40,6 +44,9 @@ public class Board extends TimeStamp {
     @Column(nullable = false)
     private String content;
 
+    @Column
+    private boolean isPin = false;
+
     public Board() {
 
     }
@@ -49,8 +56,8 @@ public class Board extends TimeStamp {
         this.content = content;
     }
 
-    public Board setUser(User user){
-        this.user = user;
+    public Board setMember(Member member){
+        this.member = member;
         return this;
     }
 
@@ -91,5 +98,13 @@ public class Board extends TimeStamp {
             this.commentCount = commentCount;
         }
         return this;
+    }
+
+    public void activePin(){
+        this.isPin = true;
+    }
+
+    public void deactivePin(){
+        this.isPin = false;
     }
 }

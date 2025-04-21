@@ -2,7 +2,6 @@ package kimp.market.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.websocket.dto.response.BinanceStreamDto;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -58,14 +57,14 @@ public class BinanceWebsocketHandler extends TextWebSocketHandler {
         try {
             String mapToJson = objectMapper.writeValueAsString(dataHashMap);
             log.info(String.valueOf(dataHashMap.size()));
-            dataHashMap.clear();
+
             TextMessage textMessage = new TextMessage(mapToJson);
             for (WebSocketSession session : sessions.values()) {
                 if (session.isOpen()) {
                     session.sendMessage(textMessage);
                 }
             }
-
+            dataHashMap.clear();
         }catch (Exception e){
             log.error(e.getMessage());
         }

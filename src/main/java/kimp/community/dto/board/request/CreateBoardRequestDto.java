@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class CreateBoardRequestDto {
     private String title;
     private String content;
+    private String previewImage;
 }

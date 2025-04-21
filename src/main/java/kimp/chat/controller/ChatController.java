@@ -31,13 +31,4 @@ public class ChatController {
         return chatService.convertChatLogToDto(chatLog);
     }
 
-    @GetMapping("/test")
-    public Chat createChat(HttpServletRequest httpServletRequest){
-        String ipAddress = httpServletRequest.getHeader("X-Forwarded-For");
-        if(ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)){
-            ipAddress = httpServletRequest.getRemoteAddr();
-        }
-
-        return chatService.createChat("이름1", "내용1");
-    }
 }

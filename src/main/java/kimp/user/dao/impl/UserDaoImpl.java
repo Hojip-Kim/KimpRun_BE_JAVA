@@ -1,67 +1,70 @@
 package kimp.user.dao.impl;
 
-import kimp.user.dao.UserDao;
-import kimp.user.entity.User;
-import kimp.user.repository.UserRepository;
+import kimp.user.dao.MemberDao;
+import kimp.user.entity.Member;
+import kimp.user.repository.MemberRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.Optional;
 
 @Repository
 @Slf4j
-public class UserDaoImpl implements UserDao {
+public class UserDaoImpl implements MemberDao {
 
-    private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
 
-    public UserDaoImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
+    public UserDaoImpl(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
     }
 
     @Override
-    public User findUserById(Long id){
-        Optional<User> user =  this.userRepository.findById(id);
+    public Member findMemberById(Long id){
+        Optional<Member> member =  this.memberRepository.findById(id);
 
-        if(user.isEmpty()){
-            throw new IllegalArgumentException("user not found");
+        if(member.isEmpty()){
+            throw new IllegalArgumentException("member not found");
         }
 
-        return user.get();
+        return member.get();
     }
 
     @Override
-    public User findUserByLoginId(String loginId){
-        Optional<User> user = this.userRepository.findByLoginId(loginId);
-        if(user.isEmpty()){
-            throw new IllegalArgumentException("user not found");
+    public Member findMemberByEmail(String email){
+        Optional<Member> member = this.memberRepository.findByEmail(email);
+        if(member.isEmpty()){
+            return null;
         }
-        return user.get();
+        return member.get();
     }
 
     @Override
-    public User createUser(String loginId, String password){
-        Optional<User> user = this.userRepository.findByLoginId(loginId);
-        if(user.isPresent()){
-            throw new IllegalArgumentException("user already exists");
-        }
-        return this.userRepository.save(new User(loginId, password));
+    @Transactional
+    public Member createMember(String email, String nickname, String password){
+//        Optional<member> member = this.memberRepository.findByEmail(email);
+//        if (member.isPresent()) {
+//            throw new IllegalArgumentException("member already exists");
+//        }
+        Member createdMember = new Member(email, nickname, password);
+        return this.memberRepository.save(createdMember);
     }
 
     @Override
-    public User updateUser(User user ,String newHashedPassword) {
-        user.updatePassword(newHashedPassword);
+    public Member updateMember(Member member, String newHashedPassword) {
+        member.updatePassword(newHashedPassword);
 
-        return this.userRepository.save(user);
+        return this.memberRepository.save(member);
     }
 
     @Override
-    public Boolean deleteUser(Long id) {
-        User user = findUserById(id);
-        this.userRepository.delete(user);
+    public Boolean deleteMember(Long id) {
+        Member member = findMemberById(id);
+        this.memberRepository.delete(member);
 
-        User findUser = findUserById(id);
-        if(findUser == null){
+        Member findMember = findMemberById(id);
+        if(findMember == null){
             return false;
         }
 
