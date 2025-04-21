@@ -30,7 +30,7 @@ Junit 5.0
 Mockito
 
 <h3>CI/CD</h3>
-Github-Action
+Jenkins
 
 <h3>Infra</h3>
 Docker
