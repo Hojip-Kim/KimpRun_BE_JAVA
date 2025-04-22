@@ -31,6 +31,42 @@ public class CoinDaoImpl implements CoinDao {
     }
 
     @Override
+    public List<Coin> getCoinsByExchangeId(long exchangeId) {
+        List<Coin> coinList = coinRepository.findCoinsByExchange(exchangeId);
+
+        if(coinList.isEmpty()) {
+            throw new IllegalArgumentException("No such coin");
+        }
+
+        return coinList;
+    }
+
+    @Override
+    public List<Coin> findWithExchangesBySymbols(List<String> symbols) {
+        List<Coin> coins = coinRepository.findCoinWithExchangesBySymbols(symbols);
+        return coins;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Coin getCoinBySymbol(String symbol) {
+        Coin coin = coinRepository.findBySymbol(symbol);
+        if(coin == null) {
+            throw new IllegalArgumentException("No such coin");
+        }
+        return coin;
+    }
+
+    @Override
+    public List<Coin> createCoinBulk(List<Coin> coins) {
+        List<Coin> coinList = coinRepository.saveAll(coins);
+        if(coinList.isEmpty()) {
+            throw new IllegalArgumentException("No such coin");
+        }
+        return coinList;
+    }
+
+    @Override
     @Transactional
     public Coin createCoin(String symbol, String name, String englishName) {
         Coin coin = new Coin(symbol, name, englishName);
