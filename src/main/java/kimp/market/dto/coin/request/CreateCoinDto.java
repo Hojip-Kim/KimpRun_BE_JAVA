@@ -3,6 +3,7 @@ package kimp.market.dto.coin.request;
 import kimp.market.Enum.MarketType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 import java.util.List;
 
@@ -10,6 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 public class CreateCoinDto {
 
+    @NonNull
     private String symlbol;
     private String name;
     private String englishName;
@@ -19,6 +21,11 @@ public class CreateCoinDto {
         this.symlbol = symlbol;
         this.name = name;
         this.englishName = englishName;
+        this.marketType = marketType;
+    }
+
+    public CreateCoinDto(@NonNull String symlbol, List<MarketType> marketType) {
+        this.symlbol = symlbol;
         this.marketType = marketType;
     }
 }
