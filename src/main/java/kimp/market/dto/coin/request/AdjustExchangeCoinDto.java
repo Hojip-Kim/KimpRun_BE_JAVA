@@ -10,4 +10,9 @@ import java.util.List;
 public class AdjustExchangeCoinDto {
     private long coinId;
     private List<Long> exchangeIds;
+
+    public AdjustExchangeCoinDto(long coinId, List<Long> exchangeIds) {
+        this.coinId = coinId;
+        this.exchangeIds = exchangeIds;
+    }
 }
