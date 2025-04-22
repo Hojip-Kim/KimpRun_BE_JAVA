@@ -3,6 +3,7 @@ package kimp.market.components;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import kimp.market.Enum.MarketType;
+import kimp.market.dto.coin.common.ChangeCoinDto;
 import kimp.market.dto.coin.common.ServiceCoinDto;
 import kimp.market.dto.coin.common.ServiceCoinWrapperDto;
 import kimp.market.dto.market.response.MarketList;
@@ -10,6 +11,7 @@ import kimp.market.common.MarketCommonMethod;
 import kimp.market.dto.market.response.MarketDataList;
 import kimp.market.dto.market.response.UpbitMarketList;
 import kimp.market.dto.market.response.UpbitTicker;
+import kimp.market.service.CoinService;
 import kimp.websocket.dto.response.UpbitDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,7 +23,9 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Component
 @Slf4j
@@ -31,13 +35,15 @@ public class Upbit extends Market{
     private final ObjectMapper objectMapper;
     private final MarketCommonMethod marketCommonMethod;
     private final MarketListProvider upbitMarketListProvider;
+    private final CoinService coinService;
 
 
-    public Upbit(RestTemplate restTemplate, ObjectMapper objectMapper, MarketCommonMethod marketCommonMethod, @Qualifier("upbitName") MarketListProvider upbitMarketListProvider) {
+    public Upbit(RestTemplate restTemplate, ObjectMapper objectMapper, MarketCommonMethod marketCommonMethod, @Qualifier("upbitName") MarketListProvider upbitMarketListProvider, CoinService coinService) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.marketCommonMethod = marketCommonMethod;
         this.upbitMarketListProvider = upbitMarketListProvider;
+        this.coinService = coinService;
     }
 
     public MarketList upbitMarketList = null;
@@ -76,7 +82,7 @@ public class Upbit extends Market{
 
     @Override
     public ServiceCoinWrapperDto getServiceCoins(){
-        MarketList marketList = getMarketList();
+        MarketList marketList = getMarketPair();
         List<String> stringMarketList = marketList.getMarkets();
 
         List<ServiceCoinDto> serviceCoinDtos = new ArrayList<>();
@@ -162,8 +168,37 @@ public class Upbit extends Market{
 
     }
 
-    @Scheduled(fixedDelay = 1000*60*24L)
+    @Scheduled(fixedDelay = 1000*60)
     public void scheduledSetupUpbitMarketData() throws IOException {
+        MarketList prevMarketPair = getMarketPair();
         setUpbitMarketList();
+        MarketList nextMarketPair = getMarketPair();
+
+        // 만약 이전과, 이후의 객체가 다르면 바뀐것
+        if(!prevMarketPair.equals(nextMarketPair)){
+            List<String> prevMarketList = prevMarketPair.getMarkets();
+            Set<String> prevMarketSet = new HashSet<>(prevMarketList);
+            List<String> nextMarketList = nextMarketPair.getMarkets();
+            Set<String> nextMarketSet = new HashSet<>(nextMarketList);
+
+            List<String> listCoinSymbols = new ArrayList<>();
+            List<String> delistCoinSymbols = new ArrayList<>();
+
+            for(String nextMarket : nextMarketList){
+                if(!prevMarketSet.contains(nextMarket)){
+                    listCoinSymbols.add(nextMarket);
+                }
+            }
+
+            for(String prevMarket : prevMarketList){
+                if(!nextMarketSet.contains(prevMarket)){
+                    delistCoinSymbols.add(prevMarket);
+                }
+            }
+
+            ChangeCoinDto changeCoinDto = new ChangeCoinDto(getMarketType() ,listCoinSymbols, delistCoinSymbols);
+            coinService.createWithDeleteCoin(changeCoinDto);
+
+        }
     }
 }
