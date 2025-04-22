@@ -6,6 +6,8 @@ import java.util.List;
 
 public interface CoinExchangeDao {
 
+    public CoinExchange createCoinExchange(CoinExchange coinExchange);
+
     public List<CoinExchange> findCoinExchangeWithExchangeByCoinIdAndExchangeIds(long coinId, List<Long> exchangeIds);
 
     public void deleteAllByCoinExchanges(List<CoinExchange> coinExchanges);

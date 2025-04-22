@@ -17,6 +17,11 @@ public class CoinExchangeDaoImpl implements CoinExchangeDao {
         this.coinExchangeRepository = coinExchangeRepositoryCustom;
     }
 
+    @Override
+    public CoinExchange createCoinExchange(CoinExchange coinExchange) {
+        return coinExchangeRepository.save(coinExchange);
+    }
+
     @Transactional
     @Override
     public List<CoinExchange> findCoinExchangeWithExchangeByCoinIdAndExchangeIds(long coinId, List<Long> exchangeIds) {
