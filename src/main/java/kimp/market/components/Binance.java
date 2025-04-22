@@ -1,17 +1,17 @@
 package kimp.market.components;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import kimp.market.Enum.MarketType;
 import kimp.market.common.MarketCommonMethod;
+import kimp.market.dto.coin.common.ChangeCoinDto;
 import kimp.market.dto.coin.common.ServiceCoinDto;
 import kimp.market.dto.coin.common.ServiceCoinWrapperDto;
 import kimp.market.dto.market.response.BinanceMarketList;
 import kimp.market.dto.market.response.BinanceTicker;
 import kimp.market.dto.market.response.MarketDataList;
 import kimp.market.dto.market.response.MarketList;
+import kimp.market.service.CoinService;
 import kimp.websocket.dto.response.BinanceDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,7 +23,9 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -36,6 +38,7 @@ public class Binance extends Market {
     private final ObjectMapper objectMapper;
     private final MarketListProvider binanceMarketListProvider;
     private final CombineMarketListProvider combineMarketListProvider;
+    private final CoinService coinService;
 
     /**
      * binance의 market List.
@@ -59,12 +62,13 @@ public class Binance extends Market {
     @Value("${binance.ticker.url}")
     private String binanceTickerUrl;
 
-    public Binance(MarketCommonMethod marketCommonMethod, RestTemplate restTemplate, ObjectMapper objectMapper, @Qualifier("binanceName") MarketListProvider binanceMarketListProvider, @Qualifier("combineName") CombineMarketListProvider combineMarketListProvider) {
+    public Binance(MarketCommonMethod marketCommonMethod, RestTemplate restTemplate, ObjectMapper objectMapper, @Qualifier("binanceName") MarketListProvider binanceMarketListProvider, @Qualifier("combineName") CombineMarketListProvider combineMarketListProvider, CoinService coinService) {
         this.marketCommonMethod = marketCommonMethod;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.binanceMarketListProvider = binanceMarketListProvider;
         this.combineMarketListProvider = combineMarketListProvider;
+        this.coinService = coinService;
     }
 
     @PostConstruct
@@ -87,17 +91,13 @@ public class Binance extends Market {
     }
 
     @Override
-    public MarketList getMarketPair() throws IOException {
-        if(this.binanceMarketPair == null) {
-            setBinanceMarketList();
-        }
-
+    public MarketList getMarketPair(){
         return this.binanceMarketPair;
     }
 
     @Override
     public ServiceCoinWrapperDto getServiceCoins(){
-        MarketList marketList = getMarketList();
+        MarketList marketList = getMarketPair();
         List<String> stringMarketList = marketList.getMarkets();
 
         List<ServiceCoinDto> serviceCoinDtos = new ArrayList<>();
@@ -204,13 +204,42 @@ public class Binance extends Market {
     }
 
     /**
-     * 24시간마다 주기적으로 Binance의 마켓리스트를 갱신합니다.
+     * 1시간마다 주기적으로 Binance의 마켓리스트를 갱신합니다.
      *
      * @throws IOException
      */
-    @Scheduled(fixedRate = 60 * 1000 * 24L)
+    @Scheduled(fixedRate = 60 * 1000)
     public void scheduledSetupBinanceMarketData() throws IOException {
+        MarketList prevMarketPair = getMarketPair();
         setBinanceMarketList();
+        MarketList nextMarketPair = getMarketPair();
+
+        // 만약 이전과, 이후의 객체가 다르면 바뀐것
+        if(!prevMarketPair.equals(nextMarketPair)){
+            List<String> prevMarketList = prevMarketPair.getMarkets();
+            Set<String> prevMarketSet = new HashSet<>(prevMarketList);
+            List<String> nextMarketList = nextMarketPair.getMarkets();
+            Set<String> nextMarketSet = new HashSet<>(nextMarketList);
+
+            List<String> listCoinSymbols = new ArrayList<>();
+            List<String> delistCoinSymbols = new ArrayList<>();
+
+                for(String nextMarket : nextMarketList){
+                    if(!prevMarketSet.contains(nextMarket)){
+                        listCoinSymbols.add(nextMarket);
+                    }
+                }
+
+                for(String prevMarket : prevMarketList){
+                    if(!nextMarketSet.contains(prevMarket)){
+                        delistCoinSymbols.add(prevMarket);
+                    }
+                }
+
+            ChangeCoinDto changeCoinDto = new ChangeCoinDto(getMarketType() ,listCoinSymbols, delistCoinSymbols);
+                coinService.createWithDeleteCoin(changeCoinDto);
+
+        }
     }
 
 }
