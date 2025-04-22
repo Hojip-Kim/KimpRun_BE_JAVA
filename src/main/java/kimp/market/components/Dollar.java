@@ -1,7 +1,7 @@
 package kimp.market.components;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kimp.market.dto.response.DollarResponseDto;
+import kimp.market.dto.market.response.DollarResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -24,7 +24,6 @@ public class Dollar {
         this.objectMapper = objectMapper;
     }
 
-    @Bean
     public double getUSDKRW() throws IOException {
         String data = restTemplate.getForObject(dollarUrl, String.class);
 

@@ -1,7 +1,7 @@
 package kimp.market.controller;
 
-import kimp.market.dto.response.MarketDollarResponseDto;
-import kimp.market.dto.response.MarketTetherResponseDto;
+import kimp.market.dto.market.response.MarketDollarResponseDto;
+import kimp.market.dto.market.response.MarketTetherResponseDto;
 import kimp.market.service.MarketInfoService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

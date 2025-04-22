@@ -1,12 +1,16 @@
 package kimp.market.service;
 
-import kimp.market.dto.response.CombinedMarketList;
-import kimp.market.dto.response.CombinedMarketDataList;
-import kimp.market.dto.response.MarketDataList;
+import kimp.market.Enum.MarketType;
+import kimp.market.dto.coin.common.ServiceCoinWrapperDto;
+import kimp.market.dto.market.response.CombinedMarketList;
+import kimp.market.dto.market.response.CombinedMarketDataList;
+import kimp.market.dto.market.response.MarketDataList;
 
 import java.io.IOException;
 
 public interface MarketService {
+
+    public ServiceCoinWrapperDto getCoinListFromExchange(MarketType marketType);
 
     public CombinedMarketList getMarketList(String firstMarket, String secondMarket) throws IOException;
 

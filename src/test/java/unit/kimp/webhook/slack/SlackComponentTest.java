@@ -1,52 +1,70 @@
 package unit.kimp.webhook.slack;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.slack.api.Slack;
+import com.slack.api.webhook.Payload;
+import com.slack.api.webhook.WebhookResponse;
+import kimp.exception.response.ErrorResponseDTO;
 import kimp.webhook.slack.SlackComponent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Value;
-import org.yaml.snakeyaml.Yaml;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 
-import java.io.InputStream;
-import java.util.Map;
+import java.lang.reflect.Field;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
 public class SlackComponentTest {
-
-    private String webhookUrl;
 
     @Mock
     private Slack slack;
 
+    @Mock
+    private ObjectMapper objectMapper;
+
+    @InjectMocks
     private SlackComponent slackComponent;
 
+    private final String webhookUrl = "https://dummy-webhook-url.com/test";
+
     @BeforeEach
-    void setUp() throws NoSuchFieldException, IllegalAccessException {
-        Yaml yaml = new Yaml();
-        try{
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("application.yml");
-            if(inputStream != null){
-
-                Map<String, Object> props = yaml.load(inputStream);
-                Map<String, Object> webhook = (Map<String, Object>) props.get("webhook");
-                Map<String, Object> slack = (Map<String, Object>) webhook.get("slack");
-                this.webhookUrl = slack.get("url").toString();
-
-            } else {
-                throw new IllegalStateException("application.yml not found");
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load application.yml", e);
-        }
+    void setUp() throws Exception {
+        // SlackComponent를 생성자 주입으로 초기화
         slackComponent = new SlackComponent(webhookUrl, slack);
+        // private mapper 필드에 mock ObjectMapper 주입
+        Field mapperField = SlackComponent.class.getDeclaredField("mapper");
+        mapperField.setAccessible(true);
+        mapperField.set(slackComponent, objectMapper);
     }
 
     @Test
-    @DisplayName("슬랙컴포넌트가 제대로 작동을 하는지 여부")
-    public void slackComponentTest(){
-        String res = slackComponent.sendToSimpleText("두 번째 테스트").toString();
-        System.out.println(res);
-    }
+    @DisplayName("sendToSimpleText: DTO를 JSON으로 변환 후 Slack.send 호출 및 응답 반환")
+    void sendToSimpleText_callsSlackSend() throws Exception {
+        // given: DTO와 fake JSON
+        ErrorResponseDTO dto = new ErrorResponseDTO(HttpStatus.ACCEPTED, "2nd test", "trace");
+        String fakeJson = "{\"status\":202,\"message\":\"2nd test\",\"trace\":\"trace\"}";
+        when(objectMapper.writeValueAsString(dto)).thenReturn(fakeJson);
 
+        // and: Slack.send stub
+        WebhookResponse fakeResponse = WebhookResponse.builder()
+                .code(202)
+                .body("ok")
+                .build();
+        when(slack.send(eq(webhookUrl), any(Payload.class))).thenReturn(fakeResponse);
+
+        // when: 메서드 호출
+        WebhookResponse actual = slackComponent.sendToSimpleText(dto);
+
+        // then: Slack.send 결과를 그대로 반환
+        assertThat(actual).isSameAs(fakeResponse);
+    }
 }

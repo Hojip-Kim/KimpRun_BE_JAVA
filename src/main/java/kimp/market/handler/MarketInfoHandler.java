@@ -1,9 +1,10 @@
 package kimp.market.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kimp.market.dto.response.websocket.InfoResponseDto;
-import kimp.market.dto.response.websocket.MarketWebsocketResponseDto;
-import kimp.market.dto.response.websocket.UserWebsocketResponseDto;
+import kimp.exchange.dto.notice.NoticeResponseDto;
+import kimp.market.dto.market.response.websocket.InfoResponseDto;
+import kimp.market.dto.market.response.websocket.MarketWebsocketResponseDto;
+import kimp.market.dto.market.response.websocket.UserWebsocketResponseDto;
 import kimp.market.service.MarketInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -13,6 +14,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -46,6 +48,19 @@ public class MarketInfoHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+    }
+
+    public void sendNewNotice(NoticeResponseDto noticeDto) throws IOException {
+
+        String responseDto = objectMapper.writeValueAsString(noticeDto);
+
+        TextMessage textMessage = new TextMessage(responseDto);
+
+        for(WebSocketSession session : sessions.values()){
+            if(session.isOpen()){
+                session.sendMessage(textMessage);
+            }
+        }
     }
 
     @Scheduled(fixedRate = 5000)

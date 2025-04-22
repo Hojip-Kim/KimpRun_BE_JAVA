@@ -7,6 +7,7 @@ import kimp.community.dto.board.response.BoardWithCommentResponseDto;
 import kimp.community.dto.comment.request.RequestCreateCommentDto;
 import kimp.community.dto.comment.response.ResponseCommentDto;
 import kimp.community.entity.*;
+import kimp.community.repository.BoardRepository;
 import kimp.user.entity.Member;
 import kimp.user.service.MemberService;
 import org.springframework.data.domain.Page;
@@ -26,13 +27,17 @@ public class BoardPacadeService {
     private final CommentService commentService;
     private final CommentPacadeService commentPacadeService;
 
-    public BoardPacadeService(BoardService boardService, MemberService memberService, CategoryService categoryService, CommentService commentService, CommentPacadeService commentPacadeService) {
+    private final BoardRepository boardRepository;
+
+    public BoardPacadeService(BoardService boardService, MemberService memberService, CategoryService categoryService, CommentService commentService, CommentPacadeService commentPacadeService, BoardRepository boardRepository) {
         this.boardService = boardService;
         this.memberService = memberService;
         this.categoryService = categoryService;
         this.commentService = commentService;
         this.commentPacadeService = commentPacadeService;
+        this.boardRepository = boardRepository;
     }
+
 
     @Transactional
     public Board createBoard(Long memberId, Long categoryId, CreateBoardRequestDto createBoardRequestDto) {
