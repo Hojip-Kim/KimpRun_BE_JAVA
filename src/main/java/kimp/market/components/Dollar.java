@@ -24,7 +24,6 @@ public class Dollar {
         this.objectMapper = objectMapper;
     }
 
-    @Bean
     public double getUSDKRW() throws IOException {
         String data = restTemplate.getForObject(dollarUrl, String.class);
 
