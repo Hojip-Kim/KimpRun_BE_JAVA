@@ -2,32 +2,33 @@ pipeline {
   agent any
 
   environment {
-    REG      = "hojipkim/kimprun-back"
-
-    SHA      = sh(script: "git rev-parse --short=7 HEAD",
-                  returnStdout: true).trim()
-    TAG      = "${BRANCH_NAME}-${SHA}-${BUILD_NUMBER}"
-    IMAGE    = "${REG}:${TAG}"
-
-    SSH_ID   = BRANCH_NAME == 'main' ? 'ssh-prod' : 'ssh-dev'
-    SSH_PT   = BRANCH_NAME == 'main' ? '2223'     : '2222'
-    RUN_PT   = BRANCH_NAME == 'main' ? '8080'     : '8081'
+    REG = 'hojipkim/kimprun-back'          // 리터럴만
   }
 
   stages {
-    stage('Checkout') { steps { checkout scm } }
+    stage('Init-vars') {
+      steps {
+        script {
+          env.SHA     = sh(script: 'git rev-parse --short=7 HEAD',
+                           returnStdout: true).trim()
+          env.TAG     = "${env.BRANCH_NAME}-${env.SHA}-${env.BUILD_NUMBER}"
+          env.IMAGE   = "${env.REG}:${env.TAG}"
+          env.SSH_ID  = env.BRANCH_NAME == 'main' ? 'ssh-prod' : 'ssh-dev'
+          env.SSH_PT  = env.BRANCH_NAME == 'main' ? '2223'     : '2222'
+          env.RUN_PT  = env.BRANCH_NAME == 'main' ? '8080'     : '8081'
+        }
+      }
+    }
 
+    stage('Checkout') { steps { checkout scm } }
     stage('Test')     { steps { sh './gradlew clean test' } }
 
     stage('Build & Push') {
       steps {
-        // docker-registry 크레덴셜로 로그인한 후 build -> push 진행
-        docker.withRegistry('https://index.docker.io/v1/', 'docker-registry') {
-          def img = docker.build("${IMAGE}")
-          img.push()
-
-          // main브랜치면 latest 태그 한번더 push
-          script {
+        script {
+          docker.withRegistry('https://index.docker.io/v1/', 'docker-registry') {
+            def img = docker.build(env.IMAGE)
+            img.push()
             if (env.BRANCH_NAME == 'main') {
               img.push('latest')
             }
@@ -41,8 +42,8 @@ pipeline {
       steps {
         sshagent(credentials: [env.SSH_ID]) {
           sh """
-            ssh -p ${SSH_PT} -o StrictHostKeyChecking=no jenkins@127.0.0.1 \
-              '/home/jenkins/deploy.sh ${IMAGE} ${RUN_PT}'
+            ssh -p ${env.SSH_PT} -o StrictHostKeyChecking=no jenkins@127.0.0.1 \\
+              '/home/jenkins/deploy.sh ${env.IMAGE} ${env.RUN_PT}'
           """
         }
       }
@@ -53,14 +54,14 @@ pipeline {
     success {
       githubNotify credentialsId: 'github-app',
                    context: 'ci/jenkins',
-                   status:  'SUCCESS',
+                   status: 'SUCCESS',
                    description: "Build #${BUILD_NUMBER} passed",
                    targetUrl: BUILD_URL
     }
     failure {
       githubNotify credentialsId: 'github-app',
                    context: 'ci/jenkins',
-                   status:  'FAILURE',
+                   status: 'FAILURE',
                    description: "Build #${BUILD_NUMBER} failed",
                    targetUrl: BUILD_URL
     }
