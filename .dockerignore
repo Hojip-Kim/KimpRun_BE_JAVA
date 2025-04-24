@@ -4,3 +4,4 @@
 **/out
 Dockerfile
 node_modules
+*.yml
