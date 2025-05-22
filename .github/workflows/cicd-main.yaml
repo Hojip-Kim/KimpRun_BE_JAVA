@@ -75,7 +75,7 @@ jobs:
 
       - name: Download application-dev.yml
         run: |
-          aws ${{ secrets.AWS_S3_BE_YAML }} ./kimprun_be/src/main/resources/application-dev.yml
+          aws s3 cp ${{ secrets.AWS_S3_BE_YAML }} ./kimprun_be/src/main/resources/application-dev.yml
           mkdir -p ./kimprun_be/src/test/resources
           cp ./kimprun_be/src/main/resources/application-dev.yml ./kimprun_be/src/test/resources/application-dev.yml
 
