@@ -15,10 +15,45 @@ ext {
     querydslVersion = "5.0.0"
 }
 
+sourceSets {
+    main {
+        java {
+            srcDir "$buildDir/generated/querydsl"
+        }
+    }
+
+    integrationTest{
+        java.srcDir file('src/test/java/integration')
+        resources.srcDir file('src/test/resources')
+        compileClasspath += sourceSets.main.output + configurations.testCompileClasspath
+        runtimeClasspath += output + compileClasspath + configurations.testRuntimeClasspath
+    }
+}
+
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+task integrationTest(type: Test) {
+    description = '통합 테스트 실행'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+
+    useJUnitPlatform()
+
+    outputs.upToDateWhen { false }
+}
+
+test {
+    useJUnitPlatform()
+    exclude '**/*IntegrationTest.*'
+    exclude '**/*IT.*'
 }
 
 repositories {
@@ -59,13 +94,7 @@ dependencies {
 
 def querydslDir = "$buildDir/generated/querydsl"
 
-sourceSets {
-    main {
-        java {
-            srcDir "$buildDir/generated/querydsl"
-        }
-    }
-}
+
 
 tasks.withType(JavaCompile).configureEach {
     options.generatedSourceOutputDirectory = file(querydslDir)
