@@ -37,10 +37,10 @@ jobs:
           cp ./kimprun_be/src/main/resources/application-dev.yml ./kimprun_be/src/test/resources/application-dev.yml
       # 권한 부여
       - name: Grant execute permission
-        run: chmod +x ./gradlew
+        run: chmod +x ./kimprun_be/gradlew
       # 단위 테스트 실행
       - name: Run unit test
-        run: ./gradlew test
+        run: ./kimprun_be/gradlew test
       # 테스트 결과 업로드 (단위테스트 실패 시)
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -90,7 +90,7 @@ jobs:
 
       # 권한 부여
       - name: Grant execute permission
-        run: chmod +x ./gradlew
+        run: chmod +x ./kimprun_be/gradlew
       # 도커 빌드 설정 - 통합 테스트 실행 전 도커 컴포즈를 통해 통합테스트 환경(애플리케이션 의존성 환경) 구축
       - name: Set up Docker compose
         uses: docker/setup-buildx-action@v3
@@ -105,7 +105,7 @@ jobs:
 
       # 통합 테스트 실행
       - name: Run integration test
-        run: ./gradlew integrationTest
+        run: ./kimprun_be/gradlew integrationTest
       # 통합 테스트 완료 후 통합 테스트 환경 종료
       - name: Stop dependencies
         if: always()
