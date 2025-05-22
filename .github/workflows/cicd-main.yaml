@@ -4,7 +4,7 @@ name: CI/CD - main
 on:
   push:
     # 소스코드의 변경 시 실행
-    paths: src/**
+#    paths: src/**
     branches:
       - '#2-infra'
 
