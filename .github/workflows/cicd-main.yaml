@@ -6,7 +6,7 @@ on:
     # 소스코드의 변경 시 실행
     paths: src/**
     branches:
-      - "#2-infra"
+      - '#2-infra'
 
 jobs:
   # 단위 테스트
@@ -33,6 +33,7 @@ jobs:
       - name: Download application-dev.yml
         run: |
           aws s3 cp ${{ secrets.AWS_S3_BE_YAML }} ./kimprun_be/src/main/resources/application-dev.yml
+          mkdir -p ./kimprun_be/src/test/resources
           cp ./kimprun_be/src/main/resources/application-dev.yml ./kimprun_be/src/test/resources/application-dev.yml
       # 권한 부여
       - name: Grant execute permission
