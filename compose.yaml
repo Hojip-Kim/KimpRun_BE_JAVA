@@ -1,7 +1,6 @@
 services:
   fe:
     build:
-      context: ./kimprun_fe
       dockerfile: Dockerfile
     image: fe_image
     ports:
