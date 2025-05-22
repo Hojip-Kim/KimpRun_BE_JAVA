@@ -81,11 +81,12 @@ jobs:
 
       - name: Download env file from S3
         run: |
+          mkdir -p ./kimprun_fe
           aws s3 cp ${{ secrets.AWS_S3_FE_ENV }} ./kimprun_fe/.env.test
 
       - name: Update compose.yaml fe env file path
         run: |
-          sed -i 's|ENV_FILE_DIR|./kimprun_fe/.env.test|' ./kimprun_be/compose.yaml
+          sed -i 's|ENV_FILE_DIR|../kimprun_fe/.env.test|' ./kimprun_be/compose.yaml
       - name: Replace FE image in compose.yaml
         run: |
           sed -i 's|fe_image|${{ secrets.KIMPRUN_FE_IMAGE }}|g' ./kimprun_be/compose.yaml
