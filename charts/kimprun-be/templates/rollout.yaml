@@ -1,0 +1,40 @@
+{{- if .Values.rollout.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ include "kimprun-be.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "kimprun-be.name" . }}
+spec:
+  revisionHistoryLimit: {{ .Values.rollout.revisionHistoryLimit | default 6 }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "kimprun-be.name" . }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "kimprun-be.name" . }}
+    spec:
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {{ toYaml .Values.podSecurityContext | indent 6 }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds | default 30 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              protocol: TCP
+  strategy:
+    blueGreen:
+      activeService: {{ .Values.rollout.strategy.activeService | quote }}
+      previewService: {{ .Values.rollout.strategy.previewService | quote }}
+      autoPromotionEnabled: {{ .Values.rollout.autoPromotionEnabled }}
+      scaleDownDelay: {{ .Values.rollout.scaleDownDelay | default "30m" }}
+      scaleDownDelayAfterPromotion: {{ .Values.rollout.scaleDownDelayAfterPromotion | default "1h" }}
+      scaleDownDelayAfterRollback: {{ .Values.rollout.scaleDownDelayAfterRollback | default "5m" }}
+{{- end }}

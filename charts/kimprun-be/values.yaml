@@ -1,0 +1,61 @@
+replicaCount: 1
+image:
+  repository: hojipkim/kimprun-be
+  pullPolicy: IfNotPresent
+  tag: ''
+rollout:
+  enabled: true
+  imagePullPolicy: Always
+  strategy:
+    # 활성화된 서비스 이름
+    activeService: 'kimprun-be'
+    # 다음 버전 서비스 이름
+    previewService: 'kimprun-be-preview'
+  autoPromotionEnabled: true
+  scaleDownDelay: 30m
+  scaleDownDelayAfterPromotion: 1h
+  scaleDownDelayAfterRollback: 5m
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: ''
+serviceAccount:
+  create: false
+  automount: true
+  annotations: {}
+  name: ''
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+securityContext: {}
+service:
+  type: ClusterIP
+  port: 8080
+ingress:
+  enabled: true
+  className: 'nginx'
+  annotations: {}
+  hosts:
+    - host: kimprun.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+resources: {}
+livenessProbe:
+  httpGet:
+    path: /api/coin/1
+    port: http
+readinessProbe:
+  httpGet:
+    path: /api/coin/1
+    port: http
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+volumes: []
+volumeMounts: []
+nodeSelector: {}
+tolerations: []
+affinity: {}
