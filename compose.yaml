@@ -1,0 +1,22 @@
+services:
+  fe:
+    build:
+      context: ./kimprun_fe
+      dockerfile: Dockerfile
+    image: fe_image
+    ports:
+      - '3000:3000'
+    env_file:
+      - ENV_FILE_DIR
+  redis:
+    image: redis
+    ports:
+      - '6379:6379'
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: kimprun
+    ports:
+      - '5432:5432'
