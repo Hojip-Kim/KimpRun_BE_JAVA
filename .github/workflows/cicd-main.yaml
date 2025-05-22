@@ -4,7 +4,7 @@ name: CI/CD - main
 on:
   push:
     # 소스코드의 변경 시 실행
-#    paths: src/**
+    #    paths: src/**
     branches:
       - '#2-infra'
 
@@ -40,7 +40,8 @@ jobs:
         run: chmod +x ./kimprun_be/gradlew
       # 단위 테스트 실행
       - name: Run unit test
-        run: ./kimprun_be/gradlew test
+        run: ./gradlew test
+        working-directory: ./kimprun_be
       # 테스트 결과 업로드 (단위테스트 실패 시)
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -105,7 +106,8 @@ jobs:
 
       # 통합 테스트 실행
       - name: Run integration test
-        run: ./kimprun_be/gradlew integrationTest
+        run: ./gradlew integrationTest
+        working-directory: ./kimprun_be
       # 통합 테스트 완료 후 통합 테스트 환경 종료
       - name: Stop dependencies
         if: always()
