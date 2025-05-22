@@ -152,7 +152,7 @@ jobs:
       # 도커 이미지 빌드
       - name: Build Docker image
         run: docker build --platform linux/amd64 -t hojipkim/kimprun_be:${{ env.COMMIT_ID }} .
-        working-directory: ./kimprun_be
+        working-directory: kimprun-be
       # 도커허브에 푸시
       - name: Push Docker image
         run: docker push hojipkim/kimprun_be:${{ env.COMMIT_ID }}
