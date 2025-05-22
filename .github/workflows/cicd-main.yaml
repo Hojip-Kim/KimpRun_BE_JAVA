@@ -85,7 +85,7 @@ jobs:
 
       - name: Update compose.yaml fe env file path
         run: |
-          sed -i 's|ENV_FILE_DIR|- ./kimprun_fe/.env.test|' ./kimprun_be/compose.yaml
+          sed -i 's|ENV_FILE_DIR|./kimprun_fe/.env.test|' ./kimprun_be/compose.yaml
       - name: Replace FE image in compose.yaml
         run: |
           sed -i 's|fe_image|${{ secrets.KIMPRUN_FE_IMAGE }}|g' ./kimprun_be/compose.yaml
