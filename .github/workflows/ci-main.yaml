@@ -135,6 +135,9 @@ jobs:
     needs: integration-test
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       # 커밋 아이디 줄이기 (태그넣기용)
       - name: Shorten commit id
         shell: bash
