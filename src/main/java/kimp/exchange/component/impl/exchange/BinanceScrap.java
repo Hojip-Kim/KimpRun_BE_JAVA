@@ -13,6 +13,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.UnknownContentTypeException;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -130,31 +131,37 @@ public class BinanceScrap extends ExchangeScrapAbstract<BinanceNoticeDto> {
 
     @Override
     public List<NoticeParsedData> parseNoticeData() throws IOException {
+            List<NoticeParsedData> noticeParsedDataList = new ArrayList<>();
 
-        List<NoticeParsedData> noticeParsedDataList = new ArrayList<>();
 
-        BinanceNoticeDto binanceNoticeDto = super.getNoticeFromAPI();
+        try {
+            BinanceNoticeDto binanceNoticeDto = super.getNoticeFromAPI();
 
-        List<BinanceArticleDto> binanceArticleDtos = binanceNoticeDto.getData().getData().getCatalogs().get(0).getArticles();
+            List<BinanceArticleDto> binanceArticleDtos = binanceNoticeDto.getData().getData().getCatalogs().get(0).getArticles();
 
-        for(BinanceArticleDto binanceArticleDto : binanceArticleDtos) {
-            String title = binanceArticleDto.getTitle();
-            String alink = binanceArticleDto.getCode();
+            for (BinanceArticleDto binanceArticleDto : binanceArticleDtos) {
+                String title = binanceArticleDto.getTitle();
+                String alink = binanceArticleDto.getCode();
 
-            Long date = binanceArticleDto.getReleaseDate();
-            Instant instant = Instant.ofEpochMilli(date);
-            LocalDateTime localDate = instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
+                Long date = binanceArticleDto.getReleaseDate();
+                Instant instant = Instant.ofEpochMilli(date);
+                LocalDateTime localDate = instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
 
-            NoticeParsedData noticeParsedData = new NoticeParsedData(title, alink, localDate);
-            noticeParsedDataList.add(noticeParsedData);
+                NoticeParsedData noticeParsedData = new NoticeParsedData(title, alink, localDate);
+                noticeParsedDataList.add(noticeParsedData);
+            }
+
+            if (noticeParsedDataList.size() != binanceArticleDtos.size()) {
+                log.info("binanceScrap parsedDataList is inaccurate.");
+                throw new IllegalStateException("binanceScrap parsedDataList is inaccurate.");
+            }
+
+            return noticeParsedDataList;
+        }catch(UnknownContentTypeException e) {
+
+            log.error("error occurred when parsing binance notice data : ", e);
+            return null;
         }
-
-        if(noticeParsedDataList.size() != binanceArticleDtos.size()){
-            log.info("binanceScrap parsedDataList is inaccurate.");
-            throw new IllegalStateException("binanceScrap parsedDataList is inaccurate.");
-        }
-
-        return noticeParsedDataList;
     }
 
     @Override
