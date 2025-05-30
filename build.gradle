@@ -76,6 +76,9 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.18.3'
     implementation 'com.slack.api:slack-api-client:1.43.0'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client:2.6.2'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'net.logstash.logback:logstash-logback-encoder:7.3'
 
     // QueryDSL
     implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
