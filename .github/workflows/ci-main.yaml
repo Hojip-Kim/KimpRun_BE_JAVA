@@ -158,5 +158,16 @@ jobs:
       # 도커허브에 푸시
       - name: Push Docker image
         run: docker push hojipkim/kimprun_be:${{ env.COMMIT_ID }}
+
+      # 도커 이미지 푸시 후 커밋 ID 저장
+      - name: Save commit ID as artifact
+        run: echo "${{ env.COMMIT_ID }}" > commit-id.txt
+
+      - name: Upload commit ID artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: commit-id
+          path: commit-id.txt
+          retention-days: 1
     outputs:
       commit_id: ${{ env.COMMIT_ID }}
