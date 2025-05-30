@@ -34,19 +34,7 @@ public class LoggingFilter extends OncePerRequestFilter {
         ContentCachingRequestWrapper wrappedReq = new ContentCachingRequestWrapper(req);
         ContentCachingResponseWrapper wrappedRes = new ContentCachingResponseWrapper(res);
 
-        log.info("\n" + "========= [ {} ] {} =========" + "\n" +
-                        ">>> content-type   : {}" + "\n" +
-                        ">>> authorization  : {}" + "\n" +
-                        ">>> member-agent     : {}" + "\n" +
-                        ">>> host           : {}" + "\n" +
-                        ">>> content-length : {}"
-                , req.getMethod(), req.getRequestURI(),
-                req.getHeader("content-type"),
-                req.getHeader("authorization"),
-                req.getHeader("member-agent"),
-                req.getHeader("host"),
-                req.getHeader("content-length")
-        );
+        String response = "";
 
         try {
             filterChain.doFilter(wrappedReq, wrappedRes);
@@ -66,30 +54,28 @@ public class LoggingFilter extends OncePerRequestFilter {
 
                 // response body가 너무 크면 skip
                 if(responseBody.length() > MAX_LOG_LENGTH){
-                    log.info(">>> Response-body too large, skipping.");
+                    response = "response-body : too large, skipped.";
                 }else{
-                    log.info(">>> response-body : {}", formatResponseBody(responseBody));
+                    response = "response-body : " + responseBody;
                 }
                 wrappedRes.copyBodyToResponse(); // 캐시된 응답 본문을 실제 응답에 복사
             }
         }
 
+        log.info("\n" + "Http Method : [ {} ] End-Point : [ {} ] Content-Type : [ {} ] Authorization  : [ {} ] User-agent : [ {} ] Host : [ {} ] Content-length : [ {} ] Response-body : [ {} ]"
+                , req.getMethod(), req.getRequestURI(),
+                req.getHeader("content-type"),
+                req.getHeader("authorization"),
+                req.getHeader("member-agent"),
+                req.getHeader("host"),
+                req.getHeader("content-length"),
+                response
+        );
+
         long end = System.currentTimeMillis();
         log.info(">>> spend time     : {} sec", (end-srt) / 1000.0);
     }
 
-    public String formatResponseBody(String responseBody){
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            Object json = objectMapper.readValue(responseBody, Object.class);
-            ObjectWriter objectWriter = objectMapper.writerWithDefaultPrettyPrinter();
-            return objectWriter.writeValueAsString(json);
-        }catch(Exception e){
-            log.info("hlsdflasdflkadslgfaldskglaksdlf {}", responseBody);
-            return responseBody;
-        }
-
-    }
 
 
 }
