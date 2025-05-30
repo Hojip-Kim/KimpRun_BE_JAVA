@@ -20,3 +20,7 @@ Dockerfile*
 
 .DS_Store
 Thumbs.db
+
+application-prod.yml
+application-dev.yml
+application.yml
