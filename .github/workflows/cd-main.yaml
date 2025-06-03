@@ -8,7 +8,7 @@ on:
     types:
       - completed
     branches:
-      - '#2-infra'
+      - 'main'
 
 jobs:
   deploy-to-develop-server:

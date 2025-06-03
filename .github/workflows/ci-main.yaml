@@ -6,7 +6,8 @@ on:
     # 소스코드의 변경 시 실행
     #    paths: src/**
     branches:
-      - '#2-infra'
+      - 'main'
+      - "#2-infra"
 
 jobs:
   # 단위 테스트
