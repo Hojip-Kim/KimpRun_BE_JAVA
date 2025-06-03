@@ -35,7 +35,9 @@ Jenkins
 <h3>Infra</h3>
 Docker
 Kubernetes
-Amazon ECS
+
+<h3>Log</h3>
+Aws ELk
 
 <h3>Proxy</h3>
 Nginx
@@ -47,6 +49,6 @@ Nginx
 
 ### 🧨 ER-Diagram
 ---
-<img width="2054" alt="image" src="https://github.com/user-attachments/assets/a7b7d8a9-6d1f-4e38-bf1e-5cbe30d781ed">
+[diagram.pdf](https://github.com/user-attachments/files/19969374/Untitled.pdf)
 
 ### Layered Architecture
