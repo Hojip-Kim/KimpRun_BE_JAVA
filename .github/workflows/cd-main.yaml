@@ -30,7 +30,7 @@ jobs:
         run: |
           COMMIT_ID=$(cat commit-id.txt)
           echo "COMMIT_ID=${{COMMIT_ID}}" >> $GITHUB_ENV
-          echo "Commit ID : ${{COMMIT_ID}}"
+          echo "Commit ID : ${COMMIT_ID}"
 
       - name: Checkout charts repository
         uses: actions/checkout@v4
