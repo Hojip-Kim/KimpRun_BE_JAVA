@@ -3,13 +3,12 @@ name: CD-main
 
 on:
   workflow_run:
-    workflows: ['CI-main']
+    workflows:
+      - 'CI-main'
     types:
       - completed
     branches:
       - '#2-infra'
-      - '2-infra'
-      - 'refs/heads/#2-infra'
 
 jobs:
   deploy-to-develop-server:
