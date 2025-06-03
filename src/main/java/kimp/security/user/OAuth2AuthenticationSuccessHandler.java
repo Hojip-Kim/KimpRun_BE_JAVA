@@ -1,8 +1,10 @@
 package kimp.security.user;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -18,6 +20,7 @@ import java.io.IOException;
 
 @Component
 @Slf4j
+@NoArgsConstructor
 public class OAuth2AuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     @Value("${spring.oauth.success-uri}")
@@ -25,8 +28,10 @@ public class OAuth2AuthenticationSuccessHandler extends SavedRequestAwareAuthent
 
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
-    public OAuth2AuthenticationSuccessHandler() {
-        setDefaultTargetUrl(oauth2DefaultTargetUrl); // 로그인 성공 후 이동할 기본 URL 설정
+
+    @PostConstruct
+    public void init() {
+        setDefaultTargetUrl(oauth2DefaultTargetUrl);
     }
 
     @Override
