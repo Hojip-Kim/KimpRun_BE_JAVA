@@ -56,7 +56,6 @@ jobs:
       - name: Sync ArgoCd application
         run: |
           argocd app sync kimprun-app --grpc-web
-          argocd app wait kimprun-app --health --grpc-web
 
       - name: Clean up workspace
         if: always()
