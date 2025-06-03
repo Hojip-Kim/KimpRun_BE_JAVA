@@ -26,7 +26,7 @@ public class CoinController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{exchangeId}")
+    @GetMapping("/exchange/{exchangeId}")
     public ResponseEntity<List<CoinResponseDto>> getCoinByExchangeId(@PathVariable("exchangeId") long exchangeId) {
         List<CoinResponseDto> response = coinService.getCoinsByExchangeId(exchangeId);
         if(response == null || response.isEmpty()){

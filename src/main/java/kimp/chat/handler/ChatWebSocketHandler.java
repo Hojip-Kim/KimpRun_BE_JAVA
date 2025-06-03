@@ -2,6 +2,7 @@ package kimp.chat.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.chat.dto.request.ChatMessage;
+import kimp.chat.dto.request.PingMessage;
 import kimp.chat.service.ChatWebsocketService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -44,6 +45,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         // 메시지를 받은 경우 처리 로직 (필요시)
         String payload = message.getPayload();
         ObjectMapper mapper = new ObjectMapper();
+        if(mapper.readValue(payload, PingMessage.class) != null) {
+            session.sendMessage(new TextMessage(new ObjectMapper().writeValueAsString(new kimp.chat.dto.response.PongMessage("pong"))));
+        }
         ChatMessage chatMessage = mapper.readValue(payload, ChatMessage.class);
 
 

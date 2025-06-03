@@ -1,0 +1,174 @@
+# 메인 브랜치(개발용 서버 배포)에 푸시되면 실행되는 워크플로우
+name: CI-main
+
+on:
+  push:
+    # 소스코드의 변경 시 실행
+    #    paths: src/**
+    branches:
+      - 'main'
+      - "#2-infra"
+
+jobs:
+  # 단위 테스트
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          path: ./kimprun_be
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          cache: gradle
+      # AWS 설정
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_S3_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_S3_REGION }}
+      - name: Download application-dev.yml
+        run: |
+          aws s3 cp ${{ secrets.AWS_S3_BE_YAML }} ./kimprun_be/src/main/resources/application-dev.yml
+          mkdir -p ./kimprun_be/src/test/resources
+          cp ./kimprun_be/src/main/resources/application-dev.yml ./kimprun_be/src/test/resources/application-dev.yml
+      # 권한 부여
+      - name: Grant execute permission
+        run: chmod +x ./kimprun_be/gradlew
+      # 단위 테스트 실행
+      - name: Run unit test
+        run: ./gradlew test
+        working-directory: ./kimprun_be
+      # 테스트 결과 업로드 (단위테스트 실패 시)
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: failure() && steps.run-unit-test.outcome == 'failure'
+        with:
+          name: test-results
+          path: build/test-results
+  # 통합 테스트
+  integration-test:
+    # 단위 테스트 완료 후 실행
+    needs: unit-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          path: ./kimprun_be
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          cache: gradle
+      # 도커 설정
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      # AWS 설정
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_S3_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_S3_REGION }}
+
+      - name: Download application-dev.yml
+        run: |
+          aws s3 cp ${{ secrets.AWS_S3_BE_YAML }} ./kimprun_be/src/main/resources/application-dev.yml
+          mkdir -p ./kimprun_be/src/test/resources
+          cp ./kimprun_be/src/main/resources/application-dev.yml ./kimprun_be/src/test/resources/application-dev.yml
+
+      - name: Download env file from S3
+        run: |
+          mkdir -p ./kimprun_fe
+          aws s3 cp ${{ secrets.AWS_S3_FE_ENV }} ./kimprun_fe/.env.test
+
+      - name: Update compose.yaml fe env file path
+        run: |
+          sed -i 's|ENV_FILE_DIR|../kimprun_fe/.env.test|' ./kimprun_be/compose.yaml
+      - name: Replace FE image in compose.yaml
+        run: |
+          sed -i 's|fe_image|${{ secrets.KIMPRUN_FE_IMAGE }}|g' ./kimprun_be/compose.yaml
+
+      # 권한 부여
+      - name: Grant execute permission
+        run: chmod +x ./kimprun_be/gradlew
+      # 도커 빌드 설정 - 통합 테스트 실행 전 도커 컴포즈를 통해 통합테스트 환경(애플리케이션 의존성 환경) 구축
+      - name: Set up Docker compose
+        uses: docker/setup-buildx-action@v3
+      # 통합 테스트 환경 구축
+      - name: Start dependencies with Docker compose
+        run: docker compose up -d
+        working-directory: ./kimprun_be
+
+      # 통합 테스트 환경 구축 후 30초 대기 - 애플리케이션 실행 시간
+      - name: Wait for dependencies to start
+        run: sleep 30
+
+      # 통합 테스트 실행
+      - name: Run integration test
+        run: ./gradlew integrationTest
+        working-directory: ./kimprun_be
+      # 통합 테스트 완료 후 통합 테스트 환경 종료
+      - name: Stop dependencies
+        if: always()
+        run: docker compose down
+        working-directory: ./kimprun_be
+      # 통합 테스트 결과 업로드 (통합테스트 실패 시)
+      - name: Upload integration test results
+        uses: actions/upload-artifact@v4
+        if: failure() && steps.run-integration-test.outcome == 'failure'
+        with:
+          name: integration-test-results
+          path: build/test-results
+
+  # 통합 테스트 완료 후 도커 이미지 빌드 및 도커허브로 푸시
+  build-and-push-docker-image:
+    # 통합 테스트 완료 후 실행
+    needs: integration-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 커밋 아이디 줄이기 (태그넣기용)
+      - name: Shorten commit id
+        shell: bash
+        run: |
+          echo "COMMIT_ID=${GITHUB_SHA::6}" >> "$GITHUB_ENV"
+      # 도커허브 로그인
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      # 도커 빌드 설정
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      # 도커 이미지 빌드
+      - name: Build Docker image
+        run: docker build --platform linux/amd64 -t hojipkim/kimprun_be:${{ env.COMMIT_ID }} .
+      # 도커허브에 푸시
+      - name: Push Docker image
+        run: docker push hojipkim/kimprun_be:${{ env.COMMIT_ID }}
+
+      # 도커 이미지 푸시 후 커밋 ID 저장
+      - name: Save commit ID as artifact
+        run: echo "${{ env.COMMIT_ID }}" > commit-id.txt
+
+      - name: Upload commit ID artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: commit-id
+          path: commit-id.txt
+          retention-days: 1
+    outputs:
+      commit_id: ${{ env.COMMIT_ID }}

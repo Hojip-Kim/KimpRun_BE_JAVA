@@ -4,6 +4,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,10 +20,13 @@ import java.io.IOException;
 @Slf4j
 public class OAuth2AuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
+    @Value("${spring.oauth.success-uri}")
+    private String oauth2DefaultTargetUrl;
+
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     public OAuth2AuthenticationSuccessHandler() {
-        setDefaultTargetUrl("http://localhost:3000?login=success"); // 로그인 성공 후 이동할 기본 URL 설정
+        setDefaultTargetUrl(oauth2DefaultTargetUrl); // 로그인 성공 후 이동할 기본 URL 설정
     }
 
     @Override

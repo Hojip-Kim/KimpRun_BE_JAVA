@@ -15,10 +15,45 @@ ext {
     querydslVersion = "5.0.0"
 }
 
+sourceSets {
+    main {
+        java {
+            srcDir "$buildDir/generated/querydsl"
+        }
+    }
+
+    integrationTest{
+        java.srcDir file('src/test/java/integration')
+        resources.srcDir file('src/test/resources')
+        compileClasspath += sourceSets.main.output + configurations.testCompileClasspath
+        runtimeClasspath += output + compileClasspath + configurations.testRuntimeClasspath
+    }
+}
+
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+task integrationTest(type: Test) {
+    description = '통합 테스트 실행'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+
+    useJUnitPlatform()
+
+    outputs.upToDateWhen { false }
+}
+
+test {
+    useJUnitPlatform()
+    exclude '**/*IntegrationTest.*'
+    exclude '**/*IT.*'
 }
 
 repositories {
@@ -41,6 +76,9 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.18.3'
     implementation 'com.slack.api:slack-api-client:1.43.0'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client:2.6.2'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'net.logstash.logback:logstash-logback-encoder:7.3'
 
     // QueryDSL
     implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
@@ -57,15 +95,9 @@ dependencies {
     testImplementation 'com.h2database:h2'
 }
 
-def querydslDir = "src/main/generated"
+def querydslDir = "$buildDir/generated/querydsl"
 
-sourceSets {
-    main {
-        java {
-            srcDirs += querydslDir
-        }
-    }
-}
+
 
 tasks.withType(JavaCompile).configureEach {
     options.generatedSourceOutputDirectory = file(querydslDir)

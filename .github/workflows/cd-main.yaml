@@ -1,0 +1,64 @@
+#  개발 서버에 배포
+name: CD-main
+
+on:
+  workflow_run:
+    workflows:
+      - 'CI-main'
+    types:
+      - completed
+    branches:
+      - 'main'
+
+jobs:
+  deploy-to-develop-server:
+    # CI 워크플로우 성공했을 시 실행
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
+    steps:
+      # 커밋 아이디 읽기
+      - name: Download commit ID artifact
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: ci-main
+          run_id: ${{ github.event.workflow_run.id }}
+          name: commit-id
+          path: .
+
+      - name: Read commit ID
+        id: read-commit-id
+        run: |
+          COMMIT_ID=$(cat commit-id.txt)
+          echo "COMMIT_ID=${{COMMIT_ID}}" >> $GITHUB_ENV
+          echo "Commit ID : ${{COMMIT_ID}}"
+
+      - name: Checkout charts repository
+        uses: actions/checkout@v4
+        with:
+          repository: Hojip-Kim/Kimprun_HelmCharts
+          ref: main
+          token: ${{ secrets.CHARTS_REPO_PAT }}
+
+      - name: Update backend image tag in values.yaml
+        shell: bash
+        run: |
+          echo "커밋 아이디 : $COMMIT_ID"
+          yq -i '.backend.image.tag = "'${COMMIT_ID}'"' values.yaml
+
+          cat values.yaml | grep -A 3 "backend:"
+
+      - name: Commit and push changes to charts repository
+        run: |
+          git add values.yaml
+          git commit -m "Update backend image tag to $COMMIT_ID"
+          git push origin main
+
+      - name: Sync ArgoCd application
+        run: |
+          argocd app sync kimprun-app --grpc-web
+          argocd app wait kimprun-app --health --grpc-web
+
+      - name: Clean up workspace
+        if: always()
+        run: |
+          rm -rf $GITHUB_WORKSPACE/*

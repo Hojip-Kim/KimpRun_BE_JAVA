@@ -54,9 +54,11 @@ public class ScrapServiceImpl implements ScrapService {
         exchangeNoticePacadeService.createNoticesBulk(upbitScrapComponent.getMarketType(), upbitNoticeParsedDataList);
 
         List<NoticeParsedData> binanceNoticeParsedDataList = binanceScrapComponent.parseNoticeData();
+        if(!binanceNoticeParsedDataList.isEmpty()) {
         binanceScrapComponent.setNoticeToRedis(binanceNoticeParsedDataList);
         binanceScrapComponent.setNewParsedData(binanceNoticeParsedDataList);
-        exchangeNoticePacadeService.createNoticesBulk(binanceScrapComponent.getMarketType(), binanceNoticeParsedDataList);
+            exchangeNoticePacadeService.createNoticesBulk(binanceScrapComponent.getMarketType(), binanceNoticeParsedDataList);
+        }
 
         List<NoticeParsedData> coinoneNoticeParsedDataList = coinoneScrapComponent.parseNoticeData();
         coinoneScrapComponent.setNoticeToRedis(coinoneNoticeParsedDataList);

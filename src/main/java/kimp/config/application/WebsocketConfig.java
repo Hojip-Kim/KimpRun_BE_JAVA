@@ -1,4 +1,4 @@
-package kimp.websocket.config;
+package kimp.config.application;
 
 import kimp.market.handler.BinanceWebsocketHandler;
 import kimp.market.handler.MarketInfoHandler;
