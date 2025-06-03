@@ -8,6 +8,8 @@ on:
       - completed
     branches:
       - '#2-infra'
+      - '2-infra'
+      - 'refs/heads/#2-infra'
 
 jobs:
   deploy-to-develop-server:
