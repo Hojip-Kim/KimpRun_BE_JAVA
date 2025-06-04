@@ -55,7 +55,7 @@ jobs:
 
       - name: argocd Login
         run: |
-          argocd login argocd.kimprun.com --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} --grpc-web
+          argocd login ${{ secrets.ARGOCD_SERVER }} --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} --grpc-web
 
       - name: Sync ArgoCD application
         run: |
