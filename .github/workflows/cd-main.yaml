@@ -62,7 +62,7 @@ jobs:
       - name: Read commit ID from previous job
         run: |
           echo "COMMIT_ID=${{ needs.build-and-push.outputs.commit-id }}" >> $GITHUB_ENV
-          echo "Commit ID : ${needs.build-and-push.outputs.commit-id}"
+          echo "Commit ID : ${{ needs.build-and-push.outputs.commit-id }}"
 
       - name: Checkout charts repository
         uses: actions/checkout@v4
