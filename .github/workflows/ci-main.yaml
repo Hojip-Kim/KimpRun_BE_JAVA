@@ -1,13 +1,7 @@
 # 메인 브랜치(개발용 서버 배포)에 푸시되면 실행되는 워크플로우
 name: CI-main
 
-on:
-  push:
-    # 소스코드의 변경 시 실행
-    #    paths: src/**
-    branches:
-      - 'main'
-      - "#2-infra"
+on: push
 
 jobs:
   # 단위 테스트
