@@ -42,7 +42,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -87,33 +87,26 @@ jobs:
       - name: Deploy with ArgoCD CLI
         run: |
           echo "🚀 Starting ArgoCD deployment..."
-          
+
           kubectl port-forward svc/argocd-server -n argocd 8080:443 &
           PORT_FORWARD_PID=$!
-          
+
           echo "⏳ Preparing ArgoCD connection..."
           sleep 15
-          
+
           argocd login localhost:8080 \
             --username ${{ secrets.ARGOCD_USERNAME }} \
             --password ${{ secrets.ARGOCD_PASSWORD }} \
             --insecure
-          
+
           echo "✅ ArgoCD login successful!"
-          
-          argocd app refresh kimprun-app --insecure
-          
-          echo "🔄 Syncing application..."
-          argocd app sync kimprun-app --insecure
-          
-          echo "⏳ Waiting for deployment completion..."
-          argocd app wait kimprun-app --health --timeout 300 --insecure
-          
-          echo "📊 Final application status:"
-          argocd app get kimprun-app --insecure
-          
+
+          argocd app get kimprun-app --insecure --grpc-web
+
+          argocd app sync kimprun-app --insecure --grpc-web
+
           kill $PORT_FORWARD_PID || true
-          
+
           echo "✅ Deployment completed successfully!"
 
       - name: Deployment summary
