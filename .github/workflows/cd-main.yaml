@@ -18,7 +18,7 @@ jobs:
     steps:
       # 커밋 아이디 읽기
       - name: Download commit ID artifact
-        uses: dawidd6/action-download-artifact@v3
+        uses: dawidd6/action-download-artifact@v4
         with:
           workflow: ci-main
           run_id: ${{ github.event.workflow_run.id }}
@@ -44,7 +44,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build and push Docker image
         run: |
@@ -80,8 +80,6 @@ jobs:
 
       - name: Commit and push changes to charts repository
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
           git add values.yaml
           git commit -m "🚀 Update backend image tag to $COMMIT_ID"
           git push origin main
@@ -90,15 +88,12 @@ jobs:
         run: |
           echo "🚀 Starting ArgoCD deployment..."
           
-          # 포트포워딩으로 안전하게 접근
           kubectl port-forward svc/argocd-server -n argocd 8080:443 &
           PORT_FORWARD_PID=$!
           
-          # 포트포워딩 준비 대기
           echo "⏳ Preparing ArgoCD connection..."
           sleep 15
           
-          # ArgoCD 로그인
           argocd login localhost:8080 \
             --username ${{ secrets.ARGOCD_USERNAME }} \
             --password ${{ secrets.ARGOCD_PASSWORD }} \
@@ -106,22 +101,17 @@ jobs:
           
           echo "✅ ArgoCD login successful!"
           
-          # 애플리케이션 새로고침 (최신 차트 반영)
           argocd app refresh kimprun-app --insecure
           
-          # 애플리케이션 동기화
           echo "🔄 Syncing application..."
           argocd app sync kimprun-app --insecure
           
-          # 배포 완료 대기
           echo "⏳ Waiting for deployment completion..."
           argocd app wait kimprun-app --health --timeout 300 --insecure
           
-          # 최종 상태 확인
           echo "📊 Final application status:"
           argocd app get kimprun-app --insecure
           
-          # 포트포워딩 정리
           kill $PORT_FORWARD_PID || true
           
           echo "✅ Deployment completed successfully!"
