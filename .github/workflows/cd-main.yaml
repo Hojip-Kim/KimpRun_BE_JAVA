@@ -11,10 +11,10 @@ on:
       - 'main'
 
 jobs:
-  deploy-to-develop-server:
+  build-and-push:
     # CI 워크플로우 성공했을 시 실행
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       # 커밋 아이디 읽기
       - name: Download commit ID artifact
@@ -32,6 +32,36 @@ jobs:
           echo "COMMIT_ID=${COMMIT_ID}" >> $GITHUB_ENV
           echo "Commit ID : ${COMMIT_ID}"
 
+      - name: Checkout Source code
+        uses: actions/checkout@v4
+        with:
+          path: ./kimprun_be
+
+      - name: Login to Docker Hub
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        run : |
+          docker build --platform linux/amd64 -t hojipkim/kimprun_be:${{ env.COMMIT_ID }} .
+          docker push hojipkim/kimprun_be:${{ env.COMMIT_ID }}
+          echo " Docker image pushed: hojipkim/kimprun_be:${{ env.COMMIT_ID }}"
+    outputs:
+      commit-id: ${{ env.COMMIT_ID }}
+
+  chart-update:
+    needs: build-and-push
+    runs-on: self-hosted
+    steps:
+      - name: Read commit ID from previous job
+        run: |
+          echo "COMMIT_ID=${{ needs.build-and-push.outputs.commit-id }}" >> $GITHUB_ENV
+          echo "Commit ID : ${needs.build-and-push.outputs.commit-id}"
+
       - name: Checkout charts repository
         uses: actions/checkout@v4
         with:
@@ -44,7 +74,6 @@ jobs:
         run: |
           echo "커밋 아이디 : $COMMIT_ID"
           yq -i '.backend.image.tag = "'${COMMIT_ID}'"' values.yaml
-
           cat values.yaml | grep -A 3 "backend:"
 
       - name: Commit and push changes to charts repository
@@ -53,13 +82,28 @@ jobs:
           git commit -m "Update backend image tag to $COMMIT_ID"
           git push origin main
 
-      - name: argocd Login
+      - name: Deploy with ArgoCD CLI (Port Forwarding)
         run: |
-          argocd login ${{ secrets.ARGOCD_SERVER }} --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} --grpc-web
-
-      - name: Sync ArgoCD application
-        run: |
-          argocd app sync kimprun-app --grpc-web
+          echo "🚀 Starting deployment with ArgoCD CLI..."
+          
+          kubectl port-forward svc/argocd-server -n argocd 8080:443 &
+          PORT_FORWARD_PID=$!
+          
+          echo "⏳ Waiting for port-forward to be ready..."
+          sleep 10
+          
+          argocd login localhost:8080 \
+            --username admin \
+            --password UonNFTEzFUJUdPsB \
+            --insecure
+      
+          echo "✅ ArgoCD login successful!"
+          
+          argocd app sync kimprun-app --insecure
+          
+          echo "✅ Deployment completed successfully!"
+          
+          kill $PORT_FORWARD_PID || true
 
       - name: Clean up workspace
         if: always()

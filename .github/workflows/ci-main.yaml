@@ -49,7 +49,7 @@ jobs:
         if: failure() && steps.run-unit-test.outcome == 'failure'
         with:
           name: test-results
-          path: build/test-results
+          path: ./kimprun_be/build/test-results
   # 통합 테스트
   integration-test:
     # 단위 테스트 완료 후 실행
@@ -128,42 +128,28 @@ jobs:
         if: failure() && steps.run-integration-test.outcome == 'failure'
         with:
           name: integration-test-results
-          path: build/test-results
-
-  # 통합 테스트 완료 후 도커 이미지 빌드 및 도커허브로 푸시
-  build-and-push-docker-image:
-    # 통합 테스트 완료 후 실행
+          path: ./kimprun_be/build/test-results
+  
+  # 도커 이미지 빌드 되는지 확인
+  # 커밋아이디 6자로 줄인 값 output 제공 (도커이미지 태그로 사용)
+  build-verifaication:
     needs: integration-test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      # 커밋 아이디 줄이기 (태그넣기용)
-      - name: Shorten commit id
+        
+      - name: Generate commit ID
         shell: bash
         run: |
           echo "COMMIT_ID=${GITHUB_SHA::6}" >> "$GITHUB_ENV"
-      # 도커허브 로그인
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      # 도커 빌드 설정
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      # 도커 이미지 빌드
-      - name: Build Docker image
+
+      - name: Build Docker image - verification
         run: docker build --platform linux/amd64 -t hojipkim/kimprun_be:${{ env.COMMIT_ID }} .
-      # 도커허브에 푸시
-      - name: Push Docker image
-        run: docker push hojipkim/kimprun_be:${{ env.COMMIT_ID }}
-
-      # 도커 이미지 푸시 후 커밋 ID 저장
-      - name: Save commit ID as artifact
-        run: echo "${{ env.COMMIT_ID }}" > commit-id.txt
-
+      
       - name: Upload commit ID artifact
         uses: actions/upload-artifact@v4
         with:
