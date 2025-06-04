@@ -53,7 +53,11 @@ jobs:
           git commit -m "Update backend image tag to $COMMIT_ID"
           git push origin main
 
-      - name: Sync ArgoCd application
+      - name: argocd Login
+        run: |
+          argocd login argocd.kimprun.com --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} --grpc-web
+
+      - name: Sync ArgoCD application
         run: |
           argocd app sync kimprun-app --grpc-web
 
