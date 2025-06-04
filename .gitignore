@@ -40,3 +40,5 @@ out/
 
 ### FILE ###
 application-dev.yml
+mongo-init.js
+dockerfile.local
