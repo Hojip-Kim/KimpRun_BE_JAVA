@@ -1,19 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
-    
-    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <destination>kimprun-logstash:5044</destination>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <includeMdc>true</includeMdc>
-            <customFields>{"application":"kimprun-backend"}</customFields>
-        </encoder>
-    </appender>
-    
+
     <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="LOGSTASH"/>
+        <appender-ref ref="CONSOLE"></appender-ref>
+        <springProfile name="prod">
+            <appender-ref ref="LOGSTASH" />
+        </springProfile>
     </root>
+
+    <springProfile name="prod">
+        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+            <destination>kimprun-logstash:5044</destination>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeMdc>true</includeMdc>
+                <customFields>{"application":"kimprun-backend"}</customFields>
+            </encoder>
+        </appender>
+    </springProfile>
+    
+    <springProfile name="!prod">
+
+    </springProfile>
 
 
 </configuration>

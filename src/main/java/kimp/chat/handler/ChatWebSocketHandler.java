@@ -2,12 +2,10 @@ package kimp.chat.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.chat.dto.request.ChatMessage;
-import kimp.chat.dto.request.PingMessage;
 import kimp.chat.service.ChatWebsocketService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
-import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -17,9 +15,11 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final ChatWebsocketService chatWebsocketService;
+    private final ObjectMapper objectMapper;
 
-    public ChatWebSocketHandler(ChatWebsocketService chatWebsocketService) {
+    public ChatWebSocketHandler(ChatWebsocketService chatWebsocketService, ObjectMapper objectMapper) {
         this.chatWebsocketService = chatWebsocketService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -39,25 +39,20 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     // message receive역할
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        if(message.getPayloadLength() == 0 || message == null){
+        if(message.getPayloadLength() == 0){
             throw new IllegalArgumentException("Not have text message contents");
         }
         // 메시지를 받은 경우 처리 로직 (필요시)
         String payload = message.getPayload();
-        ObjectMapper mapper = new ObjectMapper();
-        if(mapper.readValue(payload, PingMessage.class) != null) {
-            session.sendMessage(new TextMessage(new ObjectMapper().writeValueAsString(new kimp.chat.dto.response.PongMessage("pong"))));
+        ChatMessage chatMessage = objectMapper.readValue(payload, ChatMessage.class);
+        // ping 메시지인경우
+        if(chatMessage.isPing()) {
+            session.sendMessage(new TextMessage(new ObjectMapper().writeValueAsString(chatMessage)));
+            log.info("pong");
+        }else {
+            // chat 메시지인경우
+            chatWebsocketService.saveMessage(chatMessage);
+            chatWebsocketService.broadcastChat(session, chatMessage);
         }
-        ChatMessage chatMessage = mapper.readValue(payload, ChatMessage.class);
-
-
-        chatWebsocketService.saveMessage(chatMessage);
-        chatWebsocketService.broadcastChat(session, chatMessage);
-    }
-
-    // TODO : websocket time-out 방지용 ping-pong logic
-    @Override
-    protected void handlePongMessage(WebSocketSession session, PongMessage message) throws Exception {
-        super.handlePongMessage(session, message);
     }
 }
