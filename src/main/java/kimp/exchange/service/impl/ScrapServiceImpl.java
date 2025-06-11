@@ -1,8 +1,7 @@
 package kimp.exchange.service.impl;
 
-import jakarta.annotation.PostConstruct;
+import kimp.exchange.dto.notice.NoticeDto;
 import kimp.exchange.dto.notice.NoticeParsedData;
-import kimp.exchange.dto.notice.NoticeResponseDto;
 import kimp.exchange.component.ExchangeScrap;
 import kimp.exchange.component.impl.exchange.ExchangeScrapAbstract;
 import kimp.exchange.dto.binance.BinanceNoticeDto;
@@ -18,7 +17,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -45,52 +43,11 @@ public class ScrapServiceImpl implements ScrapService {
         this.noticeService = noticeService;
     }
 
-    @PostConstruct
-    private void init() throws IOException {
-
-        List<NoticeParsedData> upbitNoticeParsedDataList = upbitScrapComponent.parseNoticeData();
-        upbitScrapComponent.setNoticeToRedis(upbitNoticeParsedDataList);
-        upbitScrapComponent.setNewParsedData(upbitNoticeParsedDataList);
-        exchangeNoticePacadeService.createNoticesBulk(upbitScrapComponent.getMarketType(), upbitNoticeParsedDataList);
-
-        List<NoticeParsedData> binanceNoticeParsedDataList = binanceScrapComponent.parseNoticeData();
-        if(!binanceNoticeParsedDataList.isEmpty()) {
-        binanceScrapComponent.setNoticeToRedis(binanceNoticeParsedDataList);
-        binanceScrapComponent.setNewParsedData(binanceNoticeParsedDataList);
-            exchangeNoticePacadeService.createNoticesBulk(binanceScrapComponent.getMarketType(), binanceNoticeParsedDataList);
-        }
-
-        List<NoticeParsedData> coinoneNoticeParsedDataList = coinoneScrapComponent.parseNoticeData();
-        coinoneScrapComponent.setNoticeToRedis(coinoneNoticeParsedDataList);
-        coinoneScrapComponent.setNewParsedData(coinoneNoticeParsedDataList);
-        exchangeNoticePacadeService.createNoticesBulk(coinoneScrapComponent.getMarketType(), coinoneNoticeParsedDataList);
-
-        List<NoticeParsedData> bithumbNoticeParsedDataList = bithumbScrapComponent.parseNoticeData();
-        bithumbScrapComponent.setNoticeToRedis(bithumbNoticeParsedDataList);
-        bithumbScrapComponent.setNewParsedData(bithumbNoticeParsedDataList);
-        exchangeNoticePacadeService.createNoticesBulk(bithumbScrapComponent.getMarketType(), bithumbNoticeParsedDataList);
-
-        log.info("스크랩서비스 초기 데이터 세팅 완료");
-    }
-
-    @Override
-    public List<List<NoticeParsedData>> getNotices() {
-        List<NoticeParsedData> upbitNewNotice = this.upbitScrapComponent.getFieldNewNotice();
-        List<NoticeParsedData> binanceNewNotice = this.binanceScrapComponent.getFieldNewNotice();
-        List<NoticeParsedData> coinoneNewNotice = this.coinoneScrapComponent.getFieldNewNotice();
-        List<NoticeParsedData> bithumbNewNotice = this.bithumbScrapComponent.getFieldNewNotice();
-        List<List<NoticeParsedData>> list = new ArrayList<>();
-        list.add(upbitNewNotice);
-        list.add(binanceNewNotice);
-        list.add(coinoneNewNotice);
-        list.add(bithumbNewNotice);
-        return list;
-    }
-
 //     거래소 별 최신 공지사항을 뽑아내는 메서드
 //     현재 ip block방지로 10초단위로
     @Scheduled(fixedRate = 10000)
     public void scrapNoticeData() throws IOException {
+        log.info("스케쥴링 실행");
         List<NoticeParsedData> upbitNoticeParsedDataList = upbitScrapComponent.parseNoticeData();
         List<NoticeParsedData> binanceNoticeParsedDataList = binanceScrapComponent.parseNoticeData();
         List<NoticeParsedData> bithumbNoticeParsedDataList = bithumbScrapComponent.parseNoticeData();
@@ -110,11 +67,14 @@ public class ScrapServiceImpl implements ScrapService {
             upbitScrapComponent.setNoticeToRedis(upbitNoticeParsedDataList);
             upbitScrapComponent.setNewParsedData(upbitNoticeParsedDataList);
             upbitScrapComponent.setNewNotice(upbitNewNotice);
-            // websocket 실시간 데이터 전송
-
-            marketInfoHandler.sendNewNotice(new NoticeResponseDto(upbitScrapComponent.getMarketType(), upbitScrapComponent.getAbsoluteUrl(), upbitScrapComponent.getFieldNewNotice()));
 
             exchangeNoticePacadeService.createNoticesBulk(upbitScrapComponent.getMarketType(), upbitScrapComponent.getFieldNewNotice());
+            // websocket 실시간 데이터 전송
+            for(int i = 0; i < upbitNewNotice.size(); i++) {
+                String link = upbitNewNotice.get(i).getAlink();
+                NoticeDto noticeDto = noticeService.getNoticeByLink(link);
+                marketInfoHandler.sendNewNotice(noticeDto);
+            }
 
             log.info("새로운 공지사항 발생!!!!!! 업비트" + upbitNewNotice.get(0).getTitle());
         }
@@ -124,10 +84,13 @@ public class ScrapServiceImpl implements ScrapService {
             binanceScrapComponent.setNoticeToRedis(binanceNoticeParsedDataList);
             binanceScrapComponent.setNewParsedData(binanceNoticeParsedDataList);
             binanceScrapComponent.setNewNotice(binanceNewNotice);
-            // websocket 실시간 데이터 전송
-            marketInfoHandler.sendNewNotice(new NoticeResponseDto(binanceScrapComponent.getMarketType(), binanceScrapComponent.getAbsoluteUrl(), binanceScrapComponent.getFieldNewNotice()));
-
             exchangeNoticePacadeService.createNoticesBulk(binanceScrapComponent.getMarketType(), binanceScrapComponent.getFieldNewNotice());
+            // websocket 실시간 데이터 전송
+            for(int i = 0; i < binanceNewNotice.size(); i++) {
+                String link = binanceNewNotice.get(i).getAlink();
+                NoticeDto noticeDto = noticeService.getNoticeByLink(link);
+                marketInfoHandler.sendNewNotice(noticeDto);
+            }
 
             log.info("새로운 공지사항 발생!!!!!! 바이낸스" + binanceNewNotice.get(0).getTitle());
         }
@@ -140,9 +103,14 @@ public class ScrapServiceImpl implements ScrapService {
             bithumbScrapComponent.setNewParsedData(bithumbNoticeParsedDataList);
             bithumbScrapComponent.setNewNotice(bithumbNewNotice);
             // websocket 실시간 데이터 전송
-            marketInfoHandler.sendNewNotice(new NoticeResponseDto(bithumbScrapComponent.getMarketType(), bithumbScrapComponent.getAbsoluteUrl(), bithumbScrapComponent.getFieldNewNotice()));
 
             exchangeNoticePacadeService.createNoticesBulk(bithumbScrapComponent.getMarketType(), bithumbScrapComponent.getFieldNewNotice());
+
+            for(int i = 0; i < bithumbNewNotice.size(); i++) {
+                String link = bithumbNewNotice.get(i).getAlink();
+                NoticeDto noticeDto = noticeService.getNoticeByLink(link);
+                marketInfoHandler.sendNewNotice(noticeDto);
+            }
 
             log.info("새로운 공지사항 발생!!!!!! 빗썸" + bithumbNewNotice.get(0).getTitle());
         }
@@ -153,16 +121,17 @@ public class ScrapServiceImpl implements ScrapService {
             coinoneScrapComponent.setNewParsedData(coinoneNoticeParsedDataList);
             coinoneScrapComponent.setNewNotice(coinoneNewNotice);
             // websocket 실시간 데이터 전송
-            marketInfoHandler.sendNewNotice(new NoticeResponseDto(coinoneScrapComponent.getMarketType(), coinoneScrapComponent.getAbsoluteUrl(), coinoneScrapComponent.getFieldNewNotice()));
 
             exchangeNoticePacadeService.createNoticesBulk(coinoneScrapComponent.getMarketType(), coinoneScrapComponent.getFieldNewNotice());
 
+            for(int i = 0; i < coinoneNewNotice.size(); i++) {
+                String link = coinoneNewNotice.get(i).getAlink();
+                NoticeDto noticeDto = noticeService.getNoticeByLink(link);
+                marketInfoHandler.sendNewNotice(noticeDto);
+            }
+
             log.info("새로운 공지사항 발생!!!!!! 코인원" + coinoneNewNotice.get(0).getTitle());
         }
-
-        log.info("스케쥴링 실행");
-
-
 
     }
 

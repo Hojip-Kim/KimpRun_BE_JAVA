@@ -1,6 +1,5 @@
 package kimp.market.service.serviceImpl;
 
-import jakarta.annotation.PostConstruct;
 import kimp.exchange.service.ExchangeService;
 import kimp.market.Enum.MarketType;
 import kimp.market.dto.coin.common.ServiceCoinDto;
@@ -26,21 +25,6 @@ public class CoinExchangePacadeService {
         this.coinService = coinService;
         this.exchangeService = exchangeService;
         this.marketService = marketService;
-    }
-    @PostConstruct
-    private void coinExchangePacadeServiceInit(){
-        MarketType[] marketTypes = MarketType.values();
-
-        for(MarketType marketType : marketTypes){
-            List<MarketType> marketTypeList = new ArrayList<>();
-            marketTypeList.add(marketType);
-            List<ServiceCoinDto> serviceCoinDtoList = getCoinsByExchange(marketType);
-            if(serviceCoinDtoList != null){
-                createCoinBulk(marketTypeList, serviceCoinDtoList);
-            }
-
-        }
-
     }
 
     // 코인을 마켓타입에 따라 연관관계 매핑을 합니다.
