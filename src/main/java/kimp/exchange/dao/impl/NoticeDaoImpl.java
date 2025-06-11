@@ -60,7 +60,12 @@ public class NoticeDaoImpl implements NoticeDao {
 
     @Override
     @Transactional
-    public Page<Notice> findByExchangeOrderByRegistedAtDesc(long exchangeId, Pageable pageable) {
+    public Page<Notice> findByExchangeIdOrderByRegistedAtAsc(long exchangeId, Pageable pageable) {
         return this.noticeRepository.findByExchangeIdOrderByRegistedAtAsc(exchangeId, pageable);
+    }
+
+    @Override
+    public Page<Notice> findAllByOrderByRegistedAtAsc(Pageable pageable) {
+        return this.noticeRepository.findByOrderByRegistedAtAsc(pageable);
     }
 }

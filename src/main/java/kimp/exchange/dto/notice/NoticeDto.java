@@ -15,6 +15,7 @@ public class NoticeDto {
     private String title;
     private String url;
     private LocalDateTime createdAt;
+    private String exchangeUrl;
 
     public NoticeDto(long id, MarketType exchangeType, String title, String url, LocalDateTime createdAt) {
         this.id = id;
@@ -22,5 +23,9 @@ public class NoticeDto {
         this.title = title;
         this.url = url;
         this.createdAt = createdAt;
+    }
+
+    public void setExchangeUrl(String exchangeUrl) {
+        this.exchangeUrl = exchangeUrl;
     }
 }

@@ -32,6 +32,7 @@ public class MarketMethod {
 
     public String getMarketAbsoluteUrlByMarketType(MarketType marketType){
         return switch (marketType){
+            case ALL -> "";
             case UPBIT -> this.upbitAbsoluteUrl;
             case BITHUMB -> this.bithumbAbsoluteUrl;
             case COINONE -> this.coinoneAbsoluteUrl;

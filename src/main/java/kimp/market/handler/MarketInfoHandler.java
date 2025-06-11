@@ -1,10 +1,11 @@
 package kimp.market.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kimp.exchange.dto.notice.NoticeResponseDto;
+import kimp.exchange.dto.notice.NoticeDto;
 import kimp.market.dto.market.response.websocket.InfoResponseDto;
 import kimp.market.dto.market.response.websocket.MarketWebsocketResponseDto;
 import kimp.market.dto.market.response.websocket.UserWebsocketResponseDto;
+import kimp.market.dto.marketInfo.common.MarketInfoWebsocketDto;
 import kimp.market.service.MarketInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -50,12 +51,11 @@ public class MarketInfoHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
     }
 
-    public void sendNewNotice(NoticeResponseDto noticeDto) throws IOException {
+    public void sendNewNotice(NoticeDto noticeDto) throws IOException {
+        MarketInfoWebsocketDto<NoticeDto> noticeData = new MarketInfoWebsocketDto<NoticeDto>("notice", noticeDto);
+        String notice = objectMapper.writeValueAsString(noticeData);
 
-        String responseDto = objectMapper.writeValueAsString(noticeDto);
-
-        TextMessage textMessage = new TextMessage(responseDto);
-
+        TextMessage textMessage = new TextMessage(notice);
         for(WebSocketSession session : sessions.values()){
             if(session.isOpen()){
                 session.sendMessage(textMessage);
@@ -70,13 +70,12 @@ public class MarketInfoHandler extends TextWebSocketHandler {
             double tetherData = this.marketInfoService.getTetherKRW();
 
             int userCount = sessions.size();
-
             MarketWebsocketResponseDto marketWebsocketResponseDto = new MarketWebsocketResponseDto(dollarData, tetherData);
             UserWebsocketResponseDto userWebsocketResponseDto = new UserWebsocketResponseDto(userCount);
 
+            MarketInfoWebsocketDto<InfoResponseDto> marketWebsocketResponseData = new MarketInfoWebsocketDto<InfoResponseDto>("market",new InfoResponseDto(userWebsocketResponseDto, marketWebsocketResponseDto));
 
-            InfoResponseDto responseDto = new InfoResponseDto(userWebsocketResponseDto, marketWebsocketResponseDto);
-            String responseInfo = objectMapper.writeValueAsString(responseDto);
+            String responseInfo = objectMapper.writeValueAsString(marketWebsocketResponseData);
             TextMessage textMessage = new TextMessage(responseInfo);
             for (WebSocketSession session : sessions.values()) {
                 if (session.isOpen()) {

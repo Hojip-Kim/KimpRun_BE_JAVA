@@ -48,7 +48,6 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         // ping 메시지인경우
         if(chatMessage.isPing()) {
             session.sendMessage(new TextMessage(new ObjectMapper().writeValueAsString(chatMessage)));
-            log.info("pong");
         }else {
             // chat 메시지인경우
             chatWebsocketService.saveMessage(chatMessage);

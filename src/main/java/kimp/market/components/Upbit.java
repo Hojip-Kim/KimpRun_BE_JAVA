@@ -132,8 +132,8 @@ public class Upbit extends Market{
                 marketDataList.add(UpbitDto);
             }
 
-            upbitMarketDataList = new MarketDataList<UpbitDto>(marketDataList);
-            if(upbitMarketDataList != null) {
+            upbitMarketDataList = new MarketDataList<>(marketDataList);
+            if(upbitMarketDataList.getMarketDataList() != null && !upbitMarketDataList.getMarketDataList().isEmpty()) {
                 this.upbitMarketDataList = upbitMarketDataList;
             }
             else{

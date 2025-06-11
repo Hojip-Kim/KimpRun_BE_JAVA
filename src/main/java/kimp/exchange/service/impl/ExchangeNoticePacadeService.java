@@ -79,14 +79,14 @@ public class ExchangeNoticePacadeService {
     public ExchangeNoticeDto<Page<NoticeDto>> getNoticeByExchange(long exchangeId, PageRequestDto pageRequestDto) {
         Pageable pageable = PageRequest.of(pageRequestDto.getPage(), pageRequestDto.getSize());
 
-        Page<Notice> noticePage = noticeDao.findByExchangeOrderByRegistedAtDesc(exchangeId, pageable);
+        Page<Notice> noticePage = noticeDao.findByExchangeIdOrderByRegistedAtAsc(exchangeId, pageable);
 
         if(noticePage.isEmpty()){
             throw new KimprunException(KimprunExceptionEnum.REQUEST_ACCEPTED, "Not have data", HttpStatus.ACCEPTED, "hello");
         }
         Page<NoticeDto> pageNoticeDto = dtoConverter.convertNoticePageToDtoPage(noticePage);
 
-        return dtoConverter.wrappingDtosToExchangeNoticeDto(pageNoticeDto);
+        return dtoConverter.wrappingDtosToExchangeNoticeDto(MarketType.getMarketTypeByExchangeId(exchangeId),pageNoticeDto);
     }
 
 }

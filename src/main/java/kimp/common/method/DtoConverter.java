@@ -61,10 +61,11 @@ public class DtoConverter {
         if(notice == null){
             throw new IllegalArgumentException("not have notice");
         }
-        return new NoticeDto(notice.getId() ,notice.getExchange().getMarket(),notice.getTitle(),notice.getLink(), notice.getDate());
-    }
-    public NoticeDto convertNoticeToDto2(long id, MarketType marketType, String title, String link, LocalDateTime date) {
-        return new NoticeDto(id, marketType, title, link, date);
+
+        NoticeDto noticeDto =  new NoticeDto(notice.getId() ,notice.getExchange().getMarket(),notice.getTitle(),notice.getLink(), notice.getDate());
+        noticeDto.setExchangeUrl(noticeDto.getExchangeType().getNoticeUrl());
+
+        return noticeDto;
     }
 
     public Page<NoticeDto> convertNoticePageToDtoPage(Page<Notice> notices) {
@@ -82,10 +83,9 @@ public class DtoConverter {
     }
 
     // notice의 market type 종류가 하나만 있는 list를 dto로 변환
-    public ExchangeNoticeDto<Page<NoticeDto>> wrappingDtosToExchangeNoticeDto(Page<NoticeDto> noticeDtos){
-
-        MarketType marketType = noticeDtos.getContent().get(0).getExchangeType();
-        String absoluteUrl = marketMethod.getMarketAbsoluteUrlByMarketType(marketType);
+    public ExchangeNoticeDto<Page<NoticeDto>> wrappingDtosToExchangeNoticeDto(MarketType marketType, Page<NoticeDto> noticeDtos){
+        String absoluteUrl;
+         absoluteUrl = marketMethod.getMarketAbsoluteUrlByMarketType(marketType);
 
         ExchangeNoticeDto<Page<NoticeDto>> dto = new ExchangeNoticeDto<>(absoluteUrl, marketType);
 

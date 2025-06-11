@@ -10,6 +10,8 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
     public Page<Notice> findByExchangeIdOrderByRegistedAtAsc(long exchangeId, Pageable pageable);
 
+    public Page<Notice> findByOrderByRegistedAtAsc(Pageable pageable);
+
     public Notice findNoticeByLink(String link);
 
 }
