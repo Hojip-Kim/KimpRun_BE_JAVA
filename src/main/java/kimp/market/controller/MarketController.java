@@ -5,10 +5,7 @@ import kimp.market.dto.market.response.CombinedMarketDataList;
 import kimp.market.dto.market.response.MarketDataList;
 import kimp.market.service.MarketService;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
