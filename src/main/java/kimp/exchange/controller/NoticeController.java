@@ -30,12 +30,19 @@ public class NoticeController {
     @GetMapping("/{exchangeId}")
     public ResponseEntity<?> getNoticeByExchangeId(@PathVariable("exchangeId") long exchangeId, @ModelAttribute PageRequestDto pageRequestDto) throws BadRequestException {
 
-        if(pageRequestDto == null){
+        if(pageRequestDto == null || exchangeId < 1 || pageRequestDto == null || pageRequestDto.getPage() < 0 || pageRequestDto.getSize() < 0){
             throw new BadRequestException();
         }
 
-        ExchangeNoticeDto noticeDtos = exchangeNoticePacadeService.getNoticeByExchange(exchangeId, pageRequestDto);
+        ExchangeNoticeDto noticeDtos;
+
+        if(exchangeId == 1){
+            noticeDtos = noticeService.getAllNotices(pageRequestDto);
+        }else{
+            noticeDtos = exchangeNoticePacadeService.getNoticeByExchange(exchangeId, pageRequestDto);
+        }
         return ResponseEntity.ok(noticeDtos);
+
     }
 
 

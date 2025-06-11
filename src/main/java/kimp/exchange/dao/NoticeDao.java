@@ -18,7 +18,9 @@ public interface NoticeDao {
 
     public void deleteNotice(long id);
 
-    public Page<Notice> findByExchangeOrderByRegistedAtDesc(long exchangeId, Pageable pageable);
+    public Page<Notice> findByExchangeIdOrderByRegistedAtAsc(long exchangeId, Pageable pageable);
+
+    public Page<Notice> findAllByOrderByRegistedAtAsc(Pageable pageable);
 
 
 }
