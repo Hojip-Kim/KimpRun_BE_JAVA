@@ -89,10 +89,10 @@ public class testDataInit {
         coinoneScrapComponent.setNewParsedData(coinoneNoticeParsedDataList);
         exchangeNoticePacadeService.createNoticesBulk(coinoneScrapComponent.getMarketType(), coinoneNoticeParsedDataList);
 
-        List<NoticeParsedData> bithumbNoticeParsedDataList = bithumbScrapComponent.parseNoticeData();
-        bithumbScrapComponent.setNoticeToRedis(bithumbNoticeParsedDataList);
-        bithumbScrapComponent.setNewParsedData(bithumbNoticeParsedDataList);
-        exchangeNoticePacadeService.createNoticesBulk(bithumbScrapComponent.getMarketType(), bithumbNoticeParsedDataList);
+//        List<NoticeParsedData> bithumbNoticeParsedDataList = bithumbScrapComponent.parseNoticeData();
+//        bithumbScrapComponent.setNoticeToRedis(bithumbNoticeParsedDataList);
+//        bithumbScrapComponent.setNewParsedData(bithumbNoticeParsedDataList);
+//        exchangeNoticePacadeService.createNoticesBulk(bithumbScrapComponent.getMarketType(), bithumbNoticeParsedDataList);
 
         log.info("스크랩서비스 초기 데이터 세팅 완료");
     }
