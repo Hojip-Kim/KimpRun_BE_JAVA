@@ -49,7 +49,7 @@ public class ScrapServiceImpl implements ScrapService {
     public void scrapNoticeData() throws IOException {
         log.info("스케쥴링 실행");
         List<NoticeParsedData> upbitNoticeParsedDataList = upbitScrapComponent.parseNoticeData();
-        List<NoticeParsedData> binanceNoticeParsedDataList = binanceScrapComponent.parseNoticeData();
+//        List<NoticeParsedData> binanceNoticeParsedDataList = binanceScrapComponent.parseNoticeData();
         List<NoticeParsedData> bithumbNoticeParsedDataList = bithumbScrapComponent.parseNoticeData();
         List<NoticeParsedData> coinoneNoticeParsedDataList = coinoneScrapComponent.parseNoticeData();
 
@@ -57,7 +57,7 @@ public class ScrapServiceImpl implements ScrapService {
         List<NoticeParsedData> upbitNewNotice = null;
         List<NoticeParsedData> bithumbNewNotice = null;
         List<NoticeParsedData> coinoneNewNotice = null;
-        List<NoticeParsedData> binanceNewNotice = null;
+//        List<NoticeParsedData> binanceNewNotice = null;
 
 
         // 새로운 공지사항이 생긴다면
@@ -78,22 +78,22 @@ public class ScrapServiceImpl implements ScrapService {
 
             log.info("새로운 공지사항 발생!!!!!! 업비트" + upbitNewNotice.get(0).getTitle());
         }
-        if(binanceScrapComponent.isUpdatedNotice(binanceScrapComponent.getNoticeFromRedis(), binanceNoticeParsedDataList)) {
-            binanceNewNotice = binanceScrapComponent.getNewNotice(binanceNoticeParsedDataList);
-
-            binanceScrapComponent.setNoticeToRedis(binanceNoticeParsedDataList);
-            binanceScrapComponent.setNewParsedData(binanceNoticeParsedDataList);
-            binanceScrapComponent.setNewNotice(binanceNewNotice);
-            exchangeNoticePacadeService.createNoticesBulk(binanceScrapComponent.getMarketType(), binanceScrapComponent.getFieldNewNotice());
-            // websocket 실시간 데이터 전송
-            for(int i = 0; i < binanceNewNotice.size(); i++) {
-                String link = binanceNewNotice.get(i).getAlink();
-                NoticeDto noticeDto = noticeService.getNoticeByLink(link);
-                marketInfoHandler.sendNewNotice(noticeDto);
-            }
-
-            log.info("새로운 공지사항 발생!!!!!! 바이낸스" + binanceNewNotice.get(0).getTitle());
-        }
+//        if(binanceScrapComponent.isUpdatedNotice(binanceScrapComponent.getNoticeFromRedis(), binanceNoticeParsedDataList)) {
+//            binanceNewNotice = binanceScrapComponent.getNewNotice(binanceNoticeParsedDataList);
+//
+//            binanceScrapComponent.setNoticeToRedis(binanceNoticeParsedDataList);
+//            binanceScrapComponent.setNewParsedData(binanceNoticeParsedDataList);
+//            binanceScrapComponent.setNewNotice(binanceNewNotice);
+//            exchangeNoticePacadeService.createNoticesBulk(binanceScrapComponent.getMarketType(), binanceScrapComponent.getFieldNewNotice());
+//            // websocket 실시간 데이터 전송
+//            for(int i = 0; i < binanceNewNotice.size(); i++) {
+//                String link = binanceNewNotice.get(i).getAlink();
+//                NoticeDto noticeDto = noticeService.getNoticeByLink(link);
+//                marketInfoHandler.sendNewNotice(noticeDto);
+//            }
+//
+//            log.info("새로운 공지사항 발생!!!!!! 바이낸스" + binanceNewNotice.get(0).getTitle());
+//        }
 
         // 빗썸은 첫번째 api에서 공지사항의 시간/분 정보가 안나오므로 추가 작업이 필요함.
         if(bithumbScrapComponent.isUpdatedNotice(bithumbScrapComponent.getNoticeFromRedis(), bithumbNoticeParsedDataList)) {
