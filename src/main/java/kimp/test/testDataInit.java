@@ -77,12 +77,12 @@ public class testDataInit {
         upbitScrapComponent.setNewParsedData(upbitNoticeParsedDataList);
         exchangeNoticePacadeService.createNoticesBulk(upbitScrapComponent.getMarketType(), upbitNoticeParsedDataList);
 
-        List<NoticeParsedData> binanceNoticeParsedDataList = binanceScrapComponent.parseNoticeData();
-        if(!binanceNoticeParsedDataList.isEmpty()) {
-            binanceScrapComponent.setNoticeToRedis(binanceNoticeParsedDataList);
-            binanceScrapComponent.setNewParsedData(binanceNoticeParsedDataList);
-            exchangeNoticePacadeService.createNoticesBulk(binanceScrapComponent.getMarketType(), binanceNoticeParsedDataList);
-        }
+//        List<NoticeParsedData> binanceNoticeParsedDataList = binanceScrapComponent.parseNoticeData();
+//        if(!binanceNoticeParsedDataList.isEmpty()) {
+//            binanceScrapComponent.setNoticeToRedis(binanceNoticeParsedDataList);
+//            binanceScrapComponent.setNewParsedData(binanceNoticeParsedDataList);
+//            exchangeNoticePacadeService.createNoticesBulk(binanceScrapComponent.getMarketType(), binanceNoticeParsedDataList);
+//        }
 
         List<NoticeParsedData> coinoneNoticeParsedDataList = coinoneScrapComponent.parseNoticeData();
         coinoneScrapComponent.setNoticeToRedis(coinoneNoticeParsedDataList);
