@@ -50,12 +50,12 @@ public class ScrapServiceImpl implements ScrapService {
         log.info("스케쥴링 실행");
         List<NoticeParsedData> upbitNoticeParsedDataList = upbitScrapComponent.parseNoticeData();
 //        List<NoticeParsedData> binanceNoticeParsedDataList = binanceScrapComponent.parseNoticeData();
-        List<NoticeParsedData> bithumbNoticeParsedDataList = bithumbScrapComponent.parseNoticeData();
+//        List<NoticeParsedData> bithumbNoticeParsedDataList = bithumbScrapComponent.parseNoticeData();
         List<NoticeParsedData> coinoneNoticeParsedDataList = coinoneScrapComponent.parseNoticeData();
 
         //새로운 공지사항데이터
         List<NoticeParsedData> upbitNewNotice = null;
-        List<NoticeParsedData> bithumbNewNotice = null;
+//        List<NoticeParsedData> bithumbNewNotice = null;
         List<NoticeParsedData> coinoneNewNotice = null;
 //        List<NoticeParsedData> binanceNewNotice = null;
 
@@ -96,24 +96,24 @@ public class ScrapServiceImpl implements ScrapService {
 //        }
 
         // 빗썸은 첫번째 api에서 공지사항의 시간/분 정보가 안나오므로 추가 작업이 필요함.
-        if(bithumbScrapComponent.isUpdatedNotice(bithumbScrapComponent.getNoticeFromRedis(), bithumbNoticeParsedDataList)) {
-            bithumbNewNotice = bithumbScrapComponent.getNewNotice(bithumbNoticeParsedDataList);
-
-            bithumbScrapComponent.setNoticeToRedis(bithumbNoticeParsedDataList);
-            bithumbScrapComponent.setNewParsedData(bithumbNoticeParsedDataList);
-            bithumbScrapComponent.setNewNotice(bithumbNewNotice);
-            // websocket 실시간 데이터 전송
-
-            exchangeNoticePacadeService.createNoticesBulk(bithumbScrapComponent.getMarketType(), bithumbScrapComponent.getFieldNewNotice());
-
-            for(int i = 0; i < bithumbNewNotice.size(); i++) {
-                String link = bithumbNewNotice.get(i).getAlink();
-                NoticeDto noticeDto = noticeService.getNoticeByLink(link);
-                marketInfoHandler.sendNewNotice(noticeDto);
-            }
-
-            log.info("새로운 공지사항 발생!!!!!! 빗썸" + bithumbNewNotice.get(0).getTitle());
-        }
+//        if(bithumbScrapComponent.isUpdatedNotice(bithumbScrapComponent.getNoticeFromRedis(), bithumbNoticeParsedDataList)) {
+//            bithumbNewNotice = bithumbScrapComponent.getNewNotice(bithumbNoticeParsedDataList);
+//
+//            bithumbScrapComponent.setNoticeToRedis(bithumbNoticeParsedDataList);
+//            bithumbScrapComponent.setNewParsedData(bithumbNoticeParsedDataList);
+//            bithumbScrapComponent.setNewNotice(bithumbNewNotice);
+//            // websocket 실시간 데이터 전송
+//
+//            exchangeNoticePacadeService.createNoticesBulk(bithumbScrapComponent.getMarketType(), bithumbScrapComponent.getFieldNewNotice());
+//
+//            for(int i = 0; i < bithumbNewNotice.size(); i++) {
+//                String link = bithumbNewNotice.get(i).getAlink();
+//                NoticeDto noticeDto = noticeService.getNoticeByLink(link);
+//                marketInfoHandler.sendNewNotice(noticeDto);
+//            }
+//
+//            log.info("새로운 공지사항 발생!!!!!! 빗썸" + bithumbNewNotice.get(0).getTitle());
+//        }
         if(coinoneScrapComponent.isUpdatedNotice(coinoneScrapComponent.getNoticeFromRedis(), coinoneNoticeParsedDataList)) {
             coinoneNewNotice = coinoneScrapComponent.getNewNotice(coinoneNoticeParsedDataList);
 
