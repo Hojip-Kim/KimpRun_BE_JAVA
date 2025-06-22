@@ -1,13 +1,15 @@
-package kimp.websocket.dto.response;
+package kimp.market.dto.coin.common.market;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import kimp.market.common.MarketCommonMethod;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Getter
-public abstract class MarketDto {
+@NoArgsConstructor
+public class MarketDto {
     @JsonProperty("token")
     private String token;
     // Trade Volume (거래량)
@@ -34,15 +36,20 @@ public abstract class MarketDto {
     @JsonProperty("acc_trade_price24")
     private BigDecimal acc_trade_price24;
 
-    public MarketDto(){}
-
-
     public MarketDto(String token, BigDecimal tradeVolume24, BigDecimal signedChangeRate, BigDecimal highestPricePer52, BigDecimal lowestPricePer52, BigDecimal opening_price, BigDecimal trade_price, String rate_change, BigDecimal acc_trade_price24) {
         this.token = token;
         this.tradeVolume24 = MarketCommonMethod.setScale(tradeVolume24);
         this.changeRate = MarketCommonMethod.setScale(signedChangeRate.multiply(new BigDecimal(10)));
-        this.highestPricePer52 = MarketCommonMethod.setScale(highestPricePer52);
-        this.lowestPricePer52 = MarketCommonMethod.setScale(lowestPricePer52);
+        if(highestPricePer52== null){
+            this.highestPricePer52 = BigDecimal.ZERO;
+        }else{
+            this.highestPricePer52 = MarketCommonMethod.setScale(highestPricePer52);
+        }
+        if(lowestPricePer52== null){
+            this.lowestPricePer52 = BigDecimal.ZERO;
+        } else{
+            this.lowestPricePer52 = MarketCommonMethod.setScale(lowestPricePer52);
+        }
         this.opening_price = MarketCommonMethod.setScale(opening_price);
         this.trade_price = MarketCommonMethod.setScale(trade_price);
         this.rate_change = rate_change;
