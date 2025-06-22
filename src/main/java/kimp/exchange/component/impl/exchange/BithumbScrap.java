@@ -170,29 +170,6 @@ public class BithumbScrap extends ExchangeScrapAbstract<BithumbNoticeDto> {
         return noticeParsedDataList;
     }
 
-    // 빗썸은 메인 공지사항 api를 사용했을 때 localdatetime의 시간, 분이 안나오므로 시간, 분 데이터를 위해 공지 내부에 접근하여 시간,분 데이터를 뽑아내야 함.
-    public List<NoticeParsedData> parseNoticeDetailData(String detailUrl) throws IOException {
-        String localGateway = this.clientRequestUrl;
-
-        String webUrl = this.getAbsoluteUrl() + detailUrl;
-
-        Map<String, String> body = new HashMap<>();
-        body.put("url", webUrl);
-
-        System.out.println("webUrl : " + webUrl);
-
-        HttpEntity<?> httpEntity = new HttpEntity<>(body, getHeaders());
-
-        ResponseEntity<BithumbNoticeDto> res = super.getRestTemplate().exchange(localGateway, this.getMethod(), httpEntity, getResponseType());
-
-        String detailHtmlSource = res.getBody().getData();
-
-        System.out.println(detailHtmlSource);
-
-
-        return null;
-    }
-
     @Override
     public String getAbsoluteUrl() {
         return this.bithumbNoticeDetailUrl;
