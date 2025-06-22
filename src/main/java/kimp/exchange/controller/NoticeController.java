@@ -2,16 +2,16 @@ package kimp.exchange.controller;
 
 import kimp.common.dto.PageRequestDto;
 import kimp.exchange.dto.notice.ExchangeNoticeDto;
-import kimp.exchange.dto.notice.NoticeParsedData;
 import kimp.exchange.service.NoticeService;
 import kimp.exchange.service.ScrapService;
 import kimp.exchange.service.impl.ExchangeNoticePacadeService;
+import kimp.market.Enum.MarketType;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
+@Slf4j
 @RestController
 @RequestMapping("/notice")
 public class NoticeController {
@@ -27,19 +27,18 @@ public class NoticeController {
         this.exchangeNoticePacadeService = exchangeNoticePacadeService;
     }
 
-    @GetMapping("/{exchangeId}")
-    public ResponseEntity<?> getNoticeByExchangeId(@PathVariable("exchangeId") long exchangeId, @ModelAttribute PageRequestDto pageRequestDto) throws BadRequestException {
-
-        if(pageRequestDto == null || exchangeId < 1 || pageRequestDto == null || pageRequestDto.getPage() < 0 || pageRequestDto.getSize() < 0){
+    @GetMapping("/{exchangeType}")
+    public ResponseEntity<?> getNoticeByExchangeId(@PathVariable("exchangeType") MarketType exchangeType, @ModelAttribute PageRequestDto pageRequestDto) throws BadRequestException {
+        if(exchangeType == null || pageRequestDto == null) {
             throw new BadRequestException();
         }
 
         ExchangeNoticeDto noticeDtos;
 
-        if(exchangeId == 1){
+        if(exchangeType.equals(MarketType.ALL)){
             noticeDtos = noticeService.getAllNotices(pageRequestDto);
         }else{
-            noticeDtos = exchangeNoticePacadeService.getNoticeByExchange(exchangeId, pageRequestDto);
+            noticeDtos = exchangeNoticePacadeService.getNoticeByExchange(exchangeType, pageRequestDto);
         }
         return ResponseEntity.ok(noticeDtos);
 
