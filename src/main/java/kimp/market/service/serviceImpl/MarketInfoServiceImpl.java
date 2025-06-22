@@ -32,11 +32,10 @@ public class MarketInfoServiceImpl implements MarketInfoService {
     @PostConstruct
     public void init() throws IOException {
         if(dollar != null) {
-            this.dollarKRW = (double) Math.round(dollar.getUSDKRW() * 10) /10;
+            this.dollarKRW = dollar.getApiDollar();
         }
         if(upbit != null) {
             this.usdt = upbit.getUpbitTether().doubleValue();
-
         }
     }
 
@@ -57,7 +56,7 @@ public class MarketInfoServiceImpl implements MarketInfoService {
     @Scheduled(fixedRate = 3*60*1000)
     private void infoSet() throws IOException {
         if(dollar != null) {
-            this.dollarKRW = (double) Math.round(dollar.getUSDKRW() * 10) /10;
+            this.dollarKRW = (double) Math.round(dollar.getApiDollar() * 10) /10;
         }
         if(upbit != null) {
             this.usdt = upbit.getUpbitTether().doubleValue();

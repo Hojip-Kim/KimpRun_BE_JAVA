@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.market.dto.market.response.DollarResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -17,8 +16,6 @@ public class Dollar {
 
     private final ObjectMapper objectMapper;
 
-    private double dollar;
-
     @Value("${dollar.api.url}")
     private String dollarUrl;
 
@@ -27,8 +24,7 @@ public class Dollar {
         this.objectMapper = objectMapper;
     }
 
-    @Scheduled(fixedRate = 5*60*1000)
-    public void dollarScheduled() throws JsonProcessingException {
+    public double getApiDollar() throws JsonProcessingException {
         log.info("dollar 정보 업데이트 성공");
         String data = restTemplate.getForObject(dollarUrl, String.class);
 
@@ -37,10 +33,7 @@ public class Dollar {
         if(dollarDto == null){
             throw new IllegalCallerException("Dollar Data is null.");
         }
-        this.dollar = dollarDto.getRates().getKRW();
+        return dollarDto.getRates().getKRW();
     }
 
-    public double getUSDKRW() {
-        return this.dollar;
-    }
 }

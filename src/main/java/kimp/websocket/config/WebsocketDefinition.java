@@ -1,10 +1,10 @@
 package kimp.websocket.config;
 
-import kimp.market.components.Dollar;
 import kimp.market.components.impl.market.Binance;
 import kimp.market.components.impl.market.Bithumb;
 import kimp.market.components.impl.market.Upbit;
 import kimp.market.handler.BithumbWebsocketHandler;
+import kimp.market.service.MarketInfoService;
 import kimp.market.service.MarketService;
 import kimp.websocket.client.BinanceWebSocketClient;
 import kimp.websocket.client.BithumbWebsocketClient;
@@ -35,16 +35,16 @@ public class WebsocketDefinition {
     private final Upbit upbit;
     private final Binance binance;
     private final Bithumb bithumb;
-    private final Dollar dollar;
+    private final MarketInfoService marketInfoService;
 
     private final MarketService marketService;
 
-    public WebsocketDefinition(Upbit upbit, Binance binance, Bithumb bithumb, MarketService marketService, Dollar dollar) {
+    public WebsocketDefinition(Upbit upbit, Binance binance, Bithumb bithumb, MarketService marketService, MarketInfoService marketInfoService) {
         this.upbit = upbit;
         this.binance = binance;
         this.bithumb = bithumb;
         this.marketService = marketService;
-        this.dollar = dollar;
+        this.marketInfoService = marketInfoService;
     }
 
     @Bean
@@ -58,7 +58,7 @@ public class WebsocketDefinition {
 
         String wsUrl = String.format(binanceWebsocketUrl, streamNames);
 
-        BinanceWebSocketClient client = new BinanceWebSocketClient(wsUrl, binanceWebsocketHandler, dollar, binance);
+        BinanceWebSocketClient client = new BinanceWebSocketClient(wsUrl, binanceWebsocketHandler, marketInfoService, binance);
         client.connectBlocking();
 
         return client;

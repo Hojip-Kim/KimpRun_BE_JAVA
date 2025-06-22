@@ -5,7 +5,6 @@ import jakarta.annotation.PostConstruct;
 import kimp.market.Enum.MarketType;
 import kimp.market.common.MarketCommonMethod;
 import kimp.market.components.CombineMarketListProvider;
-import kimp.market.components.Dollar;
 import kimp.market.components.MarketListProvider;
 import kimp.market.components.impl.Market;
 import kimp.market.dto.coin.common.ChangeCoinDto;
@@ -17,6 +16,7 @@ import kimp.market.dto.market.response.MarketDataList;
 import kimp.market.dto.market.common.MarketList;
 import kimp.market.service.CoinService;
 import kimp.market.dto.coin.common.market.BinanceDto;
+import kimp.market.service.MarketInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +40,7 @@ public class Binance extends Market<BinanceCryptoDto> {
     private final MarketListProvider binanceMarketListProvider;
     private final CombineMarketListProvider combineMarketListProvider;
     private final CoinService coinService;
-    private final Dollar dollar;
+    private final MarketInfoService marketInfoService;
 
     /**
      * binance의 market List.
@@ -58,14 +58,14 @@ public class Binance extends Market<BinanceCryptoDto> {
     @Value("${binance.ticker.url}")
     private String binanceTickerUrl;
 
-    public Binance(MarketCommonMethod marketCommonMethod, RestTemplate restTemplate, ObjectMapper objectMapper, @Qualifier("binanceName") MarketListProvider binanceMarketListProvider, @Qualifier("combineName") CombineMarketListProvider combineMarketListProvider, CoinService coinService, Dollar dollar) {
+    public Binance(MarketCommonMethod marketCommonMethod, RestTemplate restTemplate, ObjectMapper objectMapper, @Qualifier("binanceName") MarketListProvider binanceMarketListProvider, @Qualifier("combineName") CombineMarketListProvider combineMarketListProvider, CoinService coinService, MarketInfoService marketInfoService) {
         this.marketCommonMethod = marketCommonMethod;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.binanceMarketListProvider = binanceMarketListProvider;
         this.combineMarketListProvider = combineMarketListProvider;
         this.coinService = coinService;
-        this.dollar = dollar;
+        this.marketInfoService = marketInfoService;
     }
 
     @PostConstruct
@@ -149,7 +149,7 @@ public class Binance extends Market<BinanceCryptoDto> {
                 }else{
                     rateChange = "EVEN";
                 }
-                binanceDto = new BinanceDto(tickerData[i].getSymbol().replace("USDT", ""), tickerData[i].getQuoteVolume().multiply(BigDecimal.valueOf(dollar.getUSDKRW())), tickerData[i].getPriceChangePercent().divide(new BigDecimal(100)), tickerData[i].getHighPrice().multiply(BigDecimal.valueOf(dollar.getUSDKRW())), tickerData[i].getLowPrice().multiply(BigDecimal.valueOf(dollar.getUSDKRW())), tickerData[i].getOpenPrice().multiply(BigDecimal.valueOf(dollar.getUSDKRW())), tickerData[i].getLastPrice().multiply(BigDecimal.valueOf(dollar.getUSDKRW())), rateChange, tickerData[i].getVolume().multiply(BigDecimal.valueOf(dollar.getUSDKRW())));
+                binanceDto = new BinanceDto(tickerData[i].getSymbol().replace("USDT", ""), tickerData[i].getQuoteVolume().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())), tickerData[i].getPriceChangePercent().divide(new BigDecimal(100)), tickerData[i].getHighPrice().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())), tickerData[i].getLowPrice().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())), tickerData[i].getOpenPrice().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())), tickerData[i].getLastPrice().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())), rateChange, tickerData[i].getVolume().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())));
                 marketDataList.add(binanceDto);
             }
         }

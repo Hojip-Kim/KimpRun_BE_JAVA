@@ -1,10 +1,10 @@
 package kimp.websocket.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kimp.market.components.Dollar;
 import kimp.market.components.impl.market.Binance;
 import kimp.market.dto.coin.common.market.BinanceDto;
 import kimp.market.handler.BinanceWebsocketHandler;
+import kimp.market.service.MarketInfoService;
 import kimp.websocket.dto.response.BinanceReceiveDto;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.WebSocket;
@@ -20,7 +20,7 @@ import java.util.concurrent.*;
 public class BinanceWebSocketClient extends WebSocketClient {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final BinanceWebsocketHandler binanceWebsocketHandler;
-    private final Dollar dollar;
+    private final MarketInfoService marketInfoService;
     private final Binance binance;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -29,10 +29,10 @@ public class BinanceWebSocketClient extends WebSocketClient {
     private static volatile boolean isConnected = false;
     private static volatile boolean isReconnecting = false;
 
-    public BinanceWebSocketClient(String serverUri, BinanceWebsocketHandler binanceWebsocketHandler, Dollar dollar, Binance binance) throws URISyntaxException {
+    public BinanceWebSocketClient(String serverUri, BinanceWebsocketHandler binanceWebsocketHandler, MarketInfoService marketInfoService, Binance binance) throws URISyntaxException {
         super(new URI(serverUri));
         this.binanceWebsocketHandler = binanceWebsocketHandler;
-        this.dollar = dollar;
+        this.marketInfoService = marketInfoService;
         this.binance = binance;
     }
 
@@ -47,11 +47,7 @@ public class BinanceWebSocketClient extends WebSocketClient {
         try {
             BinanceReceiveDto binanceReceiveDto = objectMapper.readValue(message, BinanceReceiveDto.class);
             String token = binanceReceiveDto.getToken().replace("USDT", "");
-            BigDecimal binancePrice = binanceReceiveDto.getPrice().multiply(BigDecimal.valueOf(dollar.getUSDKRW()));
-//            BinanceStreamDto binanceDto = new BinanceStreamDto(
-//                    binanceReceiveDto.getToken().replace("USDT", ""),
-//                    binancePrice
-//            );
+            BigDecimal binancePrice = binanceReceiveDto.getPrice().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW()));
             BinanceDto foundBinanceDto = binance.binanceDtosMap.get(token);
 
             BinanceDto binanceDto = new BinanceDto(
