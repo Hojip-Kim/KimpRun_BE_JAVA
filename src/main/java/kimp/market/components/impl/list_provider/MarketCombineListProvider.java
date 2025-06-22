@@ -1,5 +1,6 @@
-package kimp.market.components;
+package kimp.market.components.impl.list_provider;
 
+import kimp.market.components.CombineMarketListProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
