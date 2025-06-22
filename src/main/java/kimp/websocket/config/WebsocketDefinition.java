@@ -1,13 +1,16 @@
 package kimp.websocket.config;
 
-import kimp.market.components.Binance;
-import kimp.market.components.Upbit;
-import kimp.market.service.serviceImpl.MarketServiceImpl;
+import kimp.market.components.Dollar;
+import kimp.market.components.impl.market.Binance;
+import kimp.market.components.impl.market.Bithumb;
+import kimp.market.components.impl.market.Upbit;
+import kimp.market.handler.BithumbWebsocketHandler;
+import kimp.market.service.MarketService;
 import kimp.websocket.client.BinanceWebSocketClient;
+import kimp.websocket.client.BithumbWebsocketClient;
 import kimp.websocket.client.UpbitWebsocketClient;
 import kimp.market.handler.BinanceWebsocketHandler;
 import kimp.market.handler.UpbitWebSocketHandler;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +21,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Configuration
-@RequiredArgsConstructor
 public class WebsocketDefinition {
 
     @Value("${upbit.websocket.url}")
@@ -27,22 +29,36 @@ public class WebsocketDefinition {
     @Value("${binance.websocket.url}")
     private String binanceWebsocketUrl;
 
+    @Value("${bithumb.websocket.url}")
+    private String bithumbWebsocketUrl;
+
     private final Upbit upbit;
     private final Binance binance;
+    private final Bithumb bithumb;
+    private final Dollar dollar;
+
+    private final MarketService marketService;
+
+    public WebsocketDefinition(Upbit upbit, Binance binance, Bithumb bithumb, MarketService marketService, Dollar dollar) {
+        this.upbit = upbit;
+        this.binance = binance;
+        this.bithumb = bithumb;
+        this.marketService = marketService;
+        this.dollar = dollar;
+    }
 
     @Bean
-    public BinanceWebSocketClient binanceWebSocketClient(BinanceWebsocketHandler binanceWebsocketHandler, MarketServiceImpl marketServiceImpl) throws URISyntaxException, InterruptedException, IOException {
-    List<String> binanceMarketPair = marketServiceImpl.getMarketPair(upbit, binance);
+    public BinanceWebSocketClient binanceWebSocketClient(BinanceWebsocketHandler binanceWebsocketHandler) throws URISyntaxException, InterruptedException, IOException {
 
-        binanceMarketPair = binanceMarketPair.stream().map(data -> data.toLowerCase()).map(data -> data + "usdt@trade").collect(Collectors.toList());;
+        List<String> binanceMarketPair = binance.getMarketList().getPairList();
 
-        String marketPairToString = binanceMarketPair.toString().replace("[", "").replace("]", "").replace(", ", "/");
-
-        String streamNames = String.join("/", marketPairToString);
+        String streamNames = binanceMarketPair.stream()
+                .map(data -> data.toLowerCase() + "usdt@trade")
+                .collect(Collectors.joining("/"));
 
         String wsUrl = String.format(binanceWebsocketUrl, streamNames);
 
-        BinanceWebSocketClient client = new BinanceWebSocketClient(wsUrl, binanceWebsocketHandler);
+        BinanceWebSocketClient client = new BinanceWebSocketClient(wsUrl, binanceWebsocketHandler, dollar, binance);
         client.connectBlocking();
 
         return client;
@@ -59,4 +75,12 @@ public class WebsocketDefinition {
         return client;
     }
 
+    @Bean
+    public BithumbWebsocketClient bithumbWebsocketClient(BithumbWebsocketHandler bithumbWebsocketHandler) throws URISyntaxException, InterruptedException {
+        BithumbWebsocketClient client = new BithumbWebsocketClient(bithumbWebsocketUrl, bithumbWebsocketHandler, bithumb);
+
+        client.connectBlocking();
+
+        return client;
+    }
 }
