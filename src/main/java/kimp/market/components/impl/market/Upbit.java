@@ -1,18 +1,19 @@
-package kimp.market.components;
+package kimp.market.components.impl.market;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import kimp.market.Enum.MarketType;
+import kimp.market.components.MarketListProvider;
+import kimp.market.components.impl.Market;
 import kimp.market.dto.coin.common.ChangeCoinDto;
 import kimp.market.dto.coin.common.ServiceCoinDto;
 import kimp.market.dto.coin.common.ServiceCoinWrapperDto;
-import kimp.market.dto.market.response.MarketList;
-import kimp.market.common.MarketCommonMethod;
+import kimp.market.dto.coin.common.crypto.UpbitCryptoDto;
+import kimp.market.dto.market.common.MarketList;
 import kimp.market.dto.market.response.MarketDataList;
-import kimp.market.dto.market.response.UpbitMarketList;
 import kimp.market.dto.market.response.UpbitTicker;
 import kimp.market.service.CoinService;
-import kimp.websocket.dto.response.UpbitDto;
+import kimp.market.dto.coin.common.market.UpbitDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,33 +31,27 @@ import java.util.Set;
 @Component
 @Slf4j
 @Qualifier("upbit")
-public class Upbit extends Market{
+public class Upbit extends Market<UpbitCryptoDto> {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
-    private final MarketCommonMethod marketCommonMethod;
     private final MarketListProvider upbitMarketListProvider;
     private final CoinService coinService;
 
 
-    public Upbit(RestTemplate restTemplate, ObjectMapper objectMapper, MarketCommonMethod marketCommonMethod, @Qualifier("upbitName") MarketListProvider upbitMarketListProvider, CoinService coinService) {
+    public Upbit(RestTemplate restTemplate, ObjectMapper objectMapper, @Qualifier("upbitName") MarketListProvider upbitMarketListProvider, CoinService coinService) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
-        this.marketCommonMethod = marketCommonMethod;
         this.upbitMarketListProvider = upbitMarketListProvider;
         this.coinService = coinService;
     }
 
-    public MarketList upbitMarketList = null;
-
-    public MarketList upbitMarketPair = null;
+    public MarketList<UpbitCryptoDto> upbitMarketList = null;
 
     public MarketDataList<UpbitDto> upbitMarketDataList;
 
     @Value("${tether.url}")
     private String tetherApiUrl;
 
-    @Value("${upbit.api.url}")
-    private String upbitApiUrl;
     @Value("${upbit.ticker.url}")
     private String upbitTickerUrl;
 
@@ -70,25 +65,18 @@ public class Upbit extends Market{
     }
 
     @Override
-    public MarketList getMarketList() {
+    public MarketList<UpbitCryptoDto> getMarketList() {
         return this.upbitMarketList;
     }
 
     @Override
-    public MarketList getMarketPair() {
-
-        return this.upbitMarketPair;
-    }
-
-    @Override
     public ServiceCoinWrapperDto getServiceCoins(){
-        MarketList marketList = getMarketPair();
-        List<String> stringMarketList = marketList.getMarkets();
+        List<String> stringMarketPair = getMarketList().getPairList();
 
         List<ServiceCoinDto> serviceCoinDtos = new ArrayList<>();
 
-        for(String market : stringMarketList){
-            serviceCoinDtos.add(new ServiceCoinDto(market, null, market));
+        for(String pair : stringMarketPair){
+            serviceCoinDtos.add(new ServiceCoinDto(pair, pair, null));
         }
 
         return new ServiceCoinWrapperDto(this.getMarketType(), serviceCoinDtos);
@@ -114,12 +102,12 @@ public class Upbit extends Market{
         if (this.upbitMarketList == null) {
             throw new IllegalArgumentException("Upbit Market List is null");
         }
-        String markets = String.join(",", upbitMarketList.getMarkets());
+        String markets = String.join(",", upbitMarketList.getCryptoList());
 
         String tickerUrlwithParams = upbitTickerUrl + "?markets=" + markets;
         String tickerData = restTemplate.getForObject(tickerUrlwithParams, String.class);
 
-        UpbitDto UpbitDto = null;
+        UpbitDto upbitDto = null;
         MarketDataList<UpbitDto> upbitMarketDataList = null;
 
         try{
@@ -128,8 +116,8 @@ public class Upbit extends Market{
             List<UpbitDto> marketDataList = new ArrayList<>();
 
             for (int i = 0; i < tickers.length; i++) {
-                UpbitDto = new UpbitDto(tickers[i].getMarket().replace("KRW-", ""), tickers[i].getTrade_volume(), tickers[i].getSigned_change_rate(), tickers[i].getHighest_52_week_price(), tickers[i].getLowest_52_week_price(), tickers[i].getOpening_price(), tickers[i].getTrade_price(), tickers[i].getChange(), tickers[i].getAcc_trade_price_24h());
-                marketDataList.add(UpbitDto);
+                upbitDto = new UpbitDto(tickers[i].getMarket().replace("KRW-", ""), tickers[i].getTrade_volume(), tickers[i].getSigned_change_rate(), tickers[i].getHighest_52_week_price(), tickers[i].getLowest_52_week_price(), tickers[i].getOpening_price(), tickers[i].getTrade_price(), tickers[i].getChange(), tickers[i].getAcc_trade_price_24h());
+                marketDataList.add(upbitDto);
             }
 
             upbitMarketDataList = new MarketDataList<>(marketDataList);
@@ -155,30 +143,36 @@ public class Upbit extends Market{
         }
     }
 
+    /**
+     * Market List를 갱신합니다.
+     * @throws IOException
+     */
     public void setUpbitMarketList() throws IOException{
 
         List<String> marketList = upbitMarketListProvider.getMarketListWithTicker();
 
-        List<String> marketPair = upbitMarketListProvider.getMarketList();
+        MarketList<UpbitCryptoDto> marketDtoList = new MarketList<>(new ArrayList<UpbitCryptoDto>());
 
-        // "KRW-"가 붙은 market List
-        this.upbitMarketList = new UpbitMarketList(marketList);
-        // "KRW-"를 뺀 market pair
-        this.upbitMarketPair = new UpbitMarketList(marketPair);
+        for(String market : marketList){
+            String replacedMarket = market.replace("KRW-", "");
+            marketDtoList.getCryptoDtoList().add(new UpbitCryptoDto(replacedMarket, "KRW"));
+        }
+
+        this.upbitMarketList = marketDtoList;
 
     }
 
     @Scheduled(fixedDelay = 1000*60)
     public void scheduledSetupUpbitMarketData() throws IOException {
-        MarketList prevMarketPair = getMarketPair();
+        MarketList prevMarketPair = getMarketList();
         setUpbitMarketList();
-        MarketList nextMarketPair = getMarketPair();
+        MarketList nextMarketPair = getMarketList();
 
         // 만약 이전과, 이후의 객체가 다르면 바뀐것
         if(!prevMarketPair.equals(nextMarketPair)){
-            List<String> prevMarketList = prevMarketPair.getMarkets();
+            List<String> prevMarketList = prevMarketPair.getPairList();
             Set<String> prevMarketSet = new HashSet<>(prevMarketList);
-            List<String> nextMarketList = nextMarketPair.getMarkets();
+            List<String> nextMarketList = nextMarketPair.getPairList();
             Set<String> nextMarketSet = new HashSet<>(nextMarketList);
 
             List<String> listCoinSymbols = new ArrayList<>();
