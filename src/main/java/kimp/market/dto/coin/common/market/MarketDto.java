@@ -51,7 +51,7 @@ public class MarketDto {
             this.lowestPricePer52 = MarketCommonMethod.setScale(lowestPricePer52);
         }
         this.opening_price = MarketCommonMethod.setScale(opening_price);
-        this.trade_price = MarketCommonMethod.setScale(trade_price);
+        this.trade_price = trade_price;
         this.rate_change = rate_change;
 
         // WARNING :: bigdecimal 9버전에서 ROUND_HALF_UP deprecate될것임. 유의
