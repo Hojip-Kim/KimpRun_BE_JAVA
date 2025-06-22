@@ -1,8 +1,6 @@
 package kimp.config.application;
 
-import kimp.market.handler.BinanceWebsocketHandler;
-import kimp.market.handler.MarketInfoHandler;
-import kimp.market.handler.UpbitWebSocketHandler;
+import kimp.market.handler.*;
 import kimp.chat.handler.ChatWebSocketHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,13 +17,17 @@ public class WebsocketConfig implements WebSocketConfigurer {
 
     private final UpbitWebSocketHandler upbitWebSocketHandler;
     private final BinanceWebsocketHandler binanceWebsocketHandler;
+    private final CoinoneWebsocketHandler coinoneWebsocketHandler;
+    private final BithumbWebsocketHandler bithumbWebsocketHandler;
 
     private final ChatWebSocketHandler chatWebSocketHandler;
     private final MarketInfoHandler marketInfoHandler;
 
-    public WebsocketConfig(UpbitWebSocketHandler upbitWebSocketHandler, BinanceWebsocketHandler binanceWebsocketHandler, ChatWebSocketHandler chatWebSocketHandler, MarketInfoHandler marketInfoHandler) {
+    public WebsocketConfig(UpbitWebSocketHandler upbitWebSocketHandler, BinanceWebsocketHandler binanceWebsocketHandler, CoinoneWebsocketHandler coinoneWebsocketHandler, BithumbWebsocketHandler bithumbWebsocketHandler, ChatWebSocketHandler chatWebSocketHandler, MarketInfoHandler marketInfoHandler) {
         this.upbitWebSocketHandler = upbitWebSocketHandler;
         this.binanceWebsocketHandler = binanceWebsocketHandler;
+        this.coinoneWebsocketHandler = coinoneWebsocketHandler;
+        this.bithumbWebsocketHandler = bithumbWebsocketHandler;
         this.chatWebSocketHandler = chatWebSocketHandler;
         this.marketInfoHandler = marketInfoHandler;
     }
@@ -38,6 +40,12 @@ public class WebsocketConfig implements WebSocketConfigurer {
                 .setAllowedOrigins(allowOrigins);
         registry
                 .addHandler(binanceWebsocketHandler, "/binance")
+                .setAllowedOrigins(allowOrigins);
+        registry
+                .addHandler(bithumbWebsocketHandler, "/bithumb")
+                .setAllowedOrigins(allowOrigins);
+        registry
+                .addHandler(coinoneWebsocketHandler, "/coinone")
                 .setAllowedOrigins(allowOrigins);
         registry
                 .addHandler(chatWebSocketHandler, "/chatService")
