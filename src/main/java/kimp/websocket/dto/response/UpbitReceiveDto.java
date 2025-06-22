@@ -1,10 +1,14 @@
 package kimp.websocket.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+@NoArgsConstructor
+@Getter
 public class UpbitReceiveDto {
     @JsonProperty("type")
     private String type;
@@ -66,139 +70,6 @@ public class UpbitReceiveDto {
     private Boolean isTradingSuspended;
     @JsonProperty("delisting_date")
     private Object delistingDate;
-
-    public String getType() {
-        return type;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public BigDecimal getOpeningPrice() {
-        return openingPrice;
-    }
-
-    public BigDecimal getHighPrice() {
-        return highPrice;
-    }
-
-    public BigDecimal getLowPrice() {
-        return lowPrice;
-    }
-
-    public BigDecimal getTradePrice() {
-        return tradePrice;
-    }
-
-    public BigDecimal getPrevClosingPrice() {
-        return prevClosingPrice;
-    }
-
-    public String getChange() {
-        return change;
-    }
-
-    public BigDecimal getChangePrice() {
-        return changePrice;
-    }
-
-    public BigDecimal getSignedChangePrice() {
-        return signedChangePrice;
-    }
-
-    public BigDecimal getChangeRate() {
-        return changeRate;
-    }
-
-    public BigDecimal getSignedChangeRate() {
-        return signedChangeRate;
-    }
-
-    public BigDecimal getTradeVolume() {
-        return tradeVolume;
-    }
-
-    public BigDecimal getAccTradeVolume() {
-        return accTradeVolume;
-    }
-
-    public BigDecimal getAccTradeVolume24h() {
-        return accTradeVolume24h;
-    }
-
-    public BigDecimal getAccTradePrice() {
-        return accTradePrice;
-    }
-
-    public BigDecimal getAccTradePrice24h() {
-        return accTradePrice24h;
-    }
-
-    public String getTradeDate() {
-        return tradeDate;
-    }
-
-    public String getTradeTime() {
-        return tradeTime;
-    }
-
-    public Long getTradeTimestamp() {
-        return tradeTimestamp;
-    }
-
-    public String getAskBid() {
-        return askBid;
-    }
-
-    public BigDecimal getAccAskVolume() {
-        return accAskVolume;
-    }
-
-    public BigDecimal getAccBidVolume() {
-        return accBidVolume;
-    }
-
-    public BigDecimal getHighest52WeekPrice() {
-        return highest52WeekPrice;
-    }
-
-    public String getHighest52WeekDate() {
-        return highest52WeekDate;
-    }
-
-    public BigDecimal getLowest52WeekPrice() {
-        return lowest52WeekPrice;
-    }
-
-    public String getLowest52WeekDate() {
-        return lowest52WeekDate;
-    }
-
-    public String getMarketState() {
-        return marketState;
-    }
-
-    public Boolean getTradingSuspended() {
-        return isTradingSuspended;
-    }
-
-    public Object getDelistingDate() {
-        return delistingDate;
-    }
-
-    public String getMarketWarning() {
-        return marketWarning;
-    }
-
-    public Long getTimestamp() {
-        return timestamp;
-    }
-
-    public String getStreamType() {
-        return streamType;
-    }
-
     @JsonProperty("market_warning")
     private String marketWarning;
     @JsonProperty("timestamp")
@@ -206,10 +77,41 @@ public class UpbitReceiveDto {
     @JsonProperty("stream_type")
     private String streamType;
 
-    public UpbitReceiveDto() {
-        // 기본 생성자 필요
+    public UpbitReceiveDto(String type, String code, BigDecimal openingPrice, BigDecimal highPrice, BigDecimal lowPrice, BigDecimal tradePrice, BigDecimal prevClosingPrice, String change, BigDecimal changePrice, BigDecimal signedChangePrice, BigDecimal changeRate, BigDecimal signedChangeRate, BigDecimal tradeVolume, BigDecimal accTradeVolume, BigDecimal accTradeVolume24h, BigDecimal accTradePrice, BigDecimal accTradePrice24h, String tradeDate, String tradeTime, Long tradeTimestamp, String askBid, BigDecimal accAskVolume, BigDecimal accBidVolume, BigDecimal highest52WeekPrice, String highest52WeekDate, BigDecimal lowest52WeekPrice, String lowest52WeekDate, String marketState, Boolean isTradingSuspended, Object delistingDate, String marketWarning, Long timestamp, String streamType) {
+        this.type = type;
+        this.code = code;
+        this.openingPrice = openingPrice;
+        this.highPrice = highPrice;
+        this.lowPrice = lowPrice;
+        this.tradePrice = tradePrice;
+        this.prevClosingPrice = prevClosingPrice;
+        this.change = change;
+        this.changePrice = changePrice;
+        this.signedChangePrice = signedChangePrice;
+        this.changeRate = changeRate;
+        this.signedChangeRate = signedChangeRate;
+        this.tradeVolume = tradeVolume;
+        this.accTradeVolume = accTradeVolume;
+        this.accTradeVolume24h = accTradeVolume24h;
+        this.accTradePrice = accTradePrice;
+        this.accTradePrice24h = accTradePrice24h;
+        this.tradeDate = tradeDate;
+        this.tradeTime = tradeTime;
+        this.tradeTimestamp = tradeTimestamp;
+        this.askBid = askBid;
+        this.accAskVolume = accAskVolume;
+        this.accBidVolume = accBidVolume;
+        this.highest52WeekPrice = highest52WeekPrice;
+        this.highest52WeekDate = highest52WeekDate;
+        this.lowest52WeekPrice = lowest52WeekPrice;
+        this.lowest52WeekDate = lowest52WeekDate;
+        this.marketState = marketState;
+        this.isTradingSuspended = isTradingSuspended;
+        this.delistingDate = delistingDate;
+        this.marketWarning = marketWarning;
+        this.timestamp = timestamp;
+        this.streamType = streamType;
     }
-
 
     private BigDecimal setScale(BigDecimal input) {
         return input.setScale(3, RoundingMode.HALF_UP);
