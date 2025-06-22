@@ -7,6 +7,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,7 +49,7 @@ public class MarketCommonMethod {
                 .filter(market -> market != null && market.startsWith(startWith))
                 .collect(Collectors.toList());
 
-        return list;
+        return new ArrayList<>(list);
     }
 
     /**
@@ -65,7 +66,7 @@ public class MarketCommonMethod {
         T[] marketData = objectMapper.readValue(data, dtoClass);
 
         Class<?> componentType = dtoClass.getComponentType();
-        List<String> list = Arrays.stream(marketData)
+        return Arrays.stream(marketData)
                 .map(dto -> {
                     try {
                         return (String)componentType.getMethod(method).invoke(dto);
@@ -75,8 +76,6 @@ public class MarketCommonMethod {
                 })
                 .filter(market -> market != null && market.endsWith(endWith))
                 .collect(Collectors.toList());
-
-        return list;
     }
 
     public <T> T getMarketByURLAndStartWith(String url, String startWith, String method,  Class<T> dtoClass) throws IOException {
@@ -86,6 +85,9 @@ public class MarketCommonMethod {
     }
 
     public static BigDecimal setScale(BigDecimal input) {
+        if(input == null){
+            return BigDecimal.ZERO;
+        }
         return input.setScale(7, RoundingMode.HALF_UP);
     }
 
