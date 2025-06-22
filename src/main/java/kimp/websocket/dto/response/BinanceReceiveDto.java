@@ -2,10 +2,12 @@ package kimp.websocket.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Getter
+@NoArgsConstructor
 public class BinanceReceiveDto {
 
     @JsonProperty("e")
@@ -26,10 +28,6 @@ public class BinanceReceiveDto {
     private boolean Ignore; // Ignore
     @JsonProperty("q")
     private BigDecimal qty; // quantity
-
-    public BinanceReceiveDto(){
-
-    }
 
     public BinanceReceiveDto(String type, long time, String token, long tradeId, BigDecimal price, long total, boolean isMarketMaker, boolean ignore, BigDecimal qty) {
         this.type = type;

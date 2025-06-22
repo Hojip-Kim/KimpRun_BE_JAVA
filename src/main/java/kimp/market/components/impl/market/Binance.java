@@ -5,6 +5,7 @@ import jakarta.annotation.PostConstruct;
 import kimp.market.Enum.MarketType;
 import kimp.market.common.MarketCommonMethod;
 import kimp.market.components.CombineMarketListProvider;
+import kimp.market.components.Dollar;
 import kimp.market.components.MarketListProvider;
 import kimp.market.components.impl.Market;
 import kimp.market.dto.coin.common.ChangeCoinDto;
@@ -25,10 +26,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -41,6 +40,7 @@ public class Binance extends Market<BinanceCryptoDto> {
     private final MarketListProvider binanceMarketListProvider;
     private final CombineMarketListProvider combineMarketListProvider;
     private final CoinService coinService;
+    private final Dollar dollar;
 
     /**
      * binance의 market List.
@@ -50,25 +50,29 @@ public class Binance extends Market<BinanceCryptoDto> {
 
     public MarketDataList<BinanceDto> binanceMarketDataList;
 
+    public Map<String, BinanceDto> binanceDtosMap = new HashMap<>();
+
     @Value("${binance.api.url}")
     private String binanceApiUrl;
 
     @Value("${binance.ticker.url}")
     private String binanceTickerUrl;
 
-    public Binance(MarketCommonMethod marketCommonMethod, RestTemplate restTemplate, ObjectMapper objectMapper, @Qualifier("binanceName") MarketListProvider binanceMarketListProvider, @Qualifier("combineName") CombineMarketListProvider combineMarketListProvider, CoinService coinService) {
+    public Binance(MarketCommonMethod marketCommonMethod, RestTemplate restTemplate, ObjectMapper objectMapper, @Qualifier("binanceName") MarketListProvider binanceMarketListProvider, @Qualifier("combineName") CombineMarketListProvider combineMarketListProvider, CoinService coinService, Dollar dollar) {
         this.marketCommonMethod = marketCommonMethod;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.binanceMarketListProvider = binanceMarketListProvider;
         this.combineMarketListProvider = combineMarketListProvider;
         this.coinService = coinService;
+        this.dollar = dollar;
     }
 
     @PostConstruct
     public void initFirst() throws IOException {
         if(this.binanceMarketList == null){
             setBinanceMarketList();
+            setMarketDataList();
         }
     }
 
@@ -145,12 +149,20 @@ public class Binance extends Market<BinanceCryptoDto> {
                 }else{
                     rateChange = "EVEN";
                 }
-                binanceDto = new BinanceDto(tickerData[i].getSymbol().replace("USDT", ""), tickerData[i].getQuoteVolume(), tickerData[i].getPriceChangePercent(), tickerData[i].getHighPrice(), tickerData[i].getLowPrice(), tickerData[i].getOpenPrice(), tickerData[i].getLastPrice(), rateChange, tickerData[i].getVolume());
+                binanceDto = new BinanceDto(tickerData[i].getSymbol().replace("USDT", ""), tickerData[i].getQuoteVolume().multiply(BigDecimal.valueOf(dollar.getUSDKRW())), tickerData[i].getPriceChangePercent().divide(new BigDecimal(100)), tickerData[i].getHighPrice().multiply(BigDecimal.valueOf(dollar.getUSDKRW())), tickerData[i].getLowPrice().multiply(BigDecimal.valueOf(dollar.getUSDKRW())), tickerData[i].getOpenPrice().multiply(BigDecimal.valueOf(dollar.getUSDKRW())), tickerData[i].getLastPrice().multiply(BigDecimal.valueOf(dollar.getUSDKRW())), rateChange, tickerData[i].getVolume().multiply(BigDecimal.valueOf(dollar.getUSDKRW())));
                 marketDataList.add(binanceDto);
             }
         }
 
+        marketDataList = marketDataList.stream()
+                .filter(data -> data.getTrade_price().compareTo(BigDecimal.ZERO) != 0)
+                .collect(Collectors.toList());
+
         binanceMarketDataList = new MarketDataList<>(marketDataList);
+
+        for(BinanceDto binanceDto : binanceMarketDataList.getMarketDataList()){
+            binanceDtosMap.put(binanceDto.getToken(), binanceDto);
+        }
     }
 
     private List<String> getBinanceMarketListMatchedInUpbit() throws IOException {
@@ -164,7 +176,6 @@ public class Binance extends Market<BinanceCryptoDto> {
      * @throws IOException
      */
     public void setBinanceMarketList() throws IOException {
-        // upbit와 연관이 있는 마켓리스트만 호출합니다.
         List<String> marketList = binanceMarketListProvider.getMarketListWithTicker();
 
         MarketList<BinanceCryptoDto> marketDtoList = new MarketList<>(new ArrayList<BinanceCryptoDto>());
