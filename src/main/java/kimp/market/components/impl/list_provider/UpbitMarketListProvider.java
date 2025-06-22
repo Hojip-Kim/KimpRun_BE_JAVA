@@ -1,15 +1,15 @@
-package kimp.market.components;
+package kimp.market.components.impl.list_provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.market.common.MarketCommonMethod;
-import kimp.market.dto.market.common.UpbitMarketData;
+import kimp.market.components.MarketListProvider;
+import kimp.market.dto.market.common.UpbitMarketNameData;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -35,23 +35,15 @@ public class UpbitMarketListProvider implements MarketListProvider {
     @Override
     public List<String> getMarketList() throws IOException {
         List<String> marketList = getMarketListWithTicker();
-        List<String> marketPair = new ArrayList<>();
 
-        for (int i = 0; i < marketList.size(); i++) {
-            String modifiedString = marketList.get(i).replace("KRW-", "");
-            marketPair.add(modifiedString);
-        }
-
-        return marketPair;
+        marketList.replaceAll(market -> market.replace("KRW-", ""));
+        return marketList;
     }
 
     @Override
     public List<String> getMarketListWithTicker() throws IOException {
-
         String url = upbitApiUrl;
-        // marketList : 업비트의 마켓이름 데이터
-        List<String> marketList = marketCommonMethod.getMarketListByURLAndStartWith(url, "KRW-", "getMarket", UpbitMarketData[].class);
+        return marketCommonMethod.getMarketListByURLAndStartWith(url, "KRW-", "getMarket", UpbitMarketNameData[].class);
 
-        return marketList;
     }
 }
