@@ -3,9 +3,8 @@ package kimp.market.handler;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kimp.websocket.dto.response.UpbitDto;
+import kimp.market.dto.coin.common.market.UpbitDto;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
