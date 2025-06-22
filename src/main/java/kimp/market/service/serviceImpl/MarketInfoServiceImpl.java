@@ -3,7 +3,7 @@ package kimp.market.service.serviceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import kimp.market.components.Dollar;
-import kimp.market.components.Upbit;
+import kimp.market.components.impl.market.Upbit;
 import kimp.market.service.MarketInfoService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
