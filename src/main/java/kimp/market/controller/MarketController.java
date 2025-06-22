@@ -1,5 +1,6 @@
 package kimp.market.controller;
 
+import kimp.market.Enum.MarketType;
 import kimp.market.dto.market.response.CombinedMarketList;
 import kimp.market.dto.market.response.CombinedMarketDataList;
 import kimp.market.dto.market.response.MarketDataList;
@@ -17,8 +18,8 @@ public class MarketController {
     private final MarketService marketService;
 
     @GetMapping("/first/name")
-    public CombinedMarketList getMarketList(@RequestParam("first") String first, @RequestParam("second") String second) throws IOException {
-        if(first == null || second == null || first.isEmpty() || second.isEmpty()) {
+    public CombinedMarketList getMarketList(@RequestParam("first") MarketType first, @RequestParam("second") MarketType second) throws IOException {
+        if(first == null || second == null) {
             throw new IllegalArgumentException("Not have parameter");
         }
 
@@ -27,8 +28,8 @@ public class MarketController {
 
 
     @GetMapping("/first/single/data")
-    public MarketDataList getFirstMarketDatas(@RequestParam("market") String market) throws IOException {
-        if(market == null || market.isEmpty()) {
+    public MarketDataList getFirstMarketDatas(@RequestParam("market") MarketType market) throws IOException {
+        if(market == null) {
             throw new IllegalArgumentException("Not have parameter");
         }
 
@@ -36,8 +37,8 @@ public class MarketController {
     }
 
     @GetMapping("/first/combine/data")
-    public CombinedMarketDataList getCombinedMarketDatas(@RequestParam("first") String first, @RequestParam("second") String second) throws IOException {
-        if(first == null || second == null || first.isEmpty() || second.isEmpty()) {
+    public CombinedMarketDataList getCombinedMarketDatas(@RequestParam("first") MarketType first, @RequestParam("second") MarketType second) throws IOException {
+        if(first == null || second == null) {
             throw new IllegalArgumentException("Not have parameter");
         }
 
@@ -46,6 +47,6 @@ public class MarketController {
 
     @GetMapping("/first/test")
     public CombinedMarketDataList test() throws IOException {
-       return marketService.getCombinedMarketDataList("upbit", "binance");
+       return marketService.getCombinedMarketDataList(MarketType.UPBIT, MarketType.BINANCE);
     }
 }
