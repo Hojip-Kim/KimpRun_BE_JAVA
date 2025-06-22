@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class UpbitMarketData {
+public class UpbitMarketNameData {
     @JsonProperty("market")
     private String market;
     @JsonProperty("korean_name")
