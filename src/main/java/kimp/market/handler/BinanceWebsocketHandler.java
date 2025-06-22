@@ -1,7 +1,7 @@
 package kimp.market.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kimp.websocket.dto.response.BinanceStreamDto;
+import kimp.market.dto.coin.common.market.BinanceDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,7 +25,7 @@ public class BinanceWebsocketHandler extends TextWebSocketHandler {
 
     private Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
 
-    private Map<String, BinanceStreamDto> dataHashMap = new ConcurrentHashMap<>();
+    private Map<String, BinanceDto> dataHashMap = new ConcurrentHashMap<>();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -45,7 +45,7 @@ public class BinanceWebsocketHandler extends TextWebSocketHandler {
         // 메시지를 받은 경우 처리 로직 (필요시)
     }
 
-    public void inputDataToHashMap(BinanceStreamDto dto){
+    public void inputDataToHashMap(BinanceDto dto){
         String key = dto.getToken();
         dataHashMap.put(key, dto);
     }
