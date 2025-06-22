@@ -1,8 +1,8 @@
 package kimp.websocket.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kimp.market.components.Upbit;
-import kimp.websocket.dto.response.UpbitDto;
+import kimp.market.components.impl.market.Upbit;
+import kimp.market.dto.coin.common.market.UpbitDto;
 import kimp.websocket.dto.response.UpbitReceiveDto;
 import kimp.websocket.dto.request.TicketMessage;
 import kimp.websocket.dto.request.TradeSubscribe;
@@ -26,11 +26,10 @@ import java.util.concurrent.Future;
 public class UpbitWebsocketClient extends WebSocketClient {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-
     private final UpbitWebSocketHandler upbitWebsocketHandler;
     private final Upbit upbit;
 
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private Future<?> reconnectTask;
 
     private static volatile boolean isConnected = false;
@@ -49,7 +48,8 @@ public class UpbitWebsocketClient extends WebSocketClient {
         isConnected = true;
 
         try {
-            List<String> codes = upbit.getMarketList().getMarkets();
+
+            List<String> codes = upbit.getMarketList().getCryptoList();
             TicketMessage ticketMessage = new TicketMessage("test");
             TradeSubscribe tradeSubscribe = new TradeSubscribe("ticker", codes, false, true);
 
