@@ -149,7 +149,7 @@ public class Binance extends Market<BinanceCryptoDto> {
                 }else{
                     rateChange = "EVEN";
                 }
-                binanceDto = new BinanceDto(tickerData[i].getSymbol().replace("USDT", ""), tickerData[i].getQuoteVolume().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())), tickerData[i].getPriceChangePercent().divide(new BigDecimal(100)), tickerData[i].getHighPrice().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())), tickerData[i].getLowPrice().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())), tickerData[i].getOpenPrice().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())), tickerData[i].getLastPrice().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())), rateChange, tickerData[i].getVolume().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())));
+                binanceDto = new BinanceDto(tickerData[i].getSymbol().replace("USDT", ""), tickerData[i].getVolume().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())), tickerData[i].getPriceChangePercent().divide(new BigDecimal(100)), tickerData[i].getHighPrice().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())), tickerData[i].getLowPrice().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())), tickerData[i].getOpenPrice().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())), tickerData[i].getLastPrice().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())), rateChange, tickerData[i].getQuoteVolume().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW())));
                 marketDataList.add(binanceDto);
             }
         }
