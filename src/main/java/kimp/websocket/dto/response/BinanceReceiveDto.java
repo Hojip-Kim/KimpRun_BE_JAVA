@@ -29,6 +29,9 @@ public class BinanceReceiveDto {
     @JsonProperty("q")
     private BigDecimal qty; // quantity
 
+    @JsonProperty("error")
+    private BinanceErrorDto error;
+
     public BinanceReceiveDto(String type, long time, String token, long tradeId, BigDecimal price, long total, boolean isMarketMaker, boolean ignore, BigDecimal qty) {
         this.type = type;
         this.time = time;
@@ -39,6 +42,11 @@ public class BinanceReceiveDto {
         this.isMarketMaker = isMarketMaker;
         Ignore = ignore;
         this.qty = qty;
+    }
+
+    // 에러 여부 확인 메서드
+    public boolean hasError() {
+        return error != null;
     }
 
 }
