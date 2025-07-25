@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -35,14 +35,12 @@ import java.util.stream.Collectors;
 public class Coinone extends Market<CoinoneCryptoDto> {
 
     private final MarketListProvider coinoneMarketListProvider;
-    private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
+    private final RestClient restClient;
     private final CoinService coinService;
 
-    public Coinone(@Qualifier("coinoneName") MarketListProvider coinoneMarketListProvider, RestTemplate restTemplate, ObjectMapper objectMapper, CoinService coinService) {
+    public Coinone(@Qualifier("coinoneName") MarketListProvider coinoneMarketListProvider, RestClient restClient, CoinService coinService) {
         this.coinoneMarketListProvider = coinoneMarketListProvider;
-        this.restTemplate = restTemplate;
-        this.objectMapper = objectMapper;
+        this.restClient = restClient;
         this.coinService = coinService;
     }
 
@@ -101,7 +99,10 @@ public class Coinone extends Market<CoinoneCryptoDto> {
         Set<String> coinonePairSet = new HashSet<>(coinonePairList);
 
         String tickerUrlwithParams = coinoneTickerUrl;
-        CoinoneTicker tickerData = restTemplate.getForObject(tickerUrlwithParams, CoinoneTicker.class);
+        CoinoneTicker tickerData = restClient.get()
+                .uri(tickerUrlwithParams)
+                .retrieve()
+                .body(CoinoneTicker.class);
         List<CoinoneTickerInfo> coinoneTickerInfos = tickerData.getTickers();
 
         List<CoinoneTickerInfo> filteredTickerInfos = coinoneTickerInfos.stream()
@@ -116,11 +117,12 @@ public class Coinone extends Market<CoinoneCryptoDto> {
             List<CoinoneDto> marketDataList = new ArrayList<>();
 
             for(CoinoneTickerInfo ticker : filteredTickerInfos){
-
-                BigDecimal signedChangeRate = ticker.getFirst()
-                        .divide(ticker.getLast(), 4, RoundingMode.HALF_UP)
+                BigDecimal signedChangeRate = ticker.getLast()
+                        .divide(ticker.getFirst(), 4, RoundingMode.HALF_UP)
                         .multiply(new BigDecimal("100"))
-                        .subtract(new BigDecimal("100"));
+                        .subtract(new BigDecimal("100"))
+                        .divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP);
+
                 double signedChangeRateInt = signedChangeRate.doubleValue();
                 String rateChange;
                 if(signedChangeRateInt > 0){

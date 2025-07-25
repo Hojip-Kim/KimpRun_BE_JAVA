@@ -2,7 +2,7 @@ package kimp.market.common;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -15,11 +15,11 @@ import java.util.stream.Collectors;
 @Component
 public class MarketCommonMethod {
 
-    private final RestTemplate restTemplate;
+    private final RestClient restClient;
     private final ObjectMapper objectMapper;
 
-    public MarketCommonMethod(RestTemplate restTemplate, ObjectMapper objectMapper){
-        this.restTemplate =restTemplate;
+    public MarketCommonMethod(RestClient restClient, ObjectMapper objectMapper){
+        this.restClient = restClient;
         this.objectMapper = objectMapper;
     }
 
@@ -33,7 +33,10 @@ public class MarketCommonMethod {
      * @return : 파라미터로 넣어준 인자 dto 클래스의 List형식으로 데이터 반환
      */
     public <T> List<String> getMarketListByURLAndStartWith(String url, String startWith, String method,  Class<T[]> dtoClass) throws IOException {
-        String data = restTemplate.getForObject(url, String.class);
+        String data = restClient.get()
+                .uri(url)
+                .retrieve()
+                .body(String.class);
 
         T[] marketData = objectMapper.readValue(data, dtoClass);
 
@@ -61,7 +64,10 @@ public class MarketCommonMethod {
      * @return : 파라미터로 넣어준 인자 dto 클래스의 List형식으로 데이터 반환
      */
     public <T> List<String> getMarketListByURLAndEndWith(String url, String endWith, String method,  Class<T[]> dtoClass) throws IOException {
-        String data = restTemplate.getForObject(url, String.class);
+        String data = restClient.get()
+                .uri(url)
+                .retrieve()
+                .body(String.class);
 
         T[] marketData = objectMapper.readValue(data, dtoClass);
 
@@ -79,7 +85,10 @@ public class MarketCommonMethod {
     }
 
     public <T> T getMarketByURLAndStartWith(String url, String startWith, String method,  Class<T> dtoClass) throws IOException {
-        String data = restTemplate.getForObject(url, String.class);
+        String data = restClient.get()
+                .uri(url)
+                .retrieve()
+                .body(String.class);
 
         return objectMapper.readValue(data, dtoClass);
     }

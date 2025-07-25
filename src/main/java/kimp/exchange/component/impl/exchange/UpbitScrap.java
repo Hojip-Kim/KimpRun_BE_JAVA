@@ -1,7 +1,7 @@
 package kimp.exchange.component.impl.exchange;
 
-import kimp.exchange.dto.notice.NoticeParsedData;
-import kimp.exchange.dto.upbit.UpbitNoticeDataDto;
+import kimp.notice.dto.notice.NoticeParsedData;
+import kimp.exchange.dto.python.PythonNoticeResponseDto;
 import kimp.exchange.dto.upbit.UpbitNoticeDto;
 import kimp.market.Enum.MarketType;
 import kimp.util.MumurHashUtil;
@@ -12,12 +12,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.*;
-
 
 @Component
 @Slf4j
@@ -30,11 +28,23 @@ public class UpbitScrap extends ExchangeScrapAbstract<UpbitNoticeDto> {
     private String upbitNoticeDetailUrl;
 
     private List<NoticeParsedData> parsedData = new ArrayList<>();
-
     private List<NoticeParsedData> newNotices = new ArrayList<>();
 
-    public UpbitScrap(RestTemplate restTemplate, StringRedisTemplate stringRedisTemplate) {
-        super(restTemplate, stringRedisTemplate, UpbitNoticeDto.class);
+    public UpbitScrap(RestClient restClient, StringRedisTemplate stringRedisTemplate) {
+        super(restClient, stringRedisTemplate, UpbitNoticeDto.class);
+    }
+
+    /**
+     * Python 서비스 응답을 기존 UpbitNoticeDto 형태로 변환
+     */
+    @Override
+    protected UpbitNoticeDto convertPythonResponse(PythonNoticeResponseDto pythonResponse) {
+        log.debug("Python 응답을 UpbitNoticeDto로 변환: {} 개 공지사항", 
+                pythonResponse.getResults() != null ? pythonResponse.getResults().size() : 0);
+        
+        // 여기서는 실제 UpbitNoticeDto를 생성하지 않고 null 반환
+        // parseNoticeData에서 Python 응답을 직접 사용
+        return null;
     }
 
     @Override
@@ -44,7 +54,6 @@ public class UpbitScrap extends ExchangeScrapAbstract<UpbitNoticeDto> {
 
     @Override
     public void setNoticeToRedis(List<NoticeParsedData> noticeParsedDataList){
-
         StringBuilder sb = new StringBuilder();
 
         for(NoticeParsedData noticeParsedData : noticeParsedDataList){
@@ -53,41 +62,36 @@ public class UpbitScrap extends ExchangeScrapAbstract<UpbitNoticeDto> {
 
         String noticeHashCode = MumurHashUtil.stringTo128bitHashCode(sb.toString());
         super.getRedisTemplate().opsForValue().set(MarketType.UPBIT.getMarketName(), noticeHashCode);
-
     }
 
     @Override
     public String getNoticeFromRedis() {
         StringRedisTemplate redisTemplate = super.getRedisTemplate();
-
         return redisTemplate.opsForValue().get(MarketType.UPBIT.getMarketName());
     }
 
-    // 새로운 데이터를 두 리스트의 비교 (Big(O^2)성능)의 형태로 구현
-    // 이후 리팩토링을 통해 성능개선 필요
+    /**
+     * 새로운 공지사항 찾기 - 기존 로직 유지
+     * O(n²) 성능이지만 기존 로직 그대로 유지
+     */
     @Override
     public List<NoticeParsedData> getNewNotice(List<NoticeParsedData> recentNoticeDataList) {
         List<NoticeParsedData> previousNoticeParsedDataList = this.getNoticeData();
-
         List<NoticeParsedData> newNoticeParsedData = new ArrayList<>();
 
         Set<NoticeParsedData> parsedHashSet = new HashSet<>(previousNoticeParsedDataList);
-
         List<NoticeParsedData> recentNoticeCopy = new ArrayList<>(recentNoticeDataList);
 
         recentNoticeCopy.removeAll(parsedHashSet);
-
         newNoticeParsedData = recentNoticeCopy;
 
         if(newNoticeParsedData.isEmpty()){
-            throw new IllegalStateException("not found new notice data : binance");
+            throw new IllegalStateException("not found new notice data : upbit");
         }
 
         return newNoticeParsedData;
-
     }
 
-    // 레디스에 올리는것이 아닌, 새로운 notice만 제공
     @Override
     public void setNewNotice(List<NoticeParsedData> notice) {
         this.newNotices.clear();
@@ -103,11 +107,9 @@ public class UpbitScrap extends ExchangeScrapAbstract<UpbitNoticeDto> {
     @Override
     public HttpHeaders getHeaders() {
         HttpHeaders headers = new HttpHeaders();
-
         headers.set("Accept", "application/json");
         headers.setContentType(new MediaType("application", "json"));
         headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-
         return headers;
     }
 
@@ -131,29 +133,32 @@ public class UpbitScrap extends ExchangeScrapAbstract<UpbitNoticeDto> {
         return false;
     }
 
+    /**
+     * Python 서비스를 통해 공지사항 데이터를 파싱
+     */
     @Override
     public List<NoticeParsedData> parseNoticeData() throws IOException {
-
-        List<NoticeParsedData> noticeParsedDataList = new ArrayList<>();
-
-        UpbitNoticeDto dto = super.getNoticeFromAPI();
-        List<UpbitNoticeDataDto> upbitNoticeDataDtos = dto.getData().getNotices();
-
-        for(UpbitNoticeDataDto upbitNoticeDataDto : upbitNoticeDataDtos) {
-            String title = upbitNoticeDataDto.getTitle();
-            String alink = String.valueOf(upbitNoticeDataDto.getId());
-            LocalDateTime date = upbitNoticeDataDto.getListed_at().toLocalDateTime();
-
-            NoticeParsedData noticeParsedData = new NoticeParsedData(title, alink, date);
-            noticeParsedDataList.add(noticeParsedData);
+        try {
+            log.info("Upbit Python 서비스를 통한 공지사항 파싱 시작");
+            
+            // Python 서비스에서 공지사항 가져오기 (부모 클래스의 메서드 사용)
+            PythonNoticeResponseDto pythonResponse = super.fetchPythonNotices();
+            
+            // Python 응답을 NoticeParsedData로 변환
+            List<NoticeParsedData> noticeParsedDataList = super.convertPythonToNoticeParsedData(pythonResponse);
+            
+            if (noticeParsedDataList.isEmpty()) {
+                log.warn("Upbit Python 서비스에서 공지사항을 가져오지 못했습니다");
+                return new ArrayList<>();
+            }
+            
+            log.info("Upbit 공지사항 {} 개 파싱 완료", noticeParsedDataList.size());
+            return noticeParsedDataList;
+            
+        } catch (Exception e) {
+            log.error("Upbit 공지사항 파싱 실패: {}", e.getMessage(), e);
+            throw new IOException("Upbit 공지사항 파싱 실패: " + e.getMessage(), e);
         }
-
-        if(noticeParsedDataList.size() != upbitNoticeDataDtos.size()) {
-            log.info("upbitScrap parsedDataList is inaccurate");
-            throw new IllegalStateException("upbitScrap parsedDataList is inaccurate");
-        }
-
-        return noticeParsedDataList;
     }
 
     @Override
@@ -165,5 +170,4 @@ public class UpbitScrap extends ExchangeScrapAbstract<UpbitNoticeDto> {
     public MarketType getMarketType() {
         return MarketType.UPBIT;
     }
-
 }

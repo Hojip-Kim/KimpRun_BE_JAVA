@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -32,14 +32,14 @@ import java.util.Set;
 @Slf4j
 @Qualifier("upbit")
 public class Upbit extends Market<UpbitCryptoDto> {
-    private final RestTemplate restTemplate;
+    private final RestClient restClient;
     private final ObjectMapper objectMapper;
     private final MarketListProvider upbitMarketListProvider;
     private final CoinService coinService;
 
 
-    public Upbit(RestTemplate restTemplate, ObjectMapper objectMapper, @Qualifier("upbitName") MarketListProvider upbitMarketListProvider, CoinService coinService) {
-        this.restTemplate = restTemplate;
+    public Upbit(RestClient restClient, ObjectMapper objectMapper, @Qualifier("upbitName") MarketListProvider upbitMarketListProvider, CoinService coinService) {
+        this.restClient = restClient;
         this.objectMapper = objectMapper;
         this.upbitMarketListProvider = upbitMarketListProvider;
         this.coinService = coinService;
@@ -105,7 +105,10 @@ public class Upbit extends Market<UpbitCryptoDto> {
         String markets = String.join(",", upbitMarketList.getCryptoList());
 
         String tickerUrlwithParams = upbitTickerUrl + "?markets=" + markets;
-        String tickerData = restTemplate.getForObject(tickerUrlwithParams, String.class);
+        String tickerData = restClient.get()
+                .uri(tickerUrlwithParams)
+                .retrieve()
+                .body(String.class);
 
         UpbitDto upbitDto = null;
         MarketDataList<UpbitDto> upbitMarketDataList = null;
@@ -135,7 +138,10 @@ public class Upbit extends Market<UpbitCryptoDto> {
     }
 
     public BigDecimal getUpbitTether(){
-        UpbitTicker[] tickers = restTemplate.getForObject(tetherApiUrl, UpbitTicker[].class);
+        UpbitTicker[] tickers = restClient.get()
+                .uri(tetherApiUrl)
+                .retrieve()
+                .body(UpbitTicker[].class);
         if (tickers != null && tickers.length > 0) {
             return tickers[0].getTrade_price();
         } else {

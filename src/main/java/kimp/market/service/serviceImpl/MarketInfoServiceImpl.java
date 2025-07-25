@@ -1,13 +1,11 @@
 package kimp.market.service.serviceImpl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import kimp.market.components.Dollar;
 import kimp.market.components.impl.market.Upbit;
 import kimp.market.service.MarketInfoService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 
@@ -19,13 +17,9 @@ public class MarketInfoServiceImpl implements MarketInfoService {
 
     private double dollarKRW = 0;
     private double usdt = 0;
-    private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
 
-    public MarketInfoServiceImpl(Dollar dollar, RestTemplate restTemplate, ObjectMapper objectMapper, Upbit upbit) {
+    public MarketInfoServiceImpl(Dollar dollar, Upbit upbit) {
         this.dollar = dollar;
-        this.restTemplate = restTemplate;
-        this.objectMapper = objectMapper;
         this.upbit = upbit;
     }
 

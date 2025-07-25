@@ -7,7 +7,7 @@ import kimp.market.dto.market.common.UpbitMarketNameData;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.List;
 @Qualifier("upbitName")
 public class UpbitMarketListProvider implements MarketListProvider {
 
-    private final RestTemplate restTemplate;
+    private final RestClient restClient;
     private final ObjectMapper objectMapper;
     private final MarketCommonMethod marketCommonMethod;
 
@@ -25,8 +25,8 @@ public class UpbitMarketListProvider implements MarketListProvider {
     @Value("${upbit.ticker.url}")
     private String upbitTickerUrl;
 
-    public UpbitMarketListProvider(RestTemplate restTemplate, ObjectMapper objectMapper, MarketCommonMethod marketCommonMethod) {
-        this.restTemplate = restTemplate;
+    public UpbitMarketListProvider(RestClient restClient, ObjectMapper objectMapper, MarketCommonMethod marketCommonMethod) {
+        this.restClient = restClient;
         this.objectMapper = objectMapper;
         this.marketCommonMethod = marketCommonMethod;
     }

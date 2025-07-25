@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,13 +33,13 @@ import java.util.Set;
 public class Bithumb extends Market<BithumbCryptoDto> {
 
     private final MarketListProvider bithumbMarketListProvider;
-    private final RestTemplate restTemplate;
+    private final RestClient restClient;
     private final ObjectMapper objectMapper;
     private final CoinService coinService;
 
-    public Bithumb(@Qualifier("bithumbName") MarketListProvider bithumbMarketListProvider, RestTemplate restTemplate, ObjectMapper objectMapper, CoinService coinService) {
+    public Bithumb(@Qualifier("bithumbName") MarketListProvider bithumbMarketListProvider, RestClient restClient, ObjectMapper objectMapper, CoinService coinService) {
         this.bithumbMarketListProvider = bithumbMarketListProvider;
-        this.restTemplate = restTemplate;
+        this.restClient = restClient;
         this.objectMapper = objectMapper;
         this.coinService = coinService;
     }
@@ -101,7 +101,10 @@ public class Bithumb extends Market<BithumbCryptoDto> {
 
 
         String tickerUrlwithParams = bithumbTickerUrl + "?markets=" + markets;
-        String tickerData = restTemplate.getForObject(tickerUrlwithParams, String.class);
+        String tickerData = restClient.get()
+                .uri(tickerUrlwithParams)
+                .retrieve()
+                .body(String.class);
 
         BithumbDto bithumbDto = null;
         MarketDataList<BithumbDto> bithumbMarketDataList = null;

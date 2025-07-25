@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 public class Binance extends Market<BinanceCryptoDto> {
 
     private final MarketCommonMethod marketCommonMethod;
-    private final RestTemplate restTemplate;
+    private final RestClient restClient;
     private final ObjectMapper objectMapper;
     private final MarketListProvider binanceMarketListProvider;
     private final CombineMarketListProvider combineMarketListProvider;
@@ -58,9 +58,9 @@ public class Binance extends Market<BinanceCryptoDto> {
     @Value("${binance.ticker.url}")
     private String binanceTickerUrl;
 
-    public Binance(MarketCommonMethod marketCommonMethod, RestTemplate restTemplate, ObjectMapper objectMapper, @Qualifier("binanceName") MarketListProvider binanceMarketListProvider, @Qualifier("combineName") CombineMarketListProvider combineMarketListProvider, CoinService coinService, MarketInfoService marketInfoService) {
+    public Binance(MarketCommonMethod marketCommonMethod, RestClient restClient, ObjectMapper objectMapper, @Qualifier("binanceName") MarketListProvider binanceMarketListProvider, @Qualifier("combineName") CombineMarketListProvider combineMarketListProvider, CoinService coinService, MarketInfoService marketInfoService) {
         this.marketCommonMethod = marketCommonMethod;
-        this.restTemplate = restTemplate;
+        this.restClient = restClient;
         this.objectMapper = objectMapper;
         this.binanceMarketListProvider = binanceMarketListProvider;
         this.combineMarketListProvider = combineMarketListProvider;
@@ -136,7 +136,10 @@ public class Binance extends Market<BinanceCryptoDto> {
 
         for(String[] binanceCrypto : binanceCryptoListSplit){
             String requestUrl = binanceTickerUrl + "[\"" + String.join("\",\"", binanceCrypto) + "\"]";
-            BinanceTicker[] tickerData = restTemplate.getForObject(requestUrl, BinanceTicker[].class);
+            BinanceTicker[] tickerData = restClient.get()
+                    .uri(requestUrl)
+                    .retrieve()
+                    .body(BinanceTicker[].class);
 
             BinanceDto binanceDto = null;
 
