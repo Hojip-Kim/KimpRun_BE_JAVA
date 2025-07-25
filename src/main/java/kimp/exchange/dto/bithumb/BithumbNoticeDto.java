@@ -1,8 +1,7 @@
 package kimp.exchange.dto.bithumb;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import kimp.exchange.dto.notice.ExchangeNoticeDto;
-import kimp.market.Enum.MarketType;
+import kimp.notice.dto.notice.ExchangeNoticeDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
