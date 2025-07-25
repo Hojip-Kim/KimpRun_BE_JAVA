@@ -1,4 +1,4 @@
-package kimp.exchange.dto.notice;
+package kimp.notice.dto.notice;
 
 import kimp.market.Enum.MarketType;
 import lombok.Getter;

@@ -1,8 +1,8 @@
-package kimp.exchange.controller;
+package kimp.notice.controller;
 
 import kimp.common.dto.PageRequestDto;
-import kimp.exchange.dto.notice.ExchangeNoticeDto;
-import kimp.exchange.service.NoticeService;
+import kimp.notice.dto.notice.ExchangeNoticeDto;
+import kimp.notice.service.NoticeService;
 import kimp.exchange.service.ScrapService;
 import kimp.exchange.service.impl.ExchangeNoticePacadeService;
 import kimp.market.Enum.MarketType;

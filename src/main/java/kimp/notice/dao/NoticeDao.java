@@ -1,6 +1,6 @@
-package kimp.exchange.dao;
+package kimp.notice.dao;
 
-import kimp.exchange.entity.Notice;
+import kimp.notice.entity.Notice;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

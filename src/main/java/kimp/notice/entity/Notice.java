@@ -1,8 +1,9 @@
-package kimp.exchange.entity;
+package kimp.notice.entity;
 
 
 import jakarta.persistence.*;
 import kimp.common.entity.TimeStamp;
+import kimp.exchange.entity.Exchange;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -69,8 +70,8 @@ public class Notice extends TimeStamp {
     }
 
     public Notice updateDate(LocalDateTime date) {
-        if(this.link.isEmpty()){
-            throw new IllegalArgumentException("link is empty");
+        if(date == null){
+            throw new IllegalArgumentException("date is null");
         }
         this.date = date;
         return this;

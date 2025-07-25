@@ -1,8 +1,8 @@
-package kimp.exchange.dao.impl;
+package kimp.notice.dao.impl;
 
-import kimp.exchange.dao.NoticeDao;
-import kimp.exchange.entity.Notice;
-import kimp.exchange.repository.NoticeRepository;
+import kimp.notice.dao.NoticeDao;
+import kimp.notice.entity.Notice;
+import kimp.notice.repository.NoticeRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -61,11 +61,11 @@ public class NoticeDaoImpl implements NoticeDao {
     @Override
     @Transactional
     public Page<Notice> findByExchangeIdOrderByRegistedAtAsc(long exchangeId, Pageable pageable) {
-        return this.noticeRepository.findByExchangeIdOrderByRegistedAtAsc(exchangeId, pageable);
+        return this.noticeRepository.findByExchangeIdOrderByDateDesc(exchangeId, pageable);
     }
 
     @Override
     public Page<Notice> findAllByOrderByRegistedAtAsc(Pageable pageable) {
-        return this.noticeRepository.findByOrderByRegistedAtAsc(pageable);
+        return this.noticeRepository.findByOrderByDateDesc(pageable);
     }
 }

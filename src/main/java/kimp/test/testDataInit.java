@@ -8,10 +8,10 @@ import kimp.exchange.component.impl.exchange.ExchangeScrapAbstract;
 import kimp.exchange.dto.binance.BinanceNoticeDto;
 import kimp.exchange.dto.bithumb.BithumbNoticeDto;
 import kimp.exchange.dto.coinone.CoinoneNoticeDto;
-import kimp.exchange.dto.notice.NoticeParsedData;
+import kimp.notice.dto.notice.NoticeParsedData;
 import kimp.exchange.dto.upbit.UpbitNoticeDto;
 import kimp.exchange.service.ExchangeService;
-import kimp.exchange.service.NoticeService;
+import kimp.notice.service.NoticeService;
 import kimp.exchange.service.ScrapService;
 import kimp.exchange.service.impl.ExchangeNoticePacadeService;
 import kimp.market.Enum.MarketType;
@@ -70,31 +70,105 @@ public class testDataInit {
     }
 
     @PostConstruct
-    private void init() throws IOException {
+    private void init() {
+        log.info("공지사항 초기 데이터 세팅 시작");
+        
+        // Python 서비스 의존성이 있는 초기화는 예외 처리
+        try {
+            initializeUpbitNotices();
+        } catch (Exception e) {
+            log.warn("Upbit 공지사항 초기화 실패 (Python 서비스 연결 필요): {}", e.getMessage());
+        }
 
+        try {
+            initializeCoinoneNotices();
+        } catch (Exception e) {
+            log.warn("Coinone 공지사항 초기화 실패 (Python 서비스 연결 필요): {}", e.getMessage());
+        }
+
+        // 현재 주석 처리된 거래소들도 동일하게 처리
+
+        try {
+            initializeBinanceNotices();
+        } catch (Exception e) {
+            log.warn("Binance 공지사항 초기화 실패 (Python 서비스 연결 필요): {}", e.getMessage());
+        }
+
+        try {
+            initializeBithumbNotices();
+        } catch (Exception e) {
+            log.warn("Bithumb 공지사항 초기화 실패 (Python 서비스 연결 필요): {}", e.getMessage());
+        }
+
+        log.info("공지사항 초기 데이터 세팅 완료 (Python 서비스 연결 실패 시 스킵됨)");
+    }
+
+    /**
+     * Upbit 공지사항 초기화
+     */
+    private void initializeUpbitNotices() throws IOException {
+        log.debug("Upbit 공지사항 초기화 시작");
         List<NoticeParsedData> upbitNoticeParsedDataList = upbitScrapComponent.parseNoticeData();
-        upbitScrapComponent.setNoticeToRedis(upbitNoticeParsedDataList);
-        upbitScrapComponent.setNewParsedData(upbitNoticeParsedDataList);
-        exchangeNoticePacadeService.createNoticesBulk(upbitScrapComponent.getMarketType(), upbitNoticeParsedDataList);
+        
+        if (!upbitNoticeParsedDataList.isEmpty()) {
+            upbitScrapComponent.setNoticeToRedis(upbitNoticeParsedDataList);
+            upbitScrapComponent.setNewParsedData(upbitNoticeParsedDataList);
+            exchangeNoticePacadeService.createNoticesBulk(upbitScrapComponent.getMarketType(), upbitNoticeParsedDataList);
+            log.info("Upbit 공지사항 {} 개 초기화 완료", upbitNoticeParsedDataList.size());
+        } else {
+            log.warn("Upbit 공지사항 데이터가 비어있음");
+        }
+    }
 
-//        List<NoticeParsedData> binanceNoticeParsedDataList = binanceScrapComponent.parseNoticeData();
-//        if(!binanceNoticeParsedDataList.isEmpty()) {
-//            binanceScrapComponent.setNoticeToRedis(binanceNoticeParsedDataList);
-//            binanceScrapComponent.setNewParsedData(binanceNoticeParsedDataList);
-//            exchangeNoticePacadeService.createNoticesBulk(binanceScrapComponent.getMarketType(), binanceNoticeParsedDataList);
-//        }
-
+    /**
+     * Coinone 공지사항 초기화
+     */
+    private void initializeCoinoneNotices() throws IOException {
+        log.debug("Coinone 공지사항 초기화 시작");
         List<NoticeParsedData> coinoneNoticeParsedDataList = coinoneScrapComponent.parseNoticeData();
-        coinoneScrapComponent.setNoticeToRedis(coinoneNoticeParsedDataList);
-        coinoneScrapComponent.setNewParsedData(coinoneNoticeParsedDataList);
-        exchangeNoticePacadeService.createNoticesBulk(coinoneScrapComponent.getMarketType(), coinoneNoticeParsedDataList);
+        
+        if (!coinoneNoticeParsedDataList.isEmpty()) {
+            coinoneScrapComponent.setNoticeToRedis(coinoneNoticeParsedDataList);
+            coinoneScrapComponent.setNewParsedData(coinoneNoticeParsedDataList);
+            exchangeNoticePacadeService.createNoticesBulk(coinoneScrapComponent.getMarketType(), coinoneNoticeParsedDataList);
+            log.info("Coinone 공지사항 {} 개 초기화 완료", coinoneNoticeParsedDataList.size());
+        } else {
+            log.warn("Coinone 공지사항 데이터가 비어있음");
+        }
+    }
 
-//        List<NoticeParsedData> bithumbNoticeParsedDataList = bithumbScrapComponent.parseNoticeData();
-//        bithumbScrapComponent.setNoticeToRedis(bithumbNoticeParsedDataList);
-//        bithumbScrapComponent.setNewParsedData(bithumbNoticeParsedDataList);
-//        exchangeNoticePacadeService.createNoticesBulk(bithumbScrapComponent.getMarketType(), bithumbNoticeParsedDataList);
+    /**
+     * Binance 공지사항 초기화 (현재 주석 처리됨)
+     */
+    private void initializeBinanceNotices() throws IOException {
+        log.debug("Binance 공지사항 초기화 시작");
+        List<NoticeParsedData> binanceNoticeParsedDataList = binanceScrapComponent.parseNoticeData();
+        
+        if (!binanceNoticeParsedDataList.isEmpty()) {
+            binanceScrapComponent.setNoticeToRedis(binanceNoticeParsedDataList);
+            binanceScrapComponent.setNewParsedData(binanceNoticeParsedDataList);
+            exchangeNoticePacadeService.createNoticesBulk(binanceScrapComponent.getMarketType(), binanceNoticeParsedDataList);
+            log.info("Binance 공지사항 {} 개 초기화 완료", binanceNoticeParsedDataList.size());
+        } else {
+            log.warn("Binance 공지사항 데이터가 비어있음");
+        }
+    }
 
-        log.info("스크랩서비스 초기 데이터 세팅 완료");
+    /**
+     * Bithumb 공지사항 초기화 (현재 주석 처리됨)
+     */
+    private void initializeBithumbNotices() throws IOException {
+        log.debug("Bithumb 공지사항 초기화 시작");
+        List<NoticeParsedData> bithumbNoticeParsedDataList = bithumbScrapComponent.parseNoticeData();
+        
+        if (!bithumbNoticeParsedDataList.isEmpty()) {
+            bithumbScrapComponent.setNoticeToRedis(bithumbNoticeParsedDataList);
+            bithumbScrapComponent.setNewParsedData(bithumbNoticeParsedDataList);
+            exchangeNoticePacadeService.createNoticesBulk(bithumbScrapComponent.getMarketType(), bithumbNoticeParsedDataList);
+            log.info("Bithumb 공지사항 {} 개 초기화 완료", bithumbNoticeParsedDataList.size());
+        } else {
+            log.warn("Bithumb 공지사항 데이터가 비어있음");
+        }
     }
 
     @PostConstruct
@@ -104,6 +178,5 @@ public class testDataInit {
         for(String category : initCategory){
             this.categoryService.createCategory(new CreateCategoryRequestDto(category));
         }
-
     }
 }

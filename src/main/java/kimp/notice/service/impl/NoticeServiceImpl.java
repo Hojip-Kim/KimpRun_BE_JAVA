@@ -1,14 +1,14 @@
-package kimp.exchange.service.impl;
+package kimp.notice.service.impl;
 
 import kimp.common.dto.PageRequestDto;
 import kimp.common.method.DtoConverter;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
-import kimp.exchange.dao.NoticeDao;
-import kimp.exchange.dto.notice.ExchangeNoticeDto;
-import kimp.exchange.dto.notice.NoticeDto;
-import kimp.exchange.entity.Notice;
-import kimp.exchange.service.NoticeService;
+import kimp.notice.dao.NoticeDao;
+import kimp.notice.dto.notice.ExchangeNoticeDto;
+import kimp.notice.dto.notice.NoticeDto;
+import kimp.notice.entity.Notice;
+import kimp.notice.service.NoticeService;
 import kimp.market.Enum.MarketType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

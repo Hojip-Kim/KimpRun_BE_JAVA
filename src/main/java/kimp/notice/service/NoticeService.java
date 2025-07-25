@@ -1,8 +1,8 @@
-package kimp.exchange.service;
+package kimp.notice.service;
 
 import kimp.common.dto.PageRequestDto;
-import kimp.exchange.dto.notice.ExchangeNoticeDto;
-import kimp.exchange.dto.notice.NoticeDto;
+import kimp.notice.dto.notice.ExchangeNoticeDto;
+import kimp.notice.dto.notice.NoticeDto;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
