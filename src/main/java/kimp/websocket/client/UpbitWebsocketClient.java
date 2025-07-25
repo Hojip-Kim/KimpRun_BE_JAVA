@@ -3,10 +3,10 @@ package kimp.websocket.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.market.components.impl.market.Upbit;
 import kimp.market.dto.coin.common.market.UpbitDto;
+import kimp.market.handler.MarketDataWebsocketHandler;
 import kimp.websocket.dto.response.UpbitReceiveDto;
 import kimp.websocket.dto.request.TicketMessage;
 import kimp.websocket.dto.request.TradeSubscribe;
-import kimp.market.handler.UpbitWebSocketHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -26,7 +26,7 @@ import java.util.concurrent.Future;
 public class UpbitWebsocketClient extends WebSocketClient {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final UpbitWebSocketHandler upbitWebsocketHandler;
+    private final MarketDataWebsocketHandler marketDataWebsocketHandler;
     private final Upbit upbit;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -35,9 +35,9 @@ public class UpbitWebsocketClient extends WebSocketClient {
     private static volatile boolean isConnected = false;
     private static volatile boolean isReconnecting = false;
 
-    public UpbitWebsocketClient(String serverUri, UpbitWebSocketHandler upbitWebsocketHandler, Upbit upbit) throws URISyntaxException {
+    public UpbitWebsocketClient(String serverUri, MarketDataWebsocketHandler marketDataWebsocketHandler, Upbit upbit) throws URISyntaxException {
         super(new URI(serverUri));
-        this.upbitWebsocketHandler = upbitWebsocketHandler;
+        this.marketDataWebsocketHandler = marketDataWebsocketHandler;
         this.upbit = upbit;
     }
 
@@ -76,7 +76,7 @@ public class UpbitWebsocketClient extends WebSocketClient {
 
                 UpbitDto upbitDto = new UpbitDto(upbitReceiveDto.getCode().replace("KRW-", ""), upbitReceiveDto.getTradeVolume(), upbitReceiveDto.getSignedChangeRate(), upbitReceiveDto.getHighest52WeekPrice(), upbitReceiveDto.getLowest52WeekPrice(), upbitReceiveDto.getOpeningPrice(), upbitReceiveDto.getTradePrice(), upbitReceiveDto.getChange(), upbitReceiveDto.getAccTradePrice24h());
 
-                upbitWebsocketHandler.inputDataToHashMap(upbitDto);
+                marketDataWebsocketHandler.inputDataToHashMap(upbitDto);
 
             } catch (Exception e) {
                 log.error("[업비트] 웹소켓 DTO 변환 실패", e);

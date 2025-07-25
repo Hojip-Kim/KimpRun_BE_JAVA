@@ -3,7 +3,7 @@ package kimp.websocket.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.market.components.impl.market.Binance;
 import kimp.market.dto.coin.common.market.BinanceDto;
-import kimp.market.handler.BinanceWebsocketHandler;
+import kimp.market.handler.MarketDataWebsocketHandler;
 import kimp.market.service.MarketInfoService;
 import kimp.websocket.dto.response.BinanceReceiveDto;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ import java.util.concurrent.*;
 @Slf4j
 public class BinanceWebSocketClient extends WebSocketClient {
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final BinanceWebsocketHandler binanceWebsocketHandler;
+    private final MarketDataWebsocketHandler marketDataWebsocketHandler;
     private final MarketInfoService marketInfoService;
     private final Binance binance;
 
@@ -29,9 +29,9 @@ public class BinanceWebSocketClient extends WebSocketClient {
     private static volatile boolean isConnected = false;
     private static volatile boolean isReconnecting = false;
 
-    public BinanceWebSocketClient(String serverUri, BinanceWebsocketHandler binanceWebsocketHandler, MarketInfoService marketInfoService, Binance binance) throws URISyntaxException {
+    public BinanceWebSocketClient(String serverUri, MarketDataWebsocketHandler marketDataWebsocketHandler, MarketInfoService marketInfoService, Binance binance) throws URISyntaxException {
         super(new URI(serverUri));
-        this.binanceWebsocketHandler = binanceWebsocketHandler;
+        this.marketDataWebsocketHandler = marketDataWebsocketHandler;
         this.marketInfoService = marketInfoService;
         this.binance = binance;
     }
@@ -46,6 +46,11 @@ public class BinanceWebSocketClient extends WebSocketClient {
     public void onMessage(String message) {
         try {
             BinanceReceiveDto binanceReceiveDto = objectMapper.readValue(message, BinanceReceiveDto.class);
+            if (binanceReceiveDto.hasError()) {
+                log.warn("[바이낸스] 에러 메시지 수신: {}", message);
+                return; // 에러 메시지는 무시하고 계속 연결 유지
+            }
+
             String token = binanceReceiveDto.getToken().replace("USDT", "");
             BigDecimal binancePrice = binanceReceiveDto.getPrice().multiply(BigDecimal.valueOf(marketInfoService.getDollarKRW()));
             BinanceDto foundBinanceDto = binance.binanceDtosMap.get(token);
@@ -61,7 +66,7 @@ public class BinanceWebSocketClient extends WebSocketClient {
                     foundBinanceDto.getRate_change(),
                     foundBinanceDto.getAcc_trade_price24()
             );
-            binanceWebsocketHandler.inputDataToHashMap(binanceDto);
+            marketDataWebsocketHandler.inputDataToHashMap(binanceDto);
         } catch (Exception e) {
             log.error("[바이낸스] 메시지 파싱 실패: {}", message, e);
         }
@@ -127,20 +132,25 @@ public class BinanceWebSocketClient extends WebSocketClient {
 
 
     private boolean checkNetworkConnect() {
-        try{
-            this.send("PING");
+        try {
+            this.sendPing();
 
-            // 3초간 blocking
-            // ('pong'을 받고, isConnected를 true로 만드는 시간을 3초 간 기다림)
-            synchronized (this){
-                this.wait(3000);
+            long startTime = System.currentTimeMillis();
+            long timeout = 3000; // 3 seconds timeout
+
+            while (System.currentTimeMillis() - startTime < timeout) {
+                if (isConnected) {
+                    return true;
+                }
+                try {
+                    Thread.sleep(100); // Check every 100ms
+                } catch (InterruptedException e) {
+                    log.warn("[바이낸스] 네트워크 상태 확인 중 인터럽트 발생, 계속 진행");
+                    Thread.interrupted(); // Clear interrupt status
+                }
             }
-            return isConnected;
-        } catch(InterruptedException e){
-            log.error("[바이낸스] 네트워크 상태 확인 중 방해됨", e);
-            Thread.currentThread().interrupt();
-            return false;
-        }catch(Exception e){
+            return false; // Timeout occurred
+        } catch (Exception e) {
             log.error("[바이낸스] 네트워크 상태 확인 중 오류 발생", e);
             return false;
         }
