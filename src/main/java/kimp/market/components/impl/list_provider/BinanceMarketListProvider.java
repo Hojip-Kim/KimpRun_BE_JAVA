@@ -7,7 +7,6 @@ import kimp.market.dto.market.common.BinanceMarketData;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.List;
@@ -17,16 +16,12 @@ import java.util.stream.Collectors;
 @Qualifier("binanceName")
 public class BinanceMarketListProvider implements MarketListProvider {
 
-    private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
     private final MarketCommonMethod marketCommonMethod;
 
     @Value("${binance.api.url}")
     private String binanceApiUrl;
 
-    public BinanceMarketListProvider(RestTemplate restTemplate, ObjectMapper objectMapper, MarketCommonMethod marketCommonMethod) {
-        this.restTemplate = restTemplate;
-        this.objectMapper = objectMapper;
+    public BinanceMarketListProvider(MarketCommonMethod marketCommonMethod) {
         this.marketCommonMethod = marketCommonMethod;
     }
 
