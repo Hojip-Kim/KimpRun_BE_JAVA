@@ -3,7 +3,10 @@ package kimp.chat.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.chat.dto.request.ChatMessage;
 import kimp.chat.service.ChatWebsocketService;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -40,7 +43,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         if(message.getPayloadLength() == 0){
-            throw new IllegalArgumentException("Not have text message contents");
+            throw new KimprunException(KimprunExceptionEnum.WEBSOCKET_SESSION_EXCEPTION, "WebSocket message payload is empty", HttpStatus.BAD_REQUEST, "ChatWebSocketHandler.handleTextMessage");
         }
         // 메시지를 받은 경우 처리 로직 (필요시)
         String payload = message.getPayload();

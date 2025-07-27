@@ -4,8 +4,11 @@ import kimp.exchange.dto.python.PythonNoticeResponseDto;
 import kimp.exchange.service.PythonScrapService;
 import kimp.notice.dto.notice.NoticeParsedData;
 import kimp.market.Enum.MarketType;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -110,7 +113,7 @@ public class PythonScrapServiceImpl implements PythonScrapService {
             case COINONE:
                 return "coinone";
             default:
-                throw new IllegalArgumentException("지원되지 않는 거래소: " + marketType);
+                throw new KimprunException(KimprunExceptionEnum.PYTHON_SERVICE_EXCEPTION, "Unsupported exchange type: " + marketType, HttpStatus.BAD_REQUEST, "PythonScrapServiceImpl.convertMarketTypeToExchangeName");
         }
     }
     

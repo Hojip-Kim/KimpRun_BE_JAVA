@@ -14,7 +14,10 @@ import kimp.market.dto.market.response.CombinedMarketDataList;
 import kimp.market.dto.market.response.MarketDataList;
 import kimp.market.service.MarketService;
 import kimp.market.dto.coin.common.market.MarketDto;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -76,7 +79,7 @@ public class MarketServiceImpl implements MarketService {
         CombinedMarketList marketList = new CombinedMarketList(first.getMarketList().getPairList(),getCombineMarketList(first.getMarketList(), second.getMarketList()));
 
         if(marketList.getFirstMarketList().isEmpty() || marketList.getSecondMarketList().isEmpty()){
-            throw new IllegalArgumentException("Not have marketList");
+            throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "Market lists are empty for markets: " + firstMarket + ", " + secondMarket, HttpStatus.INTERNAL_SERVER_ERROR, "MarketServiceImpl.getMarketList");
         }
         return marketList;
     }
@@ -126,7 +129,7 @@ public class MarketServiceImpl implements MarketService {
     public MarketDataList getMarketDataList(MarketType marketType) throws IOException {
         Market market = marketMap.get(marketType);
         if(market == null){
-            throw new IllegalArgumentException("제공하지 않는 마켓 타입입니다." + marketType.toString() );
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Unsupported market type: " + marketType.toString(), HttpStatus.BAD_REQUEST, "MarketServiceImpl.getMarketDataList");
         }
         return market.getMarketDataList();
     }

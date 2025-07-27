@@ -4,8 +4,11 @@ import kimp.community.dao.BoardDao;
 import kimp.community.entity.Board;
 import kimp.community.entity.Category;
 import kimp.community.repository.BoardRepository;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +27,7 @@ public class BoardDaoImpl implements BoardDao {
     @Override
     public Board createBoard(String title, String content) {
         if((title == null || title.isEmpty()) || (content == null || content.isEmpty())){
-            throw new IllegalArgumentException("title or content must not empty");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Board title and content cannot be null or empty", HttpStatus.BAD_REQUEST, "BoardDaoImpl.createBoard");
         }
         Board board = new Board(title, content);
 
@@ -35,7 +38,7 @@ public class BoardDaoImpl implements BoardDao {
     public Board getBoardById(Long id) {
         Optional<Board> board = boardRepository.findById(id);
         if(board.isEmpty()){
-            throw new IllegalArgumentException("not have board id :" + id);
+            throw new KimprunException(KimprunExceptionEnum.RESOURCE_NOT_FOUND_EXCEPTION, "Board not found with ID: " + id, HttpStatus.NOT_FOUND, "BoardDaoImpl.getBoardById");
         }
         return board.orElse(null);
     }
@@ -70,7 +73,7 @@ public class BoardDaoImpl implements BoardDao {
         this.boardRepository.deleteById(id);
 
         if(getBoardById(id) != null){
-            throw new IllegalArgumentException("board not deleted : id " + id);
+            throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "Failed to delete board with ID: " + id, HttpStatus.INTERNAL_SERVER_ERROR, "BoardDaoImpl.deleteBoardById");
         }
 
         return true;
@@ -95,7 +98,7 @@ public class BoardDaoImpl implements BoardDao {
         List<Board> boards = this.boardRepository.findAllById(ids);
 
         if(boards.isEmpty()){
-            throw new IllegalArgumentException("not have boards");
+            throw new KimprunException(KimprunExceptionEnum.RESOURCE_NOT_FOUND_EXCEPTION, "No boards found for the provided IDs", HttpStatus.NOT_FOUND, "BoardDaoImpl.findAllByIds");
         }
 
         return boards;
@@ -117,7 +120,7 @@ public class BoardDaoImpl implements BoardDao {
         }
 
         if(!isCompleted){
-            throw new IllegalArgumentException("boards activate Error occurred");
+            throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "Failed to activate pin for some boards", HttpStatus.INTERNAL_SERVER_ERROR, "BoardDaoImpl.activateBoardsPin");
         }
 
         return boards;
@@ -139,7 +142,7 @@ public class BoardDaoImpl implements BoardDao {
         }
 
         if(!isCompleted){
-            throw new IllegalArgumentException("boards deActivate Error occurred");
+            throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "Failed to deactivate pin for some boards", HttpStatus.INTERNAL_SERVER_ERROR, "BoardDaoImpl.deActivateBoardsPin");
         }
 
         return boards;

@@ -9,7 +9,10 @@ import kimp.market.Enum.MarketType;
 import kimp.market.dto.coin.response.CoinResponseDto;
 import kimp.market.dto.coin.response.CoinResponseWithMarketTypeDto;
 import kimp.market.entity.Coin;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -58,7 +61,7 @@ public class DtoConverter {
 
     public NoticeDto convertNoticeToDto(Notice notice) {
         if(notice == null){
-            throw new IllegalArgumentException("not have notice");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Notice cannot be null", HttpStatus.BAD_REQUEST, "DtoConverter.convertNoticeToDto");
         }
 
         NoticeDto noticeDto =  new NoticeDto(notice.getId() ,notice.getExchange().getMarket(),notice.getTitle(),notice.getLink(), notice.getDate());

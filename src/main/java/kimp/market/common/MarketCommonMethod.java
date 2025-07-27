@@ -1,6 +1,9 @@
 package kimp.market.common;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -46,7 +49,7 @@ public class MarketCommonMethod {
                     try {
                         return (String)componentType.getMethod(method).invoke(dto);
                     } catch (Exception e) {
-                        throw new RuntimeException("Failed to invoke method : " + method + " on DTO : " + dtoClass, e);
+                        throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "Failed to invoke method: " + method + " on DTO: " + dtoClass, HttpStatus.INTERNAL_SERVER_ERROR, "MarketCommonMethod.reflectionError");
                     }
                 })
                 .filter(market -> market != null && market.startsWith(startWith))
@@ -77,7 +80,7 @@ public class MarketCommonMethod {
                     try {
                         return (String)componentType.getMethod(method).invoke(dto);
                     } catch (Exception e) {
-                        throw new RuntimeException("Failed to invoke method : " + method + " on DTO : " + dtoClass, e);
+                        throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "Failed to invoke method: " + method + " on DTO: " + dtoClass, HttpStatus.INTERNAL_SERVER_ERROR, "MarketCommonMethod.reflectionError");
                     }
                 })
                 .filter(market -> market != null && market.endsWith(endWith))

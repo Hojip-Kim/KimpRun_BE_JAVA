@@ -27,7 +27,7 @@ public class CategoryDaoImpl implements CategoryDao {
         List<Category> categories = categoryRepository.findAll();
 
         if(categories.isEmpty()){
-            throw new IllegalArgumentException("database error : categories not have");
+            throw new KimprunException(KimprunExceptionEnum.RESOURCE_NOT_FOUND_EXCEPTION, "No categories found in database", HttpStatus.NOT_FOUND, "CategoryDaoImpl.getAllCategory");
         }
 
         return categories;
@@ -50,7 +50,7 @@ public class CategoryDaoImpl implements CategoryDao {
         Optional<Category> optionalCategory = this.categoryRepository.findByCategoryName(createCategoryRequestDto.getCategoryName());
 
         if(optionalCategory.isPresent()){
-            throw new IllegalArgumentException("Already have " + optionalCategory.get().getCategoryName() + " name");
+            return optionalCategory.get();
         }
 
         return this.categoryRepository.save(new Category(createCategoryRequestDto.getCategoryName()));
@@ -59,7 +59,7 @@ public class CategoryDaoImpl implements CategoryDao {
     @Override
     public Category updateCategory(UpdateCategoryRequestDto updateCategoryRequestDto){
         if(this.categoryRepository.findByCategoryName(updateCategoryRequestDto.getCategoryName()).isPresent()){
-            throw new IllegalArgumentException("Already have " + updateCategoryRequestDto.getCategoryName() + " name");
+            throw new KimprunException(KimprunExceptionEnum.RESOURCE_ALREADY_EXISTS_EXCEPTION, "Category name already exists: " + updateCategoryRequestDto.getCategoryName(), HttpStatus.CONFLICT, "CategoryDaoImpl.updateCategory");
         }
         Category category = getCategoryById(updateCategoryRequestDto.getCategoryId());
 

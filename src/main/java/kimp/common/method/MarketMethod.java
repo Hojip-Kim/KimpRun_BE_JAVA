@@ -5,7 +5,10 @@ import kimp.exchange.component.impl.exchange.BithumbScrap;
 import kimp.exchange.component.impl.exchange.CoinoneScrap;
 import kimp.exchange.component.impl.exchange.UpbitScrap;
 import kimp.market.Enum.MarketType;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -26,7 +29,7 @@ public class MarketMethod {
             case BINANCE -> BinanceScrap.class;
             case COINONE -> CoinoneScrap.class;
             case BITHUMB -> BithumbScrap.class;
-            default -> throw new IllegalArgumentException("Unsupported market type: " + marketType);
+            default -> throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Unsupported market type: " + marketType, HttpStatus.BAD_REQUEST, "MarketMethod.getMarketClass");
         };
     }
 
@@ -37,7 +40,7 @@ public class MarketMethod {
             case BITHUMB -> this.bithumbAbsoluteUrl;
             case COINONE -> this.coinoneAbsoluteUrl;
             case BINANCE -> this.binanceAbsoluteUrl;
-            default -> throw new IllegalArgumentException("Unsupported market type: " + marketType);
+            default -> throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Unsupported market type: " + marketType, HttpStatus.BAD_REQUEST, "MarketMethod.getMarketClass");
         };
     }
 

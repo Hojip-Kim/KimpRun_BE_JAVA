@@ -8,10 +8,13 @@ import kimp.community.dto.comment.request.RequestCreateCommentDto;
 import kimp.community.dto.comment.response.ResponseCommentDto;
 import kimp.community.entity.*;
 import kimp.community.repository.BoardRepository;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
 import kimp.user.entity.Member;
 import kimp.user.service.MemberService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -80,7 +83,7 @@ public class BoardPacadeService {
     public Board updateBoard(Long memberId, Long boardId, UpdateBoardRequestDto updateBoardRequestDto) {
         Board board = boardService.getBoardById(boardId);
         if(!board.getMember().getId().equals(memberId)) {
-            throw new IllegalArgumentException("Not valid member to updateBoard : " + boardId);
+            throw new KimprunException(KimprunExceptionEnum.AUTHENTICATION_REQUIRED_EXCEPTION, "User not authorized to update this board: " + boardId, HttpStatus.UNAUTHORIZED, "BoardPacadeService.updateBoard");
         }
 
         return boardService.updateBoard(board, updateBoardRequestDto);
@@ -89,7 +92,7 @@ public class BoardPacadeService {
     public Boolean deleteBoard(Long memberId, Long boardId){
         Board board = boardService.getBoardById(boardId);
         if(!board.getMember().getId().equals(memberId)) {
-            throw new IllegalArgumentException("Not valid member to deleteBoard : " + boardId);
+            throw new KimprunException(KimprunExceptionEnum.AUTHENTICATION_REQUIRED_EXCEPTION, "User not authorized to delete this board: " + boardId, HttpStatus.UNAUTHORIZED, "BoardPacadeService.deleteBoard");
         }
 
         return boardService.deleteBoard(board);

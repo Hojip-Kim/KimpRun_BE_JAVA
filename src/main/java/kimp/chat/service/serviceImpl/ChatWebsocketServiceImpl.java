@@ -5,6 +5,9 @@ import kimp.chat.dao.ChatDao;
 import kimp.chat.dto.ChatDto;
 import kimp.chat.dto.request.ChatMessage;
 import kimp.chat.service.ChatWebsocketService;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -28,7 +31,7 @@ public class ChatWebsocketServiceImpl implements ChatWebsocketService {
     @Override
     public void sessionInput(WebSocketSession webSocketSession){
         if(sessions.containsKey(webSocketSession.getId())){
-            throw new IllegalArgumentException("Already exists in Session Map : ID - " + webSocketSession.getId());
+            throw new KimprunException(KimprunExceptionEnum.WEBSOCKET_SESSION_EXCEPTION, "Session already exists in map: " + webSocketSession.getId(), HttpStatus.BAD_REQUEST, "ChatWebsocketServiceImpl.sessionInput");
         }
 
         sessions.put(webSocketSession.getId(), webSocketSession);
@@ -38,13 +41,13 @@ public class ChatWebsocketServiceImpl implements ChatWebsocketService {
     @Override
     public void sessionClose(WebSocketSession session){
         if(!sessions.containsKey(session.getId())){
-            throw new IllegalArgumentException("Session Map에 " + session.getId() + " ID 가 없습니다.");
+            throw new KimprunException(KimprunExceptionEnum.WEBSOCKET_SESSION_EXCEPTION, "Session not found in map: " + session.getId(), HttpStatus.BAD_REQUEST, "ChatWebsocketServiceImpl.sessionClose");
         }
 
         WebSocketSession removeSession = sessions.remove(session.getId());
 
         if(removeSession == null){
-            throw new IllegalArgumentException("session Remove Failed");
+            throw new KimprunException(KimprunExceptionEnum.WEBSOCKET_SESSION_EXCEPTION, "Failed to remove session from map", HttpStatus.INTERNAL_SERVER_ERROR, "ChatWebsocketServiceImpl.sessionClose");
         }
     }
 
@@ -55,7 +58,7 @@ public class ChatWebsocketServiceImpl implements ChatWebsocketService {
         String chatDtoJson = objectMapper.writeValueAsString(chatDto);
 
         if(chatDtoJson.isEmpty()){
-            throw new IllegalArgumentException("ChatDtoJson is Empty");
+            throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "Chat DTO JSON is empty", HttpStatus.INTERNAL_SERVER_ERROR, "ChatWebsocketServiceImpl.broadcastChat");
         }
         TextMessage newText = new TextMessage(chatDtoJson);
 
@@ -70,7 +73,7 @@ public class ChatWebsocketServiceImpl implements ChatWebsocketService {
     @Override
     public void saveMessage(ChatMessage chatMessage) {
         if(chatMessage.getContent().length() == 0){
-            throw new IllegalArgumentException("text message's content is null");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Chat message content cannot be empty", HttpStatus.BAD_REQUEST, "ChatWebsocketServiceImpl.saveMessage");
         }
         chatDao.insertChat(chatMessage.getChatID(), chatMessage.getContent(), chatMessage.getAuthenticated());
     }

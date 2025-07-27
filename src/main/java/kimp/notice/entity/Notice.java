@@ -4,7 +4,10 @@ package kimp.notice.entity;
 import jakarta.persistence.*;
 import kimp.common.entity.TimeStamp;
 import kimp.exchange.entity.Exchange;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 
@@ -42,7 +45,7 @@ public class Notice extends TimeStamp {
         if(this.exchange == null){
             this.exchange = exchange;
         }else{
-            throw new IllegalArgumentException("exchange is already set");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Exchange is already set for this notice", HttpStatus.BAD_REQUEST, "Notice.setExchange");
         }
         return this;
     }
@@ -52,7 +55,7 @@ public class Notice extends TimeStamp {
             return this;
         }
         if(title.isEmpty()){
-            throw new IllegalArgumentException("title is empty");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Notice title cannot be empty", HttpStatus.BAD_REQUEST, "Notice.updateTitle");
         }
         this.title = title;
         return this;
@@ -63,7 +66,7 @@ public class Notice extends TimeStamp {
             return this;
         }
         if(link.isEmpty()){
-            throw new IllegalArgumentException("link is empty");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Notice link cannot be empty", HttpStatus.BAD_REQUEST, "Notice.updateLink");
         }
         this.link = link;
         return this;
@@ -71,7 +74,7 @@ public class Notice extends TimeStamp {
 
     public Notice updateDate(LocalDateTime date) {
         if(date == null){
-            throw new IllegalArgumentException("date is null");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Notice date cannot be null", HttpStatus.BAD_REQUEST, "Notice.updateDate");
         }
         this.date = date;
         return this;

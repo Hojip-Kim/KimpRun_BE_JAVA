@@ -4,6 +4,9 @@ import kimp.exchange.dao.ExchangeDao;
 import kimp.exchange.entity.Exchange;
 import kimp.exchange.repository.ExchangeRepository;
 import kimp.market.Enum.MarketType;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -23,7 +26,7 @@ public class ExchangeDaoImpl implements ExchangeDao {
         Optional<Exchange> exchange = exchangeRepository.findById(id);
 
         if(!exchange.isPresent()) {
-            throw new IllegalArgumentException("Exchange not found : " + id);
+            throw new KimprunException(KimprunExceptionEnum.RESOURCE_NOT_FOUND_EXCEPTION, "Exchange not found with ID: " + id, HttpStatus.NOT_FOUND, "ExchangeDaoImpl.getExchangeById");
         }
 
         return exchange.get();
@@ -33,7 +36,7 @@ public class ExchangeDaoImpl implements ExchangeDao {
     public List<Exchange> getExchanges() {
         List<Exchange> exchanges = exchangeRepository.findAll();
         if(exchanges.isEmpty()) {
-            throw new IllegalArgumentException("No exchanges found");
+            throw new KimprunException(KimprunExceptionEnum.RESOURCE_NOT_FOUND_EXCEPTION, "No exchanges found in database", HttpStatus.NOT_FOUND, "ExchangeDaoImpl.getExchanges");
         }
         return exchanges;
     }
@@ -42,7 +45,7 @@ public class ExchangeDaoImpl implements ExchangeDao {
     public Exchange createExchange(Exchange exchange) {
         Exchange foundExchange = exchangeRepository.findExchangeByMarket(exchange.getMarket());
         if(foundExchange != null) {
-            throw new IllegalArgumentException("Exchange already exists");
+            return foundExchange;
         }
 
         return exchangeRepository.save(exchange);
@@ -52,7 +55,7 @@ public class ExchangeDaoImpl implements ExchangeDao {
     public Exchange getExchangeByMarketType(MarketType marketType) {
         Exchange exchange = exchangeRepository.findExchangeByMarket(marketType);
         if(exchange == null) {
-            throw new IllegalArgumentException("Exchange not found : " + marketType);
+            throw new KimprunException(KimprunExceptionEnum.RESOURCE_NOT_FOUND_EXCEPTION, "Exchange not found for market type: " + marketType, HttpStatus.NOT_FOUND, "ExchangeDaoImpl.getExchangeByMarketType");
         }
         return exchange;
     }
@@ -62,7 +65,7 @@ public class ExchangeDaoImpl implements ExchangeDao {
         List<Exchange> exchanges = exchangeRepository.findByMarketIn(marketTypes);
 
         if(exchanges.isEmpty()) {
-            throw new IllegalArgumentException("No exchanges found");
+            throw new KimprunException(KimprunExceptionEnum.RESOURCE_NOT_FOUND_EXCEPTION, "No exchanges found for the provided market types", HttpStatus.NOT_FOUND, "ExchangeDaoImpl.getExchangeByMarketTypes");
         }
 
         return exchanges;
@@ -72,7 +75,7 @@ public class ExchangeDaoImpl implements ExchangeDao {
     public List<Exchange> getExchangesByIds(List<Long> ids) {
         List<Exchange> exchanges = exchangeRepository.findByIdIn(ids);
         if(exchanges.isEmpty()) {
-            throw new IllegalArgumentException("No exchanges found");
+            throw new KimprunException(KimprunExceptionEnum.RESOURCE_NOT_FOUND_EXCEPTION, "No exchanges found for the provided IDs", HttpStatus.NOT_FOUND, "ExchangeDaoImpl.getExchangesByIds");
         }
         return exchanges;
     }
