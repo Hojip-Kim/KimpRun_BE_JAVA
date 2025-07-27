@@ -2,9 +2,13 @@ package kimp.market.entity;
 
 import jakarta.persistence.*;
 import kimp.common.entity.TimeStamp;
+import kimp.cmc.entity.coin.CmcCoin;
 import kimp.market.Enum.MarketType;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +37,11 @@ public class Coin extends TimeStamp {
 
     @Column(columnDefinition = "TEXT", nullable = true)
     private String content;
+
+    @OneToOne(mappedBy = "coin", fetch = FetchType.LAZY)
+    @JoinColumn(name = "cmc_coin_id", referencedColumnName = "cmc_coin_id", nullable = true)
+    private CmcCoin cmcCoin;
+
 
     public Coin(String symbol, String name, String englishName) {
         this.symbol = symbol;
@@ -64,7 +73,7 @@ public class Coin extends TimeStamp {
     }
 
     public void removeCoinExchange(CoinExchange coinExchange) {
-        this.coinExchanges.remove(coinExchanges);
+        this.coinExchanges.remove(coinExchange);
         coinExchange.setCoin(null);
     }
 
@@ -83,6 +92,22 @@ public class Coin extends TimeStamp {
     }
     public Coin updateEnglishName(String englishName) {
         this.englishName = englishName;
+        return this;
+    }
+
+    public Coin setCmcCoin(CmcCoin cmcCoin) {
+        if(this.cmcCoin != null){
+            throw new KimprunException(KimprunExceptionEnum.RESOURCE_ALREADY_EXISTS_EXCEPTION, "CMC Coin is already set for this coin", HttpStatus.CONFLICT, "Coin.setCmcCoin");
+        }
+        this.cmcCoin = cmcCoin;
+        return this;
+    }
+
+    public Coin updateCmcCoin(CmcCoin cmcCoin) {
+        if(this.cmcCoin != null){
+            throw new KimprunException(KimprunExceptionEnum.RESOURCE_ALREADY_EXISTS_EXCEPTION, "CMC Coin is already set for this coin", HttpStatus.CONFLICT, "Coin.updateCmcCoin");
+        }
+        this.cmcCoin = cmcCoin;
         return this;
     }
 
