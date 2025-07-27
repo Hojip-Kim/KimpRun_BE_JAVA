@@ -45,20 +45,5 @@ public class CmcBatchScheduler {
     }
 
 
-    // @Scheduled(fixedDelay = 600000) // 10분 = 600,000ms
-//    public void runCmcDataSyncJobForTest() {
-//        try {
-//            log.info("=== 테스트용 CoinMarketCap 데이터 동기화 시작 ===");
-//
-//            JobParameters jobParameters = new JobParametersBuilder()
-//                    .addLocalDateTime("executeTime", LocalDateTime.now())
-//                    .addString("mode", "test")
-//                    .toJobParameters();
-//
-//            jobLauncher.run(cmcDataSyncJob, jobParameters);
-//
-//        } catch (Exception e) {
-//            log.error("테스트용 CoinMarketCap 데이터 동기화 중 오류 발생", e);
-//        }
-//    }
+    
 } 
