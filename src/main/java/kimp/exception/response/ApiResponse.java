@@ -19,11 +19,11 @@ public class ApiResponse<T> {
     }
 
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(HttpStatus.OK.value(), null, data, null);
+        return new ApiResponse<>(HttpStatus.OK.value(), "Success", data, null);
     }
 
     public static <T> ApiResponse<T> success(HttpStatus status, T data) {
-        return new ApiResponse<>(status.value(), null, data, null);
+        return new ApiResponse<>(status.value(), "Success", data, null);
     }
 
     public static <T> ApiResponse<T> error(int status, String message, String detail) {
