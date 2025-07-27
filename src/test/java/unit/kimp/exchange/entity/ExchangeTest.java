@@ -1,6 +1,7 @@
 package unit.kimp.exchange.entity;
 
 import kimp.exchange.entity.Exchange;
+import kimp.exception.KimprunException;
 import kimp.market.Enum.MarketType;
 import kimp.market.entity.Coin;
 import kimp.market.entity.CoinExchange;
@@ -59,8 +60,8 @@ public class ExchangeTest {
 
         // When & Then
         assertThatThrownBy(() -> exchange.updateExchangeName(invalidMarketType))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Exchange (update) name cannot be null or empty");
+                .isInstanceOf(KimprunException.class)
+                .hasMessage("Exchange name cannot be null or empty");
     }
 
     @Test
@@ -90,7 +91,7 @@ public class ExchangeTest {
     void updateExchangeLinkEmptyLinkExceptionTest() {
         // When & Then
         assertThatThrownBy(() -> exchange.updateExchangeLink(""))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(KimprunException.class)
                 .hasMessage("Exchange link cannot be null or empty");
     }
 
@@ -99,7 +100,7 @@ public class ExchangeTest {
     void updateExchangeLinkNullLinkExceptionTest() {
         // When & Then
         assertThatThrownBy(() -> exchange.updateExchangeLink(null))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(KimprunException.class)
                 .hasMessage("Exchange link cannot be null or empty");
     }
 
