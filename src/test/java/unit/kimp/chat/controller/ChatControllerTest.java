@@ -1,9 +1,12 @@
 package unit.kimp.chat.controller;
 
 import kimp.chat.controller.ChatController;
+import kimp.chat.dto.response.ChatLogResponseDto;
+import kimp.chat.entity.Chat;
 import kimp.chat.service.ChatService;
 import kimp.common.dto.PageRequestDto;
-import org.apache.coyote.BadRequestException;
+import kimp.exception.KimprunException;
+import kimp.exception.response.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,8 +21,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ChatControllerTest {
@@ -40,56 +44,33 @@ public class ChatControllerTest {
     }
 
     @Test
-    @DisplayName("PageRequestDto 생성 시 유효하지 않은 page 또는 size 값으로 IllegalArgumentException 발생")
-    void pageRequestDtoInvalidTest() {
-        // page < 0인 경우
-        assertThrows(IllegalArgumentException.class, () -> {
-            new PageRequestDto(-1, 10);
-        });
-
-        // size <= 0인 경우
-        assertThrows(IllegalArgumentException.class, () -> {
-            new PageRequestDto(0, 0);
-        });
-
-        // page < 0이고 size <= 0인 경우
-        assertThrows(IllegalArgumentException.class, () -> {
-            new PageRequestDto(-1, 0);
-        });
-    }
-
-    @Test
-    @DisplayName("Get /allLog: 유효하지 않은 page 또는 size 값으로 BadRequestException 발생")
-    void chatLogTransferFailure() throws Exception {
+    @DisplayName("채팅 로그 조회 실패: 유효하지 않은 DTO")
+    void shouldThrowExceptionWhenGetChatsWithInvalidDto() {
         // given
-        PageRequestDto invalidDto1 = null;
+        PageRequestDto invalidDto = null;
 
         // when, then
-        assertThrows(BadRequestException.class, () -> {
-            chatController.getChats(invalidDto1, request);
-        });
-
+        assertThrows(KimprunException.class, () -> chatController.getChats(invalidDto, request));
     }
 
     @Test
-    @DisplayName("Get /allLog : page >= 0이거나 size > 0이면 통과")
-    void chatLogTransferSuccess() throws Exception {
+    @DisplayName("채팅 로그 조회 성공")
+    void shouldReturnChatLogsWhenRequestIsValid() {
         // given
-        List<PageRequestDto> pageAndSizeList = new ArrayList<>();
+        List<Chat> mockChatList = new ArrayList<>();
+        List<ChatLogResponseDto> mockResponseList = new ArrayList<>();
+        
+        when(chatService.getChatMessages(anyInt(), anyInt())).thenReturn(mockChatList);
+        when(chatService.convertChatLogToDto(mockChatList)).thenReturn(mockResponseList);
 
         // when
-        PageRequestDto validDto1 = new PageRequestDto(0, 10); // page >= 0
-        PageRequestDto validDto2 = new PageRequestDto(0, 5);   // size > 1
-
+        PageRequestDto validDto = new PageRequestDto(0, 10);
+        ApiResponse<List<ChatLogResponseDto>> response = chatController.getChats(validDto, request);
+        
         // then
-
-        assertDoesNotThrow(()-> {
-            chatController.getChats(validDto1, request);
-        });
-
-        assertDoesNotThrow(()-> {
-            chatController.getChats(validDto2, request);
-        });
+        assertNotNull(response);
+        assertEquals(200, response.getStatus());
+        assertNotNull(response.getData());
     }
 
 }

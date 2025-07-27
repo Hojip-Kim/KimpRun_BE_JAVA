@@ -37,18 +37,14 @@ public class SlackComponentTest {
     private final String webhookUrl = "https://dummy-webhook-url.com/test";
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         // SlackComponent를 생성자 주입으로 초기화
         slackComponent = new SlackComponent(webhookUrl, slack);
-        // private mapper 필드에 mock ObjectMapper 주입
-        Field mapperField = SlackComponent.class.getDeclaredField("mapper");
-        mapperField.setAccessible(true);
-        mapperField.set(slackComponent, objectMapper);
     }
 
     @Test
     @DisplayName("sendToSimpleText: DTO를 JSON으로 변환 후 Slack.send 호출 및 응답 반환")
-    void sendToSimpleText_callsSlackSend() throws Exception {
+    void shouldSendToSimpleTextAndReturnResponse() throws Exception {
         // given: DTO와 fake JSON
         ErrorResponseDTO dto = new ErrorResponseDTO(HttpStatus.ACCEPTED, "2nd test", "trace");
         String fakeJson = "{\"status\":202,\"message\":\"2nd test\",\"trace\":\"trace\"}";
