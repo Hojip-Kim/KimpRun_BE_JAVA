@@ -7,15 +7,15 @@ import org.springframework.http.HttpStatus;
 public class ApiResponse<T> {
 
     private final int status;
-    private final String error;
+    private final String message;
     private final T data;
-    private final String trace;
+    private final String detail;
 
-    private ApiResponse(int status, String error, T data, String trace) {
+    private ApiResponse(int status, String message, T data, String detail) {
         this.status = status;
-        this.error = error;
+        this.message = message;
         this.data = data;
-        this.trace = trace;
+        this.detail = detail;
     }
 
     public static <T> ApiResponse<T> success(T data) {
@@ -26,11 +26,11 @@ public class ApiResponse<T> {
         return new ApiResponse<>(status.value(), null, data, null);
     }
 
-    public static <T> ApiResponse<T> error(HttpStatus status, String errorType, String trace) {
-        return new ApiResponse<>(status.value(), errorType, null, trace);
+    public static <T> ApiResponse<T> error(int status, String message, String detail) {
+        return new ApiResponse<>(status, message, null, detail);
     }
 
-    public static <T> ApiResponse<T> error(int status, String errorType, String trace) {
-        return new ApiResponse<>(status, errorType, null, trace);
+    public boolean isSuccess() {
+        return this.message.equals("Success");
     }
 }
