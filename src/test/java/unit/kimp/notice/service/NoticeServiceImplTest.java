@@ -253,12 +253,12 @@ public class NoticeServiceImplTest {
         String newLink = "https://test.com/notice/2";
         Notice spyNotice = spy(notice);
         when(noticeDao.getNotice(anyLong())).thenReturn(spyNotice);
-        doThrow(new IllegalArgumentException("title is empty")).when(spyNotice).updateTitle(emptyTitle);
+        doThrow(new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Notice title cannot be empty", HttpStatus.BAD_REQUEST, "Notice.updateTitle")).when(spyNotice).updateTitle(emptyTitle);
 
         // When & Then
         assertThatThrownBy(() -> noticeService.updateNotice(1L, emptyTitle, newLink))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("title is empty");
+                .isInstanceOf(KimprunException.class)
+                .hasMessageContaining("Notice title cannot be empty");
         verify(noticeDao, times(1)).getNotice(1L);
         verify(spyNotice, times(1)).updateTitle(emptyTitle);
         verify(spyNotice, never()).updateLink(anyString());
@@ -305,12 +305,12 @@ public class NoticeServiceImplTest {
         // Given
         Notice spyNotice = spy(notice);
         when(noticeDao.getNotice(anyLong())).thenReturn(spyNotice);
-        doThrow(new IllegalArgumentException("date is null")).when(spyNotice).updateDate(null);
+        doThrow(new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Notice date cannot be null", HttpStatus.BAD_REQUEST, "Notice.updateDate")).when(spyNotice).updateDate(null);
 
         // When & Then
         assertThatThrownBy(() -> noticeService.updateNoticeDate(1L, null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("date is null");
+                .isInstanceOf(KimprunException.class)
+                .hasMessageContaining("Notice date cannot be null");
         verify(noticeDao, times(1)).getNotice(1L);
         verify(spyNotice, times(1)).updateDate(null);
         verify(dtoConverter, never()).convertNoticeToDto(any(Notice.class));
