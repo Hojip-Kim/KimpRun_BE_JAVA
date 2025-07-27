@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
@@ -26,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 public class CategoryControllerTest {
@@ -47,12 +49,17 @@ public class CategoryControllerTest {
     private CategoryDto mockCategoryDto;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws NoSuchFieldException, IllegalAccessException {
         request = new MockHttpServletRequest();
         mockCategory = new Category("Test Category");
+        // Use reflection to set the id field as it's not exposed by a setter
+        Field idField = Category.class.getDeclaredField("id");
+        idField.setAccessible(true);
+        idField.set(mockCategory, 1L);
+        
         mockCategoryDto = new CategoryDto(1L, "Test Category");
 
-        when(customUserDetails.getId()).thenReturn(1L);
+        lenient().when(customUserDetails.getId()).thenReturn(1L);
     }
 
     @Test
@@ -99,7 +106,7 @@ public class CategoryControllerTest {
     void shouldThrowExceptionWhenGetCategoryWithInvalidId() {
         // Act & Assert
         KimprunException exception = assertThrows(KimprunException.class, () -> categoryController.getCategory(request, -1L));
-        assertEquals("Category ID must be greater than or equal to 0", exception.getTrace());
+        assertEquals("Category ID must be greater than or equal to 0", exception.getMessage());
     }
 
     @Test
@@ -163,6 +170,6 @@ public class CategoryControllerTest {
     void shouldThrowExceptionWhenDeleteCategoryWithInvalidId() {
         // Act & Assert
         KimprunException exception = assertThrows(KimprunException.class, () -> categoryController.deleteCategory(customUserDetails, -1L));
-        assertEquals("Category ID must be greater than or equal to 0", exception.getTrace());
+        assertEquals("Category ID must be greater than or equal to 0", exception.getMessage());
     }
 }

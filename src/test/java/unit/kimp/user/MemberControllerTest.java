@@ -32,6 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 public class MemberControllerTest {
@@ -58,7 +59,12 @@ public class MemberControllerTest {
         mockMember.grantRole(UserRole.USER); // Use the public method to set role
         mockUserDto = new UserDto("test@example.com", "testuser", UserRole.USER);
 
-        when(customUserDetails.getId()).thenReturn(1L);
+        // Set adminUrl field using reflection for the admin redirect test
+        Field adminUrlField = MemberController.class.getDeclaredField("adminUrl");
+        adminUrlField.setAccessible(true);
+        adminUrlField.set(memberController, "http://admin.test.com");
+
+        lenient().when(customUserDetails.getId()).thenReturn(1L);
     }
 
     @Test
@@ -253,7 +259,7 @@ public class MemberControllerTest {
 
         // Act & Assert
         KimprunException exception = assertThrows(KimprunException.class, () -> memberController.updateMember(customUserDetails, updatePasswordDTO));
-        assertEquals("UpdateUserPasswordDTO cannot be null", exception.getTrace());
+        assertEquals("UpdateUserPasswordDTO cannot be null", exception.getMessage());
     }
 
     @Test
@@ -287,7 +293,7 @@ public class MemberControllerTest {
 
         // Act & Assert
         KimprunException exception = assertThrows(KimprunException.class, () -> memberController.updateMemberNickname(customUserDetails, updateNicknameDTO));
-        assertEquals("UpdateUserNicknameDTO cannot be null", exception.getTrace());
+        assertEquals("UpdateUserNicknameDTO cannot be null", exception.getMessage());
     }
 
     @Test
@@ -316,7 +322,7 @@ public class MemberControllerTest {
 
         // Act & Assert
         KimprunException exception = assertThrows(KimprunException.class, () -> memberController.deActivateMember(customUserDetails, deActivateUserDTO));
-        assertEquals("DeActivateUserDTO cannot be null", exception.getTrace());
+        assertEquals("DeActivateUserDTO cannot be null", exception.getMessage());
     }
 
     @Test
@@ -345,7 +351,7 @@ public class MemberControllerTest {
 
         // Act & Assert
         KimprunException exception = assertThrows(KimprunException.class, () -> memberController.deleteMember(customUserDetails, deleteUserDTO));
-        assertEquals("DeleteUserDTO cannot be null", exception.getTrace());
+        assertEquals("DeleteUserDTO cannot be null", exception.getMessage());
     }
 
     @Test

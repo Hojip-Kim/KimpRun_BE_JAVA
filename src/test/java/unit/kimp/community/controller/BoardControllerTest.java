@@ -25,19 +25,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 public class BoardControllerTest {
@@ -74,7 +72,7 @@ public class BoardControllerTest {
         mockAllBoardResponseDto = new AllBoardResponseDto();
         mockBoardWithCountResponseDto = new BoardWithCountResponseDto(new ArrayList<>(), 0);
 
-        when(customUserDetails.getId()).thenReturn(1L);
+        lenient().when(customUserDetails.getId()).thenReturn(1L);
     }
 
     @Test
@@ -116,7 +114,7 @@ public class BoardControllerTest {
     void shouldThrowExceptionWhenGetBoardWithInvalidBoardId() {
         // Act & Assert
         KimprunException exception = assertThrows(KimprunException.class, () -> boardController.getBoard(customUserDetails, -1L, 1));
-        assertEquals("Board ID must be non-negative", exception.getTrace());
+        assertEquals("Board ID must be non-negative", exception.getMessage());
     }
 
     @Test
@@ -145,7 +143,7 @@ public class BoardControllerTest {
     void shouldThrowExceptionWhenGetAllCategoryBoardsWithInvalidPage() {
         // Act & Assert
         KimprunException exception = assertThrows(KimprunException.class, () -> boardController.getAllCategoryBoards(0));
-        assertEquals("Page number must be greater than 0", exception.getTrace());
+        assertEquals("Page number must be greater than 0", exception.getMessage());
     }
 
     @Test
@@ -174,7 +172,7 @@ public class BoardControllerTest {
     void shouldThrowExceptionWhenGetBoardsPageWithInvalidCategoryId() {
         // Act & Assert
         KimprunException exception = assertThrows(KimprunException.class, () -> boardController.getBoardsPageWithPage(-1L, 1));
-        assertEquals("Category ID must be greater than or equal to 0", exception.getTrace());
+        assertEquals("Category ID must be greater than or equal to 0", exception.getMessage());
     }
 
     @Test
@@ -182,7 +180,7 @@ public class BoardControllerTest {
     void shouldThrowExceptionWhenGetBoardsPageWithInvalidPage() {
         // Act & Assert
         KimprunException exception = assertThrows(KimprunException.class, () -> boardController.getBoardsPageWithPage(1L, 0));
-        assertEquals("Page number must be greater than 0", exception.getTrace());
+        assertEquals("Page number must be greater than 0", exception.getMessage());
     }
 
     @Test
@@ -210,7 +208,7 @@ public class BoardControllerTest {
 
         // Act & Assert
         KimprunException exception = assertThrows(KimprunException.class, () -> boardController.createBoard(customUserDetails, -1L, createBoardRequestDto));
-        assertEquals("Category ID must be greater than or equal to 0", exception.getTrace());
+        assertEquals("Category ID must be greater than or equal to 0", exception.getMessage());
     }
 
     @Test
@@ -218,7 +216,7 @@ public class BoardControllerTest {
     void shouldThrowExceptionWhenCreateBoardWithNullDto() {
         // Act & Assert
         KimprunException exception = assertThrows(KimprunException.class, () -> boardController.createBoard(customUserDetails, 1L, null));
-        assertEquals("CreateBoardRequestDto cannot be null", exception.getTrace());
+        assertEquals("CreateBoardRequestDto cannot be null", exception.getMessage());
     }
 
     @Test
@@ -249,7 +247,7 @@ public class BoardControllerTest {
 
         // Act & Assert
         KimprunException exception = assertThrows(KimprunException.class, () -> boardController.updateBoard(customUserDetails, -1L, updateBoardRequestDto));
-        assertEquals("Board ID must be greater than or equal to 0", exception.getTrace());
+        assertEquals("Board ID must be greater than or equal to 0", exception.getMessage());
     }
 
     @Test
@@ -274,7 +272,7 @@ public class BoardControllerTest {
     void shouldThrowExceptionWhenDeleteBoardWithInvalidBoardId() {
         // Act & Assert
         KimprunException exception = assertThrows(KimprunException.class, () -> boardController.deleteBoard(customUserDetails, -1L));
-        assertEquals("Board ID must be greater than or equal to 0", exception.getTrace());
+        assertEquals("Board ID must be greater than or equal to 0", exception.getMessage());
     }
 
     @Test
@@ -282,7 +280,7 @@ public class BoardControllerTest {
     void shouldActivateBoardsPinSuccessfully() {
         // Arrange
         RequestBoardPin requestBoardPin = new RequestBoardPin(Arrays.asList(1L, 2L));
-        doNothing().when(boardService).activatePinWithBoard(anyList());
+        when(boardService.activatePinWithBoard(anyList())).thenReturn(Arrays.asList(mockBoard));
 
         // Act
         ApiResponse<Boolean> response = boardController.activateBoardsPin(customUserDetails, requestBoardPin);
@@ -300,7 +298,7 @@ public class BoardControllerTest {
     void shouldDeactivateBoardsPinSuccessfully() {
         // Arrange
         RequestBoardPin requestBoardPin = new RequestBoardPin(Arrays.asList(1L, 2L));
-        doNothing().when(boardService).deactivatePinWithBoard(anyList());
+        when(boardService.deactivatePinWithBoard(anyList())).thenReturn(Arrays.asList(mockBoard));
 
         // Act
         ApiResponse<Boolean> response = boardController.deActivateBoardsPin(customUserDetails, requestBoardPin);

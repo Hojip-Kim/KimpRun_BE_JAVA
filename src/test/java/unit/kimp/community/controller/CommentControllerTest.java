@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 public class CommentControllerTest {
@@ -54,7 +55,7 @@ public class CommentControllerTest {
         mockComment = new Comment();
         mockResponseCommentDto = new ResponseCommentDto();
 
-        when(customUserDetails.getId()).thenReturn(1L);
+        lenient().when(customUserDetails.getId()).thenReturn(1L);
     }
 
     @Test
