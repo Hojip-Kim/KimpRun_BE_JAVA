@@ -80,14 +80,17 @@ public class NoticeServiceImpl implements NoticeService
 
     @Override
     public NoticeDto updateNotice(Long id, String title, String link) {
-        // 구현 필요
-        return null;
+        Notice notice = noticeDao.getNotice(id);
+        notice.updateTitle(title);
+        notice.updateLink(link);
+        return dtoConverter.convertNoticeToDto(notice);
     }
 
     @Override
     public NoticeDto updateNoticeDate(Long id, LocalDateTime date) {
-        // 구현 필요
-        return null;
+        Notice notice = noticeDao.getNotice(id);
+        notice.updateDate(date);
+        return dtoConverter.convertNoticeToDto(notice);
     }
 
     @Override
