@@ -12,8 +12,12 @@ import kimp.community.entity.Board;
 import kimp.community.service.BoardPerformanceService;
 import kimp.community.service.BoardService;
 import kimp.community.service.BoardPacadeService;
+import kimp.exception.response.ApiResponse;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -55,9 +59,9 @@ public class BoardController {
     List<ResponseCommentDto> comments
      */
     @GetMapping()
-    private BoardWithCommentResponseDto getBoard(@AuthenticationPrincipal UserDetails UserDetails, @RequestParam("boardId") long boardId, @RequestParam("commentPage") int commentPage){
+    private ApiResponse<BoardWithCommentResponseDto> getBoard(@AuthenticationPrincipal UserDetails UserDetails, @RequestParam("boardId") long boardId, @RequestParam("commentPage") int commentPage){
         if(boardId < 0){
-            throw new IllegalArgumentException("categoryId and boardId must be non-negative");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, "Board ID must be non-negative", HttpStatus.BAD_REQUEST, "BoardController.getBoard");
         }
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
@@ -69,52 +73,46 @@ public class BoardController {
             memberId = customUserDetails.getId();
         }
 
-
-
         BoardWithCommentResponseDto board = boardPacadeService.getBoardByIdWithCommentPage(memberId,boardId, commentPage);
-
-        return board;
+        return ApiResponse.success(board);
     }
 
     @GetMapping("/all/page")
-    private AllBoardResponseDto getAllCategoryBoards(@RequestParam("page") int page){
+    private ApiResponse<AllBoardResponseDto> getAllCategoryBoards(@RequestParam("page") int page){
         if(page < 1){
-            throw new IllegalArgumentException("page must greater than 1");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PAGE_PARAMETER_EXCEPTION, "Page number must be greater than 0", HttpStatus.BAD_REQUEST, "BoardController.getAllCategoryBoards");
         }
 
         Page<Board> boardList = this.boardService.getBoardsByPage(page-1);
         Long boardCount = this.boardService.getBoardsCount();
-
-        return this.boardService.convertBoardPagesToAllBoardResponseDtos(boardList, boardCount);
+        AllBoardResponseDto result = this.boardService.convertBoardPagesToAllBoardResponseDtos(boardList, boardCount);
+        return ApiResponse.success(result);
     }
 
     // 필요한 field : memberId, member name, boardId, registed_at, boardTitle, boardViews, boardLikeCount
     @GetMapping("/{categoryId}/{page}")
-    private BoardWithCountResponseDto getBoardsPageWithPage(@PathVariable("categoryId") Long categoryId, @PathVariable("page") Integer page){
+    private ApiResponse<BoardWithCountResponseDto> getBoardsPageWithPage(@PathVariable("categoryId") Long categoryId, @PathVariable("page") Integer page){
         if(categoryId < 0){
-            throw new IllegalArgumentException("request parameter categoryId must be greater than 0");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, "Category ID must be greater than or equal to 0", HttpStatus.BAD_REQUEST, "BoardController.getBoardsPageWithPage");
         }
         if(page < 1){
-            throw new IllegalArgumentException("page must greater than 1");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PAGE_PARAMETER_EXCEPTION, "Page number must be greater than 0", HttpStatus.BAD_REQUEST, "BoardController.getBoardsPageWithPage");
         }
         Page<Board> boardList = boardPacadeService.getBoardPageWithCategoryId(categoryId, page-1);
         List<BoardResponseDto> boardDtos = boardPacadeService.convertBoardsToBoardResponseDtos(boardList);
-
         Integer boardCount = boardPacadeService.getBoardCountByCategoryId(categoryId);
-
-
-        return new BoardWithCountResponseDto(boardDtos, boardCount);
-
+        BoardWithCountResponseDto result = new BoardWithCountResponseDto(boardDtos, boardCount);
+        return ApiResponse.success(result);
     }
 
     @PostMapping("/{categoryId}/create")
-    private void createBoard(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("categoryId") long categoryId, @RequestBody CreateBoardRequestDto createBoardRequestDto) {
+    private ApiResponse<Void> createBoard(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("categoryId") long categoryId, @RequestBody CreateBoardRequestDto createBoardRequestDto) {
 
         if(categoryId < 0) {
-            throw new IllegalArgumentException("request parameter categoryId must be greater than 0");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, "Category ID must be greater than or equal to 0", HttpStatus.BAD_REQUEST, "BoardController.createBoard");
         }
         if(createBoardRequestDto == null){
-            throw new IllegalArgumentException("request parameter createBoardRequestDto must not be null");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "CreateBoardRequestDto cannot be null", HttpStatus.BAD_REQUEST, "BoardController.createBoard");
         }
 
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
@@ -122,7 +120,7 @@ public class BoardController {
         BoardInsertDto boardInsertDto = new BoardInsertDto(customUserDetails.getId(), categoryId, createBoardRequestDto.getTitle(), createBoardRequestDto.getContent());
 
         this.boardPerformanceService.enqueueBoardQueue(boardInsertDto);
-
+        return ApiResponse.success(null);
     }
 
 //    @PostMapping("/{categoryId}/create")
@@ -144,65 +142,51 @@ public class BoardController {
 //    }
 
     @PatchMapping("/{boardId}")
-    private BoardResponseDto updateBoard(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("boardId") long boardId, @RequestBody UpdateBoardRequestDto updateBoardRequestDto){
+    private ApiResponse<BoardResponseDto> updateBoard(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("boardId") long boardId, @RequestBody UpdateBoardRequestDto updateBoardRequestDto){
         if(boardId < 0){
-            throw new IllegalArgumentException("boardId must greater than 0");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, "Board ID must be greater than or equal to 0", HttpStatus.BAD_REQUEST, "BoardController.updateBoard");
         }
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
         Board board = this.boardPacadeService.updateBoard(customUserDetails.getId(), boardId, updateBoardRequestDto);
-
-        return this.boardPacadeService.convertBoardToBoardResponseDto(board);
+        BoardResponseDto result = this.boardPacadeService.convertBoardToBoardResponseDto(board);
+        return ApiResponse.success(result);
     }
 
     @DeleteMapping("/{boardId}")
-    private ResponseEntity<Void> deleteBoard(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("boardId") long boardId) {
-        Boolean isDeleted = false;
+    private ApiResponse<Boolean> deleteBoard(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("boardId") long boardId) {
         if(boardId < 0){
-            throw new IllegalArgumentException("boardId must greater than 0");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, "Board ID must be greater than or equal to 0", HttpStatus.BAD_REQUEST, "BoardController.deleteBoard");
         }
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
-        isDeleted = this.boardPacadeService.deleteBoard(customUserDetails.getId(), boardId);
-
-        if(isDeleted){
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.notFound().build();
+        Boolean isDeleted = this.boardPacadeService.deleteBoard(customUserDetails.getId(), boardId);
+        return ApiResponse.success(isDeleted);
     }
 
     @PreAuthorize("hasAnyAuthority('MANAGER','OPERATOR')")
     @PatchMapping("/activate")
-    private ResponseEntity<Boolean> activateBoardsPin(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody RequestBoardPin requestBoardPin) {
+    private ApiResponse<Boolean> activateBoardsPin(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody RequestBoardPin requestBoardPin) {
 
         this.boardService.activatePinWithBoard(requestBoardPin.getBoardIds());
-
-        return ResponseEntity.ok(true);
+        return ApiResponse.success(true);
     }
 
     @PreAuthorize("hasAnyAuthority('MANAGER','OPERATOR')")
     @PatchMapping("/deActivate")
-    private ResponseEntity<Boolean> deActivateBoardsPin(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody RequestBoardPin requestBoardPin) {
+    private ApiResponse<Boolean> deActivateBoardsPin(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody RequestBoardPin requestBoardPin) {
 
         this.boardService.deactivatePinWithBoard(requestBoardPin.getBoardIds());
-
-        return ResponseEntity.ok(true);
-
+        return ApiResponse.success(true);
     }
 
     @PatchMapping("/like")
-    private ResponseEntity<Void> likeBoard(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody long boardId){
+    private ApiResponse<Boolean> likeBoard(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody long boardId){
 
         CustomUserDetails customUserDetails = (CustomUserDetails)UserDetails;
 
         Boolean isCompleted = boardPacadeService.likeBoardById(boardId, customUserDetails.getId());
-
-        if(!isCompleted){
-            return ResponseEntity.badRequest().build();
-        }
-
-        return ResponseEntity.ok().build();
+        return ApiResponse.success(isCompleted);
     }
 
 }

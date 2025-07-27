@@ -1,5 +1,6 @@
 package kimp.market.controller;
 
+import kimp.exception.response.ApiResponse;
 import kimp.market.dto.coin.request.*;
 import kimp.market.dto.coin.response.CoinResponseDto;
 import kimp.market.service.CoinService;
@@ -18,75 +19,52 @@ public class CoinController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CoinResponseDto> getCoinById(@PathVariable("id") long id) {
+    public ApiResponse<CoinResponseDto> getCoinById(@PathVariable("id") long id) {
         CoinResponseDto response = coinService.getCoinByID(id);
-        if(response == null){
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(response);
+        return ApiResponse.success(response);
     }
 
     @GetMapping("/exchange/{exchangeId}")
-    public ResponseEntity<List<CoinResponseDto>> getCoinByExchangeId(@PathVariable("exchangeId") long exchangeId) {
+    public ApiResponse<List<CoinResponseDto>> getCoinByExchangeId(@PathVariable("exchangeId") long exchangeId) {
         List<CoinResponseDto> response = coinService.getCoinsByExchangeId(exchangeId);
-        if(response == null || response.isEmpty()){
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(response);
-
+        return ApiResponse.success(response);
     }
 
     @PostMapping("/create")
-    public ResponseEntity<CoinResponseDto> createCoin(@RequestBody CreateCoinDto createCoinDto) {
+    public ApiResponse<CoinResponseDto> createCoin(@RequestBody CreateCoinDto createCoinDto) {
         CoinResponseDto response = coinService.createCoin(createCoinDto);
-        if(response == null){
-            return ResponseEntity.internalServerError().build();
-        }
-
-        return ResponseEntity.ok(response);
+        return ApiResponse.success(response);
     }
 
     @PatchMapping("/update/all")
-    public ResponseEntity<CoinResponseDto> updateAllCoinData(@RequestBody UpdateCoinDto updateCoinDto) {
+    public ApiResponse<CoinResponseDto> updateAllCoinData(@RequestBody UpdateCoinDto updateCoinDto) {
 
         CoinResponseDto response = coinService.updateCoin(updateCoinDto);
-        if(response == null){
-            return ResponseEntity.internalServerError().build();
-        }
-        return ResponseEntity.ok(response);
+        return ApiResponse.success(response);
     }
 
     @PatchMapping("/update/content")
-    public ResponseEntity<CoinResponseDto> updateCoinContent(@RequestBody UpdateContentCoinDto updateContentCoinDto) {
+    public ApiResponse<CoinResponseDto> updateCoinContent(@RequestBody UpdateContentCoinDto updateContentCoinDto) {
         CoinResponseDto response = coinService.updateContentCoin(updateContentCoinDto);
-        if(response == null){
-            return ResponseEntity.internalServerError().build();
-        }
-        return ResponseEntity.ok(response);
+        return ApiResponse.success(response);
     }
 
     @PatchMapping("/add/exchange")
-    public ResponseEntity<CoinResponseDto> addExchangeCoin(@RequestBody AdjustExchangeCoinDto adjustExchangeCoinDto) {
+    public ApiResponse<CoinResponseDto> addExchangeCoin(@RequestBody AdjustExchangeCoinDto adjustExchangeCoinDto) {
         CoinResponseDto response = coinService.addExchangeCoin(adjustExchangeCoinDto);
-        if(response == null){
-            return ResponseEntity.internalServerError().build();
-        }
-        return ResponseEntity.ok(response);
+        return ApiResponse.success(response);
     }
 
     @PatchMapping("/delist/exchange")
-    public ResponseEntity<Boolean> delistExchangeCoin(@RequestBody AdjustExchangeCoinDto adjustExchangeCoinDto) {
+    public ApiResponse<Boolean> delistExchangeCoin(@RequestBody AdjustExchangeCoinDto adjustExchangeCoinDto) {
         coinService.deleteExchangeCoin(adjustExchangeCoinDto);
-
-        return ResponseEntity.ok(true);
+        return ApiResponse.success(true);
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<Boolean> deleteCoin(@RequestBody DeleteCoinDto deleteCoinDto) {
+    public ApiResponse<Boolean> deleteCoin(@RequestBody DeleteCoinDto deleteCoinDto) {
         coinService.deleteCoin(deleteCoinDto);
-
-        return ResponseEntity.ok(true);
+        return ApiResponse.success(true);
     }
 
 
