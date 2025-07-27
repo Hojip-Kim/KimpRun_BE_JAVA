@@ -37,9 +37,14 @@ public class SlackComponentTest {
     private final String webhookUrl = "https://dummy-webhook-url.com/test";
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws NoSuchFieldException, IllegalAccessException {
         // SlackComponent를 생성자 주입으로 초기화
         slackComponent = new SlackComponent(webhookUrl, slack);
+        
+        // ObjectMapper를 reflection으로 주입
+        Field mapperField = SlackComponent.class.getDeclaredField("mapper");
+        mapperField.setAccessible(true);
+        mapperField.set(slackComponent, objectMapper);
     }
 
     @Test
