@@ -10,6 +10,7 @@ import kimp.notice.dto.notice.NoticeDto;
 import kimp.notice.entity.Notice;
 import kimp.notice.service.NoticeService;
 import kimp.market.Enum.MarketType;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,9 +19,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
-public class NoticeServiceImpl implements NoticeService {
+@Slf4j
+public class NoticeServiceImpl implements NoticeService
+{
 
     private final NoticeDao noticeDao;
     private final DtoConverter dtoConverter;
@@ -75,21 +79,24 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    @Transactional
     public NoticeDto updateNotice(Long id, String title, String link) {
-        Notice notice = noticeDao.getNotice(id);
-        notice.updateTitle(title);
-        notice.updateLink(link);
-
-        return dtoConverter.convertNoticeToDto(notice);
+        // 구현 필요
+        return null;
     }
 
     @Override
-    @Transactional
     public NoticeDto updateNoticeDate(Long id, LocalDateTime date) {
-        Notice notice = noticeDao.getNotice(id);
-        notice.updateDate(date);
+        // 구현 필요
+        return null;
+    }
 
-        return dtoConverter.convertNoticeToDto(notice);
+    @Override
+    public List<String> getRecentNoticeLinks(MarketType marketType, int limit) {
+        try {
+            return noticeDao.getRecentNoticeLinks(marketType, limit);
+        } catch (Exception e) {
+            log.error("최신 공지사항 링크 조회 실패: {} - {}", marketType, e.getMessage());
+            return List.of(); // 빈 리스트 반환
+        }
     }
 }

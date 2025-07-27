@@ -3,7 +3,9 @@ package kimp.notice.dao.impl;
 import kimp.notice.dao.NoticeDao;
 import kimp.notice.entity.Notice;
 import kimp.notice.repository.NoticeRepository;
+import kimp.market.Enum.MarketType;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,5 +69,11 @@ public class NoticeDaoImpl implements NoticeDao {
     @Override
     public Page<Notice> findAllByOrderByRegistedAtAsc(Pageable pageable) {
         return this.noticeRepository.findByOrderByDateDesc(pageable);
+    }
+
+    @Override
+    public List<String> getRecentNoticeLinks(MarketType marketType, int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
+        return this.noticeRepository.findRecentNoticeLinksByMarketType(marketType, pageable);
     }
 }
