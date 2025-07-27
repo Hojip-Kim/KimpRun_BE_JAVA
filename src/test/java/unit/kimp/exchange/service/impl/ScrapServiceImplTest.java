@@ -107,9 +107,9 @@ public class ScrapServiceImplTest {
 
         doReturn("old-hash").when(upbitScrapComponent).getNoticeFromRedis();
         doReturn(true).when(upbitScrapComponent).isUpdatedNotice(anyString(), anyList());
+        doReturn(upbitNoticeParsedDataList).when(upbitScrapComponent).getNoticeData(); // Mock existing notice data
         doReturn(upbitNewNoticeList).when(upbitScrapComponent).getNewNotice(anyList());
         doReturn(MarketType.UPBIT).when(upbitScrapComponent).getMarketType();
-        doReturn(upbitNewNoticeList).when(upbitScrapComponent).getFieldNewNotice();
 
         doReturn("old-hash").when(coinoneScrapComponent).getNoticeFromRedis();
         doReturn(false).when(coinoneScrapComponent).isUpdatedNotice(anyString(), anyList());
@@ -151,9 +151,9 @@ public class ScrapServiceImplTest {
 
         doReturn("old-hash").when(coinoneScrapComponent).getNoticeFromRedis();
         doReturn(true).when(coinoneScrapComponent).isUpdatedNotice(anyString(), anyList());
+        doReturn(coinoneNoticeParsedDataList).when(coinoneScrapComponent).getNoticeData(); // Mock existing notice data
         doReturn(coinoneNewNoticeList).when(coinoneScrapComponent).getNewNotice(anyList());
         doReturn(MarketType.COINONE).when(coinoneScrapComponent).getMarketType();
-        doReturn(coinoneNewNoticeList).when(coinoneScrapComponent).getFieldNewNotice();
 
         NoticeDto coinoneNoticeDto = new NoticeDto(2L, MarketType.COINONE, "Coinone New Notice", "https://coinone.co.kr/notice/new", LocalDateTime.now());
         when(noticeService.getNoticeByLink(anyString())).thenReturn(coinoneNoticeDto);
