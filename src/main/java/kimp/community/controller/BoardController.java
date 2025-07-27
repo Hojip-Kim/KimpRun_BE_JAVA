@@ -59,7 +59,7 @@ public class BoardController {
     List<ResponseCommentDto> comments
      */
     @GetMapping()
-    private ApiResponse<BoardWithCommentResponseDto> getBoard(@AuthenticationPrincipal UserDetails UserDetails, @RequestParam("boardId") long boardId, @RequestParam("commentPage") int commentPage){
+    public ApiResponse<BoardWithCommentResponseDto> getBoard(@AuthenticationPrincipal UserDetails UserDetails, @RequestParam("boardId") long boardId, @RequestParam("commentPage") int commentPage){
         if(boardId < 0){
             throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, "Board ID must be non-negative", HttpStatus.BAD_REQUEST, "BoardController.getBoard");
         }
@@ -78,7 +78,7 @@ public class BoardController {
     }
 
     @GetMapping("/all/page")
-    private ApiResponse<AllBoardResponseDto> getAllCategoryBoards(@RequestParam("page") int page){
+    public ApiResponse<AllBoardResponseDto> getAllCategoryBoards(@RequestParam("page") int page){
         if(page < 1){
             throw new KimprunException(KimprunExceptionEnum.INVALID_PAGE_PARAMETER_EXCEPTION, "Page number must be greater than 0", HttpStatus.BAD_REQUEST, "BoardController.getAllCategoryBoards");
         }
@@ -91,7 +91,7 @@ public class BoardController {
 
     // 필요한 field : memberId, member name, boardId, registed_at, boardTitle, boardViews, boardLikeCount
     @GetMapping("/{categoryId}/{page}")
-    private ApiResponse<BoardWithCountResponseDto> getBoardsPageWithPage(@PathVariable("categoryId") Long categoryId, @PathVariable("page") Integer page){
+    public ApiResponse<BoardWithCountResponseDto> getBoardsPageWithPage(@PathVariable("categoryId") Long categoryId, @PathVariable("page") Integer page){
         if(categoryId < 0){
             throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, "Category ID must be greater than or equal to 0", HttpStatus.BAD_REQUEST, "BoardController.getBoardsPageWithPage");
         }
@@ -106,7 +106,7 @@ public class BoardController {
     }
 
     @PostMapping("/{categoryId}/create")
-    private ApiResponse<Void> createBoard(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("categoryId") long categoryId, @RequestBody CreateBoardRequestDto createBoardRequestDto) {
+    public ApiResponse<Void> createBoard(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("categoryId") long categoryId, @RequestBody CreateBoardRequestDto createBoardRequestDto) {
 
         if(categoryId < 0) {
             throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, "Category ID must be greater than or equal to 0", HttpStatus.BAD_REQUEST, "BoardController.createBoard");
@@ -142,7 +142,7 @@ public class BoardController {
 //    }
 
     @PatchMapping("/{boardId}")
-    private ApiResponse<BoardResponseDto> updateBoard(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("boardId") long boardId, @RequestBody UpdateBoardRequestDto updateBoardRequestDto){
+    public ApiResponse<BoardResponseDto> updateBoard(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("boardId") long boardId, @RequestBody UpdateBoardRequestDto updateBoardRequestDto){
         if(boardId < 0){
             throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, "Board ID must be greater than or equal to 0", HttpStatus.BAD_REQUEST, "BoardController.updateBoard");
         }
@@ -154,7 +154,7 @@ public class BoardController {
     }
 
     @DeleteMapping("/{boardId}")
-    private ApiResponse<Boolean> deleteBoard(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("boardId") long boardId) {
+    public ApiResponse<Boolean> deleteBoard(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("boardId") long boardId) {
         if(boardId < 0){
             throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, "Board ID must be greater than or equal to 0", HttpStatus.BAD_REQUEST, "BoardController.deleteBoard");
         }
@@ -166,7 +166,7 @@ public class BoardController {
 
     @PreAuthorize("hasAnyAuthority('MANAGER','OPERATOR')")
     @PatchMapping("/activate")
-    private ApiResponse<Boolean> activateBoardsPin(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody RequestBoardPin requestBoardPin) {
+    public ApiResponse<Boolean> activateBoardsPin(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody RequestBoardPin requestBoardPin) {
 
         this.boardService.activatePinWithBoard(requestBoardPin.getBoardIds());
         return ApiResponse.success(true);
@@ -174,14 +174,14 @@ public class BoardController {
 
     @PreAuthorize("hasAnyAuthority('MANAGER','OPERATOR')")
     @PatchMapping("/deActivate")
-    private ApiResponse<Boolean> deActivateBoardsPin(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody RequestBoardPin requestBoardPin) {
+    public ApiResponse<Boolean> deActivateBoardsPin(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody RequestBoardPin requestBoardPin) {
 
         this.boardService.deactivatePinWithBoard(requestBoardPin.getBoardIds());
         return ApiResponse.success(true);
     }
 
     @PatchMapping("/like")
-    private ApiResponse<Boolean> likeBoard(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody long boardId){
+    public ApiResponse<Boolean> likeBoard(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody long boardId){
 
         CustomUserDetails customUserDetails = (CustomUserDetails)UserDetails;
 
