@@ -27,7 +27,7 @@ public class MarketController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Market type parameters cannot be null", HttpStatus.BAD_REQUEST, "MarketController.getMarketList");
         }
 
-        CombinedMarketList result = this.marketService.getMarketList(first, second);
+        CombinedMarketList result = this.marketService.getMarketListFromDatabase(first, second);
         return ApiResponse.success(result);
     }
 
