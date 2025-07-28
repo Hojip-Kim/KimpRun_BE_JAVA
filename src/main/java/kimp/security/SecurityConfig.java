@@ -64,7 +64,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST,"/login", "/user/sign-up", "/user/email", "user/email/verify").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/login", "/user/sign-up", "/user/email", "/user/email/verify", "/batch/cmc/sync").permitAll()
                         .requestMatchers(HttpMethod.POST, "/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/**").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/**").authenticated()
