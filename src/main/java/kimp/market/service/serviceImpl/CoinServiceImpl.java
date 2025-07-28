@@ -8,6 +8,7 @@ import kimp.market.dao.CoinDao;
 import kimp.market.dao.CoinExchangeDao;
 import kimp.market.dto.coin.common.ChangeCoinDto;
 import kimp.market.dto.coin.request.*;
+import kimp.market.dto.coin.response.CoinMarketDto;
 import kimp.market.dto.coin.response.CoinResponseDto;
 import kimp.market.dto.coin.response.CoinResponseWithMarketTypeDto;
 import kimp.market.entity.Coin;
@@ -247,5 +248,20 @@ public class CoinServiceImpl implements CoinService {
 
         coinDao.deleteCoin(coin);
 
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<CoinMarketDto> getCoinsByMarketType(MarketType marketType) {
+        Exchange exchange = exchangeDao.getExchangeByMarketType(marketType);
+        if (exchange == null) {
+            return new ArrayList<>();
+        }
+        
+        List<Coin> coins = coinDao.getCoinsByExchangeId(exchange.getId());
+        
+        return coins.stream()
+                .map(coin -> new CoinMarketDto(coin.getId(), coin.getSymbol()))
+                .collect(Collectors.toList());
     }
 }

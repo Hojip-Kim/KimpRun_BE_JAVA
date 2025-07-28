@@ -1,7 +1,9 @@
 package kimp.market.service;
 
+import kimp.market.Enum.MarketType;
 import kimp.market.dto.coin.common.ChangeCoinDto;
 import kimp.market.dto.coin.request.*;
+import kimp.market.dto.coin.response.CoinMarketDto;
 import kimp.market.dto.coin.response.CoinResponseDto;
 import kimp.market.dto.coin.response.CoinResponseWithMarketTypeDto;
 
@@ -30,4 +32,7 @@ public interface CoinService {
 
     // 조심해서 사용. exchange의 코인 하나만 지우는것이 아닌, 완전히 지우고 해당 코인을 갖고있는 exchange의 코인을 다 지움.
     public void deleteCoin(DeleteCoinDto deleteCoinDto);
+    
+    // 거래소별 코인 목록 조회 (DB 기반)
+    public List<CoinMarketDto> getCoinsByMarketType(MarketType marketType);
 }
