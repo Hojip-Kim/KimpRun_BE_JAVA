@@ -473,29 +473,32 @@ public class CmcBatchDaoImpl implements CmcBatchDao {
     public void upsertCmcMainnet(List<CmcCoinInfoDataDto> coinInfoList) {
         LocalDateTime now = LocalDateTime.now();
         
-        // CmcMainnet 테이블에 explorer URL 정보 저장 (UPSERT 방식으로 중복 방지)
-        String mainnetSql = """
+        // 기존 CmcMainnet 데이터 삭제 쿼리
+        String deleteSql = "DELETE FROM cmc_mainnet WHERE cmc_coin_id = ?";
+        
+        // 새로운 CmcMainnet 데이터 삽입 쿼리
+        String insertSql = """
             INSERT INTO cmc_mainnet (explorer_url, cmc_coin_id, registed_at, updated_at)
-            VALUES (?, (SELECT cmc_coin_id FROM cmc_coin WHERE cmc_coin_id = ?), ?, ?)
-            ON CONFLICT (cmc_coin_id) 
-            DO UPDATE SET
-                explorer_url = EXCLUDED.explorer_url,
-                updated_at = EXCLUDED.updated_at
+            VALUES (?, ?, ?, ?)
             """;
 
         int processedCount = 0;
         for (CmcCoinInfoDataDto info : coinInfoList) {
             if (info.getId() != null && info.getUrls() != null && info.getUrls().getExplorer() != null && !info.getUrls().getExplorer().isEmpty()) {
                 try {
-                    // 여러 explorer URL이 있는 경우 첫 번째 URL만 저장 (OneToOne 관계)
-                    String firstExplorerUrl = info.getUrls().getExplorer().get(0);
-                    if (firstExplorerUrl != null && !firstExplorerUrl.trim().isEmpty()) {
-                        jdbcTemplate.update(mainnetSql,
-                            firstExplorerUrl.trim(),
-                            info.getId(),
-                            now,
-                            now);
-                        processedCount++;
+                    // 1. 해당 cmc_coin_id의 기존 mainnet 데이터 모두 삭제
+                    jdbcTemplate.update(deleteSql, info.getId());
+                    
+                    // 2. 모든 explorer URL을 개별적으로 삽입 (ManyToOne 관계)
+                    for (String explorerUrl : info.getUrls().getExplorer()) {
+                        if (explorerUrl != null && !explorerUrl.trim().isEmpty()) {
+                            jdbcTemplate.update(insertSql,
+                                explorerUrl.trim(),
+                                info.getId(),
+                                now,
+                                now);
+                            processedCount++;
+                        }
                     }
                 } catch (Exception e) {
                     log.error("CmcMainnet 처리 중 오류 발생 - coin_id: {}", info.getId(), e);
@@ -510,15 +513,13 @@ public class CmcBatchDaoImpl implements CmcBatchDao {
     public void upsertCmcPlatform(List<CmcCoinInfoDataDto> coinInfoList) {
         LocalDateTime now = LocalDateTime.now();
         
-        // CmcPlatform 테이블에 플랫폼 정보 저장 (중복 체크 후 INSERT)
-        String checkExistsSql = """
-            SELECT COUNT(*) FROM cmc_platform 
-            WHERE cmc_coin_id = (SELECT cmc_coin_id FROM cmc_coin WHERE cmc_coin_id = ?)
-            """;
+        // 기존 CmcPlatform 데이터 삭제 쿼리
+        String deleteSql = "DELETE FROM cmc_platform WHERE cmc_coin_id = ?";
         
-        String platformSql = """
+        // 새로운 CmcPlatform 데이터 삽입 쿼리
+        String insertSql = """
             INSERT INTO cmc_platform (name, symbol, cmc_coin_id, registed_at, updated_at)
-            VALUES (?, ?, (SELECT cmc_coin_id FROM cmc_coin WHERE cmc_coin_id = ?), ?, ?)
+            VALUES (?, ?, ?, ?, ?)
             """;
 
         int insertedCount = 0;
@@ -529,20 +530,17 @@ public class CmcBatchDaoImpl implements CmcBatchDao {
                     CmcDataPlatformDto platform = info.getPlatform();
                     if (platform.getName() != null && !platform.getName().trim().isEmpty()) {
                         
-                        // 기존 데이터 존재 여부 확인
-                        Integer existingCount = jdbcTemplate.queryForObject(checkExistsSql, Integer.class, info.getId());
+                        // 1. 해당 cmc_coin_id의 기존 platform 데이터 모두 삭제
+                        jdbcTemplate.update(deleteSql, info.getId());
                         
-                        if (existingCount == null || existingCount == 0) {
-                            jdbcTemplate.update(platformSql,
-                                platform.getName().trim(),
-                                platform.getSymbol() != null ? platform.getSymbol().trim() : "",
-                                info.getId(), // CmcCoinInfoDataDto의 id가 cmc_coin_id와 매핑됨
-                                now,
-                                now);
-                            insertedCount++;
-                        } else {
-                            log.debug("CmcPlatform 이미 존재함 - coin_id: {}", info.getId());
-                        }
+                        // 2. 새로운 platform 데이터 삽입 (ManyToOne 관계)
+                        jdbcTemplate.update(insertSql,
+                            platform.getName().trim(),
+                            platform.getSymbol() != null ? platform.getSymbol().trim() : "",
+                            info.getId(),
+                            now,
+                            now);
+                        insertedCount++;
                     }
                 } catch (Exception e) {
                     log.error("CmcPlatform 처리 중 오류 발생 - coin_id: {}", info.getId(), e);
