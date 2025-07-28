@@ -5,10 +5,6 @@ import kimp.common.entity.TimeStamp;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-
-
 @Entity
 @Table(name="cmc_mainnet")
 @NoArgsConstructor
@@ -19,7 +15,7 @@ public class CmcMainnet extends TimeStamp {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="cmc_coin_id", referencedColumnName = "cmc_coin_id", nullable = true)
     private CmcCoin cmcCoin;
 
@@ -46,8 +42,4 @@ public class CmcMainnet extends TimeStamp {
         this.cmcCoin = cmcCoin;
         return this;
     }
-
-
-
-
 }
