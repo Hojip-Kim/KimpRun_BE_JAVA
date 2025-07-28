@@ -5,6 +5,7 @@ import kimp.exception.response.ApiResponse;
 import kimp.market.Enum.MarketType;
 import kimp.market.controller.MarketController;
 import kimp.market.dto.coin.common.market.MarketDto;
+import kimp.market.dto.coin.response.CoinMarketDto;
 import kimp.market.dto.market.response.CombinedMarketDataList;
 import kimp.market.dto.market.response.CombinedMarketList;
 import kimp.market.dto.market.response.MarketDataList;
@@ -36,15 +37,15 @@ public class MarketControllerTest {
     private CombinedMarketList combinedMarketList;
     private MarketDataList<MarketDto> marketDataList;
     private CombinedMarketDataList combinedMarketDataList;
-    private List<String> firstMarketList;
-    private List<String> secondMarketList;
+    private List<CoinMarketDto> firstMarketList;
+    private List<CoinMarketDto> secondMarketList;
     private List<MarketDto> marketDtoList;
 
     @BeforeEach
     void setUp() {
         // Setup test data
-        firstMarketList = Arrays.asList("BTC", "ETH", "XRP");
-        secondMarketList = Arrays.asList("BTC", "ETH", "DOGE");
+        firstMarketList = Arrays.asList(new CoinMarketDto(1L, "BTC"), new CoinMarketDto(2L, "ETH"), new CoinMarketDto(3L, "DOGE"));
+        secondMarketList = Arrays.asList(new CoinMarketDto(1L, "BTC"), new CoinMarketDto(2L, "ETH"), new CoinMarketDto(3L, "DOGE"));
         combinedMarketList = new CombinedMarketList(firstMarketList, secondMarketList);
 
         marketDtoList = Arrays.asList(
@@ -60,7 +61,7 @@ public class MarketControllerTest {
     @DisplayName("통합 마켓 리스트 조회")
     void shouldReturnCombinedMarketList() throws IOException {
         // Arrange
-        when(marketService.getMarketList(MarketType.UPBIT, MarketType.BINANCE)).thenReturn(combinedMarketList);
+        when(marketService.getMarketListFromDatabase(MarketType.UPBIT, MarketType.BINANCE)).thenReturn(combinedMarketList);
 
         // Act
         ApiResponse<CombinedMarketList> response = marketController.getMarketList(MarketType.UPBIT, MarketType.BINANCE);
@@ -71,7 +72,7 @@ public class MarketControllerTest {
         assertNotNull(response.getData());
         assertEquals(firstMarketList, response.getData().getFirstMarketList());
         assertEquals(secondMarketList, response.getData().getSecondMarketList());
-        verify(marketService, times(1)).getMarketList(MarketType.UPBIT, MarketType.BINANCE);
+        verify(marketService, times(1)).getMarketListFromDatabase(MarketType.UPBIT, MarketType.BINANCE);
     }
 
     @Test
@@ -81,7 +82,7 @@ public class MarketControllerTest {
         assertThrows(KimprunException.class, () -> marketController.getMarketList(null, MarketType.BINANCE));
         assertThrows(KimprunException.class, () -> marketController.getMarketList(MarketType.UPBIT, null));
         assertThrows(KimprunException.class, () -> marketController.getMarketList(null, null));
-        verify(marketService, never()).getMarketList(any(), any());
+        verify(marketService, never()).getMarketListFromDatabase(any(), any());
     }
 
     @Test
