@@ -7,6 +7,7 @@ import kimp.cmc.dto.common.coin.CmcCoinInfoDataMapDto;
 import kimp.cmc.dto.common.coin.CmcCoinMapDataDto;
 import kimp.cmc.dto.common.exchange.CmcExchangeDetailMapDto;
 import kimp.cmc.dto.common.exchange.CmcExchangeDto;
+import kimp.cmc.dto.response.CmcCoinResponseDto;
 import kimp.cmc.service.CmcCoinManageService;
 import kimp.exception.response.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,6 +45,7 @@ public class CmcControllerTest {
     private CmcCoinInfoDataMapDto mockCoinInfoDataMapDto;
     private List<CmcExchangeDto> mockExchangeDtoList;
     private CmcExchangeDetailMapDto mockExchangeDetailMapDto;
+    private CmcCoinResponseDto mockCmcCoinResponseDto;
 
     @BeforeEach
     void setUp() {
@@ -58,80 +61,28 @@ public class CmcControllerTest {
         mockExchangeDtoList.add(new CmcExchangeDto());
 
         mockExchangeDetailMapDto = new CmcExchangeDetailMapDto();
+        
+        mockCmcCoinResponseDto = new CmcCoinResponseDto(
+            "BTC", "Bitcoin", "logo.png", "21000000", "19000000", "21000000","2373668200507",
+            List.of("explorer1.com", "explorer2.com"), List.of("Ethereum (ETH)", "BSC (BNB)"), 
+            1, java.time.LocalDateTime.now()
+        );
     }
 
     @Test
-    @DisplayName("코인 맵 데이터 조회 테스트")
-    void shouldReturnCoinMapData() {
+    @DisplayName("코인 데이터 조회 테스트")
+    void shouldReturnCoinData() {
         // Arrange
-        when(coinMarketCapComponent.getCoinMapFromCMC(anyInt(), anyInt())).thenReturn(mockCoinMapDataList);
+        Long coinId = 1L;
+        when(cmcCoinManageService.findCmcCoinDataByCoinId(anyLong())).thenReturn(mockCmcCoinResponseDto);
 
         // Act
-        ApiResponse<List<CmcCoinMapDataDto>> response = cmcController.getCoinMapFromCMCTest();
+        ApiResponse<CmcCoinResponseDto> response = cmcController.getCoinDataByCoinId(coinId);
 
         // Assert
         assertNotNull(response);
         assertEquals(200, response.getStatus());
-        assertEquals(mockCoinMapDataList, response.getData());
+        assertEquals(mockCmcCoinResponseDto, response.getData());
     }
 
-    @Test
-    @DisplayName("최신 코인 정보 조회 테스트")
-    void shouldReturnLatestCoinInfo() {
-        // Arrange
-        when(coinMarketCapComponent.getLatestCoinInfoFromCMC(anyInt(), anyInt())).thenReturn(mockApiDataList);
-
-        // Act
-        ApiResponse<List<CmcApiDataDto>> response = cmcController.getLatestCoinInfoFromCMCTest();
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(200, response.getStatus());
-        assertEquals(mockApiDataList, response.getData());
-    }
-
-    @Test
-    @DisplayName("CMC 코인 정보 조회 테스트")
-    void shouldReturnCmcCoinInfos() {
-        // Arrange
-        when(coinMarketCapComponent.getCmcCoinInfos(anyList())).thenReturn(mockCoinInfoDataMapDto);
-
-        // Act
-        ApiResponse<CmcCoinInfoDataMapDto> response = cmcController.getCmcCoinInfosTest();
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(200, response.getStatus());
-        assertEquals(mockCoinInfoDataMapDto, response.getData());
-    }
-
-    @Test
-    @DisplayName("거래소 맵 조회 테스트")
-    void shouldReturnExchangeMap() {
-        // Arrange
-        when(coinMarketCapComponent.getExchangeMap(anyInt(), anyInt())).thenReturn(mockExchangeDtoList);
-
-        // Act
-        ApiResponse<List<CmcExchangeDto>> response = cmcController.getExchangeMapTest();
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(200, response.getStatus());
-        assertEquals(mockExchangeDtoList, response.getData());
-    }
-
-    @Test
-    @DisplayName("거래소 정보 조회 테스트")
-    void shouldReturnExchangeInfo() {
-        // Arrange
-        when(coinMarketCapComponent.getExchangeInfo(anyList())).thenReturn(mockExchangeDetailMapDto);
-
-        // Act
-        ApiResponse<CmcExchangeDetailMapDto> response = cmcController.getExchangeInfo();
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(200, response.getStatus());
-        assertEquals(mockExchangeDetailMapDto, response.getData());
-    }
 }
