@@ -32,6 +32,7 @@ public class CmcCoin extends TimeStamp {
     private Long cmcCoinId;
 
     @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coin_id", referencedColumnName = "id", nullable = true)
     private Coin coin;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
