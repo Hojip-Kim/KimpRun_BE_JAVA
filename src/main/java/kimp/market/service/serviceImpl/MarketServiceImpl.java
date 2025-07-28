@@ -5,6 +5,7 @@ import kimp.market.components.MarketListProvider;
 import kimp.market.components.impl.market.Bithumb;
 import kimp.market.components.impl.market.Coinone;
 import kimp.market.dto.coin.common.ServiceCoinWrapperDto;
+import kimp.market.dto.coin.response.CoinMarketDto;
 import kimp.market.dto.market.common.MarketList;
 import kimp.market.dto.market.response.CombinedMarketList;
 import kimp.market.Enum.MarketType;
@@ -12,6 +13,7 @@ import kimp.market.components.impl.Market;
 import kimp.market.components.impl.market.Upbit;
 import kimp.market.dto.market.response.CombinedMarketDataList;
 import kimp.market.dto.market.response.MarketDataList;
+import kimp.market.service.CoinService;
 import kimp.market.service.MarketService;
 import kimp.market.dto.coin.common.market.MarketDto;
 import kimp.exception.KimprunException;
@@ -40,8 +42,9 @@ public class MarketServiceImpl implements MarketService {
     private final MarketListProvider binanceMarketListProvider;
 
     private final Map<MarketType, Market> marketMap;
+    private final CoinService coinService;
 
-    public MarketServiceImpl(Upbit upbit, Binance binance, Bithumb bithumb, Coinone coinone, MarketListProvider upbitMarketListProvider, MarketListProvider binanceMarketListProvider) {
+    public MarketServiceImpl(Upbit upbit, Binance binance, Bithumb bithumb, Coinone coinone, MarketListProvider upbitMarketListProvider, MarketListProvider binanceMarketListProvider, CoinService coinService) {
         this.upbit = upbit;
         this.binance = binance;
         this.bithumb = bithumb;
@@ -54,6 +57,7 @@ public class MarketServiceImpl implements MarketService {
         );
         this.binanceMarketListProvider = binanceMarketListProvider;
         this.upbitMarketListProvider = upbitMarketListProvider;
+        this.coinService = coinService;
 
     }
 
@@ -76,7 +80,7 @@ public class MarketServiceImpl implements MarketService {
         Market first = marketMap.get(firstMarket);
         Market second = marketMap.get(secondMarket);
 
-        CombinedMarketList marketList = new CombinedMarketList(first.getMarketList().getPairList(),getCombineMarketList(first.getMarketList(), second.getMarketList()));
+        CombinedMarketList marketList = new CombinedMarketList(first.getMarketList().getPairList(),getCombineMarketList(first.getMarketList(), second.getMarketList()), true);
 
         if(marketList.getFirstMarketList().isEmpty() || marketList.getSecondMarketList().isEmpty()){
             throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "Market lists are empty for markets: " + firstMarket + ", " + secondMarket, HttpStatus.INTERNAL_SERVER_ERROR, "MarketServiceImpl.getMarketList");
@@ -157,6 +161,35 @@ public class MarketServiceImpl implements MarketService {
         binance.setMarketDataList();
         bithumb.setMarketDataList();
         coinone.setMarketDataList();
+    }
+    
+    @Override
+    public CombinedMarketList getMarketListFromDatabase(MarketType firstMarket, MarketType secondMarket) {
+        List<CoinMarketDto> firstMarketList = coinService.getCoinsByMarketType(firstMarket);
+        List<CoinMarketDto> secondMarketList = coinService.getCoinsByMarketType(secondMarket);
+        
+        // 공통 코인 계산
+//        List<CoinMarketDto> commonCoins = getCombineMarketListFromDatabase(firstMarketList, secondMarketList);
+        
+        return new CombinedMarketList(firstMarketList, secondMarketList);
+    }
+    
+    @Override
+    public List<CoinMarketDto> getCombineMarketListFromDatabase(List<CoinMarketDto> firstMarketList, List<CoinMarketDto> secondMarketList) {
+        Map<String, CoinMarketDto> firstMarketMap = new HashMap<>();
+        for (CoinMarketDto coin : firstMarketList) {
+            firstMarketMap.put(coin.getSymbol(), coin);
+        }
+        
+        List<CoinMarketDto> combinedList = new ArrayList<>();
+        for (CoinMarketDto coin : secondMarketList) {
+            if (firstMarketMap.containsKey(coin.getSymbol())) {
+                // 첫 번째 거래소의 코인 정보를 사용 (id는 첫 번째 거래소 기준)
+                combinedList.add(firstMarketMap.get(coin.getSymbol()));
+            }
+        }
+        
+        return combinedList;
     }
 
 }
