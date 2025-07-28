@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.market.dto.coin.common.market.*;
 import kimp.market.dto.market.response.websocket.MultipleMarketDataResponseDto;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -74,7 +73,6 @@ public class MarketDataWebsocketHandler extends TextWebSocketHandler {
     }
 
 
-    @Async
     @Scheduled(fixedRate = 3000)
     public void sendMessageToAll() {
         try {
