@@ -5,12 +5,12 @@ import kimp.common.method.DtoConverter;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import kimp.exchange.dao.ExchangeDao;
-import kimp.exchange.dao.NoticeDao;
-import kimp.exchange.dto.notice.ExchangeNoticeDto;
-import kimp.exchange.dto.notice.NoticeDto;
-import kimp.exchange.dto.notice.NoticeParsedData;
+import kimp.notice.dao.NoticeDao;
+import kimp.notice.dto.notice.ExchangeNoticeDto;
+import kimp.notice.dto.notice.NoticeDto;
+import kimp.notice.dto.notice.NoticeParsedData;
 import kimp.exchange.entity.Exchange;
-import kimp.exchange.entity.Notice;
+import kimp.notice.entity.Notice;
 import kimp.market.Enum.MarketType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -76,17 +76,19 @@ public class ExchangeNoticePacadeService {
     }
 
     @Transactional
-    public ExchangeNoticeDto<Page<NoticeDto>> getNoticeByExchange(long exchangeId, PageRequestDto pageRequestDto) {
+    public ExchangeNoticeDto<Page<NoticeDto>> getNoticeByExchange(MarketType marketType, PageRequestDto pageRequestDto) {
         Pageable pageable = PageRequest.of(pageRequestDto.getPage(), pageRequestDto.getSize());
 
-        Page<Notice> noticePage = noticeDao.findByExchangeIdOrderByRegistedAtAsc(exchangeId, pageable);
+        Exchange exchange = exchangeDao.getExchangeByMarketType(marketType);
+
+        Page<Notice> noticePage = noticeDao.findByExchangeIdOrderByRegistedAtAsc(exchange.getId(), pageable);
 
         if(noticePage.isEmpty()){
             throw new KimprunException(KimprunExceptionEnum.REQUEST_ACCEPTED, "Not have data", HttpStatus.ACCEPTED, "hello");
         }
         Page<NoticeDto> pageNoticeDto = dtoConverter.convertNoticePageToDtoPage(noticePage);
 
-        return dtoConverter.wrappingDtosToExchangeNoticeDto(MarketType.getMarketTypeByExchangeId(exchangeId),pageNoticeDto);
+        return dtoConverter.wrappingDtosToExchangeNoticeDto(marketType,pageNoticeDto);
     }
 
 }

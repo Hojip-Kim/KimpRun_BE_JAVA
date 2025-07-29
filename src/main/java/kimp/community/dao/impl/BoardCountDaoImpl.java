@@ -22,7 +22,7 @@ public class BoardCountDaoImpl implements BoardCountDao {
         BoardCount boardCount = boardCountRepository.findBoardCountByCategory(category);
 
         if(boardCount != null){
-            throw new IllegalArgumentException("Already have boardCount with CategoryId : " + category.getId());
+            return boardCount;
         }
 
         BoardCount newBoardCount = new BoardCount(category);

@@ -1,8 +1,6 @@
 package kimp.config.application;
 
-import kimp.market.handler.BinanceWebsocketHandler;
-import kimp.market.handler.MarketInfoHandler;
-import kimp.market.handler.UpbitWebSocketHandler;
+import kimp.market.handler.*;
 import kimp.chat.handler.ChatWebSocketHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,15 +15,13 @@ public class WebsocketConfig implements WebSocketConfigurer {
     @Value("${environment.websocket.allowOrigins}")
     private String allowOrigins;
 
-    private final UpbitWebSocketHandler upbitWebSocketHandler;
-    private final BinanceWebsocketHandler binanceWebsocketHandler;
+    private final MarketDataWebsocketHandler marketDataWebsocketHandler;
 
     private final ChatWebSocketHandler chatWebSocketHandler;
     private final MarketInfoHandler marketInfoHandler;
 
-    public WebsocketConfig(UpbitWebSocketHandler upbitWebSocketHandler, BinanceWebsocketHandler binanceWebsocketHandler, ChatWebSocketHandler chatWebSocketHandler, MarketInfoHandler marketInfoHandler) {
-        this.upbitWebSocketHandler = upbitWebSocketHandler;
-        this.binanceWebsocketHandler = binanceWebsocketHandler;
+    public WebsocketConfig(MarketDataWebsocketHandler marketDataWebsocketHandler, ChatWebSocketHandler chatWebSocketHandler, MarketInfoHandler marketInfoHandler) {
+        this.marketDataWebsocketHandler = marketDataWebsocketHandler;
         this.chatWebSocketHandler = chatWebSocketHandler;
         this.marketInfoHandler = marketInfoHandler;
     }
@@ -34,10 +30,7 @@ public class WebsocketConfig implements WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         log.info("allowOrigins : " + allowOrigins);
         registry
-                .addHandler(upbitWebSocketHandler, "/upbit")
-                .setAllowedOrigins(allowOrigins);
-        registry
-                .addHandler(binanceWebsocketHandler, "/binance")
+                .addHandler(marketDataWebsocketHandler, "/marketData")
                 .setAllowedOrigins(allowOrigins);
         registry
                 .addHandler(chatWebSocketHandler, "/chatService")

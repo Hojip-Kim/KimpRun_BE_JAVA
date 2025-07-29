@@ -1,17 +1,25 @@
 package kimp.market.service.serviceImpl;
 
-import kimp.market.components.Binance;
+import kimp.market.components.impl.market.Binance;
 import kimp.market.components.MarketListProvider;
+import kimp.market.components.impl.market.Bithumb;
+import kimp.market.components.impl.market.Coinone;
 import kimp.market.dto.coin.common.ServiceCoinWrapperDto;
+import kimp.market.dto.coin.response.CoinMarketDto;
+import kimp.market.dto.market.common.MarketList;
 import kimp.market.dto.market.response.CombinedMarketList;
 import kimp.market.Enum.MarketType;
-import kimp.market.components.Market;
-import kimp.market.components.Upbit;
+import kimp.market.components.impl.Market;
+import kimp.market.components.impl.market.Upbit;
 import kimp.market.dto.market.response.CombinedMarketDataList;
 import kimp.market.dto.market.response.MarketDataList;
+import kimp.market.service.CoinService;
 import kimp.market.service.MarketService;
-import kimp.websocket.dto.response.MarketDto;
+import kimp.market.dto.coin.common.market.MarketDto;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -26,19 +34,30 @@ import java.util.Map;
 public class MarketServiceImpl implements MarketService {
     private final Upbit upbit;
     private final Binance binance;
+    private final Bithumb bithumb;
+    private final Coinone coinone;
 
     private final MarketListProvider upbitMarketListProvider;
 
     private final MarketListProvider binanceMarketListProvider;
 
     private final Map<MarketType, Market> marketMap;
+    private final CoinService coinService;
 
-    public MarketServiceImpl(Upbit upbit, Binance binance, MarketListProvider upbitMarketListProvider, MarketListProvider binanceMarketListProvider) {
+    public MarketServiceImpl(Upbit upbit, Binance binance, Bithumb bithumb, Coinone coinone, MarketListProvider upbitMarketListProvider, MarketListProvider binanceMarketListProvider, CoinService coinService) {
         this.upbit = upbit;
         this.binance = binance;
-        this.marketMap = Map.of(MarketType.BINANCE, binance, MarketType.UPBIT, upbit);
+        this.bithumb = bithumb;
+        this.coinone = coinone;
+        this.marketMap = Map.of(
+            MarketType.BINANCE, binance, 
+            MarketType.UPBIT, upbit,
+            MarketType.BITHUMB, bithumb,
+            MarketType.COINONE, coinone
+        );
         this.binanceMarketListProvider = binanceMarketListProvider;
         this.upbitMarketListProvider = upbitMarketListProvider;
+        this.coinService = coinService;
 
     }
 
@@ -47,38 +66,35 @@ public class MarketServiceImpl implements MarketService {
         switch(marketType){
             case UPBIT: return upbit.getServiceCoins();
             case BINANCE: return binance.getServiceCoins();
+            case BITHUMB: return bithumb.getServiceCoins();
+            case COINONE: return coinone.getServiceCoins();
             default: return null;
+
         }
     }
 
     // first 마켓에 있는 second 마켓의 코인 페어 쌍을 추출
-    // "KRW-"가 제거된 marketList들의 모음을 반환합니다.
+    // "KRW-"나, "USDT"가 제거된 marketList들의 모음을 반환합니다.
     @Override
-    public CombinedMarketList getMarketList(String firstMarket, String secondMarket) throws IOException {
-        MarketType firstMarketType = MarketType.valueOf(firstMarket.toUpperCase());
-        MarketType secondMarketType = MarketType.valueOf(secondMarket.toUpperCase());
-        Market first = marketMap.get(firstMarketType);
-        Market second = marketMap.get(secondMarketType);
+    public CombinedMarketList getMarketList(MarketType firstMarket, MarketType secondMarket){
+        Market first = marketMap.get(firstMarket);
+        Market second = marketMap.get(secondMarket);
 
-        CombinedMarketList marketList = new CombinedMarketList(first.getMarketPair().getMarkets(),getMarketPair(first, second));
+        CombinedMarketList marketList = new CombinedMarketList(first.getMarketList().getPairList(),getCombineMarketList(first.getMarketList(), second.getMarketList()), true);
 
-        if(marketList == null){
-            throw new IllegalArgumentException("Not have marketList");
+        if(marketList.getFirstMarketList().isEmpty() || marketList.getSecondMarketList().isEmpty()){
+            throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "Market lists are empty for markets: " + firstMarket + ", " + secondMarket, HttpStatus.INTERNAL_SERVER_ERROR, "MarketServiceImpl.getMarketList");
         }
         return marketList;
-
     }
 
     @Override
-    public CombinedMarketDataList getCombinedMarketDataList(String firstMarket, String secondMarket) throws IOException {
-        MarketType firstMarketType = MarketType.valueOf(firstMarket.toUpperCase());
-        MarketType secondMarketType = MarketType.valueOf(secondMarket.toUpperCase());
-
-        Market first = marketMap.get(firstMarketType);
-        Market second = marketMap.get(secondMarketType);
+    public CombinedMarketDataList getCombinedMarketDataList(MarketType firstMarket, MarketType secondMarket) {
+        Market first = marketMap.get(firstMarket);
+        Market second = marketMap.get(secondMarket);
 
         // 공통의 marketData만 추출할 수 있도록 pair 추출
-        List<String> marketPair = getMarketPair(first, second);
+        List<String> marketPair = getCombineMarketList(first.getMarketList(), second.getMarketList());
 
         // 각 market에 맞는 market data list 추출
         MarketDataList<? extends MarketDto> firstMarketDataList = first.getMarketDataList();
@@ -114,14 +130,11 @@ public class MarketServiceImpl implements MarketService {
 
 
     @Override
-    public MarketDataList getMarketDataList(String query) throws IOException {
-        MarketType marketType = MarketType.valueOf(query.toUpperCase());
-
+    public MarketDataList getMarketDataList(MarketType marketType) throws IOException {
         Market market = marketMap.get(marketType);
         if(market == null){
-            throw new IllegalArgumentException("제공하지 않는 마켓 타입입니다." + query);
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Unsupported market type: " + marketType.toString(), HttpStatus.BAD_REQUEST, "MarketServiceImpl.getMarketDataList");
         }
-
         return market.getMarketDataList();
     }
 
@@ -130,29 +143,53 @@ public class MarketServiceImpl implements MarketService {
         binance.setBinanceMarketList();
     }
 
-    // binance 마켓리스트에서 upbit의 마켓리스트에 있는 market들을 추출합니다.
+    // 뒤의 currency가 제거된 형태로, 첫번째 마켓리스트와 두번째 마켓리스트 간 중복되는 데이터만 추출합니다.
     // 여기서, 마켓 데이터(예 : BTC , ETH)을 제외한 나머지 String은 제외한 상태로 추출합니다.
-    public List<String> getMarketPair(Market firstMarket, Market secondMarket) {
-        Map<String, Integer> hashMap = new HashMap<>();
+    public List<String> getCombineMarketList(MarketList firstMarketList, MarketList secondMarketList) {
+        List<String> firstMarketPairList = firstMarketList.getPairList();
+        List<String> secondMarketPairList = secondMarketList.getPairList();
 
-        List<String> marketPairList = new ArrayList<>();
+        firstMarketPairList.retainAll(secondMarketPairList);
 
-        for (String market : secondMarket.getMarketPair().getMarkets()){
-            hashMap.put(market, 0);
-        }
-        for(String market : firstMarket.getMarketPair().getMarkets()){
-            if(hashMap.get(market) != null && hashMap.get(market) == 0){
-                marketPairList.add(market);
-            }
-        }
 
-        return marketPairList;
+        return firstMarketPairList;
     }
 
     @Scheduled(fixedDelay = 5000)
-    public void setMarketsData() throws IOException {
+    public void setMarketsData(){
         upbit.setMarketDataList();
         binance.setMarketDataList();
+        bithumb.setMarketDataList();
+        coinone.setMarketDataList();
+    }
+    
+    @Override
+    public CombinedMarketList getMarketListFromDatabase(MarketType firstMarket, MarketType secondMarket) {
+        List<CoinMarketDto> firstMarketList = coinService.getCoinsByMarketType(firstMarket);
+        List<CoinMarketDto> secondMarketList = coinService.getCoinsByMarketType(secondMarket);
+        
+        // 공통 코인 계산
+//        List<CoinMarketDto> commonCoins = getCombineMarketListFromDatabase(firstMarketList, secondMarketList);
+        
+        return new CombinedMarketList(firstMarketList, secondMarketList);
+    }
+    
+    @Override
+    public List<CoinMarketDto> getCombineMarketListFromDatabase(List<CoinMarketDto> firstMarketList, List<CoinMarketDto> secondMarketList) {
+        Map<String, CoinMarketDto> firstMarketMap = new HashMap<>();
+        for (CoinMarketDto coin : firstMarketList) {
+            firstMarketMap.put(coin.getSymbol(), coin);
+        }
+        
+        List<CoinMarketDto> combinedList = new ArrayList<>();
+        for (CoinMarketDto coin : secondMarketList) {
+            if (firstMarketMap.containsKey(coin.getSymbol())) {
+                // 첫 번째 거래소의 코인 정보를 사용 (id는 첫 번째 거래소 기준)
+                combinedList.add(firstMarketMap.get(coin.getSymbol()));
+            }
+        }
+        
+        return combinedList;
     }
 
 }

@@ -88,9 +88,63 @@ jobs:
       - name: Update compose.yaml fe env file path
         run: |
           sed -i 's|ENV_FILE_DIR|../kimprun_fe/.env.test|' ./kimprun_be/compose.yaml
-      - name: Replace FE image in compose.yaml
+
+      # 동적으로 최신 FE 이미지 태그 가져오기
+      - name: Get latest FE image tag
         run: |
-          sed -i 's|fe_image|${{ secrets.KIMPRUN_FE_IMAGE }}|g' ./kimprun_be/compose.yaml
+          echo "🔍 Fetching latest FE image tag from Docker Hub..."
+          
+          # Docker Hub API로 최신 태그 가져오기 (가장 최근에 푸시된 순서)
+          LATEST_TAG=$(curl -s "https://registry.hub.docker.com/v2/repositories/hojipkim/kimprun_fe/tags/?page_size=1&ordering=-last_updated" \
+            | jq -r '.results[0].name // "latest"')
+          
+          echo "📦 Latest available tag: $LATEST_TAG"
+          
+          # 만약 API 호출이 실패하거나 결과가 없으면 대체 방법 사용
+          if [ "$LATEST_TAG" = "null" ] || [ -z "$LATEST_TAG" ]; then
+            echo "⚠️ API 호출 실패, 대체 방법 사용..."
+            # 여러 가능한 태그들을 순서대로 시도
+            POSSIBLE_TAGS=("latest" "d7be19" "c1073f" "77f3f9")
+          
+            for TAG in "${POSSIBLE_TAGS[@]}"; do
+              echo "🔍 Checking tag: $TAG"
+              if docker manifest inspect "hojipkim/kimprun_fe:$TAG" > /dev/null 2>&1; then
+                LATEST_TAG="$TAG"
+                echo "✅ Found working tag: $TAG"
+                break
+              fi
+            done
+          fi
+          
+          # 환경 변수로 설정
+          echo "FE_IMAGE_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          echo "🎯 Using FE image tag: $LATEST_TAG"
+
+      # FE 이미지 태그 검증 및 대체
+      - name: Verify and configure FE image
+        run: |
+          FE_IMAGE="hojipkim/kimprun_fe:${{ env.FE_IMAGE_TAG }}"
+          echo "🔍 Verifying FE image: $FE_IMAGE"
+          
+          # 이미지 존재 여부 확인
+          if docker manifest inspect "$FE_IMAGE" > /dev/null 2>&1; then
+            echo "✅ FE image verified successfully: $FE_IMAGE"
+            sed -i "s|fe_image|$FE_IMAGE|g" ./kimprun_be/compose.yaml
+          else
+            echo "❌ FE image not accessible: $FE_IMAGE"
+            echo "🔄 Using nginx fallback for integration tests"
+            sed -i 's|fe_image|nginx:alpine|g' ./kimprun_be/compose.yaml
+          
+            # nginx 기본 설정으로 포트 조정 (필요한 경우)
+            # sed -i 's|3000:3000|80:80|g' ./kimprun_be/compose.yaml
+          fi
+
+      # 디버깅을 위한 compose.yaml 내용 출력
+      - name: Debug - Show final compose.yaml
+        run: |
+          echo "=== 📋 Final compose.yaml content ==="
+          cat ./kimprun_be/compose.yaml
+          echo "=================================="
 
       # 권한 부여
       - name: Grant execute permission
@@ -98,14 +152,24 @@ jobs:
       # 도커 빌드 설정 - 통합 테스트 실행 전 도커 컴포즈를 통해 통합테스트 환경(애플리케이션 의존성 환경) 구축
       - name: Set up Docker compose
         uses: docker/setup-buildx-action@v3
+
       # 통합 테스트 환경 구축
       - name: Start dependencies with Docker compose
-        run: docker compose up -d
+        run: |
+          echo "🚀 Starting Docker Compose services..."
+          docker compose up -d
+          echo "📊 Checking service status..."
+          docker compose ps
         working-directory: ./kimprun_be
 
       # 통합 테스트 환경 구축 후 30초 대기 - 애플리케이션 실행 시간
       - name: Wait for dependencies to start
-        run: sleep 30
+        run: |
+          echo "⏳ Waiting for services to be ready..."
+          sleep 30
+          echo "📋 Final service status:"
+          docker compose ps
+        working-directory: ./kimprun_be
 
       # 통합 테스트 실행
       - name: Run integration test
@@ -114,7 +178,11 @@ jobs:
       # 통합 테스트 완료 후 통합 테스트 환경 종료
       - name: Stop dependencies
         if: always()
-        run: docker compose down
+        run: |
+          echo "🛑 Stopping Docker Compose services..."
+          docker compose down
+          echo "🧹 Cleaning up..."
+          docker compose ps
         working-directory: ./kimprun_be
       # 통합 테스트 결과 업로드 (통합테스트 실패 시)
       - name: Upload integration test results
@@ -138,13 +206,13 @@ jobs:
         run: |
           echo "COMMIT_ID=${GITHUB_SHA::6}" >> "$GITHUB_ENV"
           echo "${GITHUB_SHA::6}" > commit-id.txt
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image - verification
         run: docker build --platform linux/amd64 -t hojipkim/kimprun_be:${{ env.COMMIT_ID }} .
-      
+
       - name: Upload commit ID artifact
         uses: actions/upload-artifact@v4
         with:

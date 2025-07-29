@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kimp.auth.dto.CheckAuthResponseDto;
 import kimp.auth.service.AuthService;
-
+import kimp.exception.response.ApiResponse;
 import kimp.security.user.CustomUserDetails;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,15 +25,15 @@ public class AuthController {
     }
 
     @GetMapping("/status")
-    public CheckAuthResponseDto checkmemberStatus(@AuthenticationPrincipal UserDetails member, HttpServletRequest request, HttpServletResponse response) {
+    public ApiResponse<CheckAuthResponseDto> checkmemberStatus(@AuthenticationPrincipal UserDetails member, HttpServletRequest request, HttpServletResponse response) {
 
         if(member == null){
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return null;
+            return ApiResponse.error(401, "UNAUTHORIZED", "Authentication required");
         }
 
         CustomUserDetails customUserDetails = (CustomUserDetails) member;
-
-            return authService.checkAuthStatus(customUserDetails);
+        CheckAuthResponseDto result = authService.checkAuthStatus(customUserDetails);
+        return ApiResponse.success(result);
     }
 }

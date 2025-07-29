@@ -1,7 +1,7 @@
 package kimp.market.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kimp.exchange.dto.notice.NoticeDto;
+import kimp.notice.dto.notice.NoticeDto;
 import kimp.market.dto.market.response.websocket.InfoResponseDto;
 import kimp.market.dto.market.response.websocket.MarketWebsocketResponseDto;
 import kimp.market.dto.market.response.websocket.UserWebsocketResponseDto;

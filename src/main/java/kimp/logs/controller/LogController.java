@@ -1,5 +1,6 @@
 package kimp.logs.controller;
 
+import kimp.exception.response.ApiResponse;
 import kimp.logs.dto.LogMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +18,7 @@ public class LogController {
     private static final Logger logger = LoggerFactory.getLogger("frontend-logs");
 
     @PostMapping
-    public ResponseEntity<Void> logMessage(@RequestBody LogMessage logMessage) {
+    public ApiResponse<Void> logMessage(@RequestBody LogMessage logMessage) {
         MDC.put("application", logMessage.getApplication());
         MDC.put("timestamp", logMessage.getTimestamp());
 
@@ -39,7 +40,7 @@ public class LogController {
         }
 
         MDC.clear();
-        return ResponseEntity.ok().build();
+        return ApiResponse.success(null);
     }
 
 

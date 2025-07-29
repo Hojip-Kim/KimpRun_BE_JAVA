@@ -1,8 +1,8 @@
 package kimp.exchange.component.impl.exchange;
 
-import kimp.exchange.dto.binance.BinanceArticleDto;
 import kimp.exchange.dto.binance.BinanceNoticeDto;
-import kimp.exchange.dto.notice.NoticeParsedData;
+import kimp.exchange.dto.python.PythonNoticeResponseDto;
+import kimp.notice.dto.notice.NoticeParsedData;
 import kimp.market.Enum.MarketType;
 import kimp.util.MumurHashUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -12,15 +12,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.client.UnknownContentTypeException;
+import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
-
 
 @Component
 @Slf4j
@@ -33,13 +28,23 @@ public class BinanceScrap extends ExchangeScrapAbstract<BinanceNoticeDto> {
     private String noticeDetailAbsoluteUrl;
 
     private List<NoticeParsedData> parsedData = new ArrayList<>();
-
     private List<NoticeParsedData> newNotices = new ArrayList<>();
 
-    BinanceScrap(RestTemplate restTemplate, StringRedisTemplate stringRedisTemplate) {
-        super(restTemplate, stringRedisTemplate, BinanceNoticeDto.class);
+    public BinanceScrap(RestClient restClient, StringRedisTemplate stringRedisTemplate) {
+        super(restClient, stringRedisTemplate, BinanceNoticeDto.class);
     }
 
+    /**
+     * Python 서비스 응답을 기존 BinanceNoticeDto 형태로 변환
+     */
+    @Override
+    protected BinanceNoticeDto convertPythonResponse(PythonNoticeResponseDto pythonResponse) {
+        log.debug("Python 응답을 BinanceNoticeDto로 변환: {} 개 공지사항", 
+                pythonResponse.getResults() != null ? pythonResponse.getResults().size() : 0);
+        
+        // parseNoticeData에서 Python 응답을 직접 사용하므로 null 반환
+        return null;
+    }
 
     @Override
     public List<NoticeParsedData> getFieldNewNotice() {
@@ -56,28 +61,26 @@ public class BinanceScrap extends ExchangeScrapAbstract<BinanceNoticeDto> {
 
         String noticeHashCode = MumurHashUtil.stringTo128bitHashCode(sb.toString());
         super.getRedisTemplate().opsForValue().set(MarketType.BINANCE.getMarketName(), noticeHashCode);
-
     }
 
     @Override
     public String getNoticeFromRedis() {
         StringRedisTemplate redisTemplate = super.getRedisTemplate();
-
         return redisTemplate.opsForValue().get(MarketType.BINANCE.getMarketName());
     }
 
+    /**
+     * 새로운 공지사항 찾기
+     */
     @Override
     public List<NoticeParsedData> getNewNotice(List<NoticeParsedData> recentNoticeDataList) {
         List<NoticeParsedData> previousNoticeParsedDataList = this.getNoticeData();
-
         List<NoticeParsedData> newNoticeParsedData = new ArrayList<>();
 
         Set<NoticeParsedData> parsedHashSet = new HashSet<>(previousNoticeParsedDataList);
-
         List<NoticeParsedData> recentNoticeCopy = new ArrayList<>(recentNoticeDataList);
 
         recentNoticeCopy.removeAll(parsedHashSet);
-
         newNoticeParsedData = recentNoticeCopy;
 
         if(newNoticeParsedData.isEmpty()){
@@ -85,7 +88,6 @@ public class BinanceScrap extends ExchangeScrapAbstract<BinanceNoticeDto> {
         }
 
         return newNoticeParsedData;
-
     }
 
     @Override
@@ -105,7 +107,6 @@ public class BinanceScrap extends ExchangeScrapAbstract<BinanceNoticeDto> {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(new MediaType("application", "json"));
         headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-
         return headers;
     }
 
@@ -129,38 +130,31 @@ public class BinanceScrap extends ExchangeScrapAbstract<BinanceNoticeDto> {
         return true;
     }
 
+    /**
+     * Python 서비스를 통해 공지사항 데이터를 파싱
+     */
     @Override
     public List<NoticeParsedData> parseNoticeData() throws IOException {
-            List<NoticeParsedData> noticeParsedDataList = new ArrayList<>();
-
-
         try {
-            BinanceNoticeDto binanceNoticeDto = super.getNoticeFromAPI();
-
-            List<BinanceArticleDto> binanceArticleDtos = binanceNoticeDto.getData().getData().getCatalogs().get(0).getArticles();
-
-            for (BinanceArticleDto binanceArticleDto : binanceArticleDtos) {
-                String title = binanceArticleDto.getTitle();
-                String alink = binanceArticleDto.getCode();
-
-                Long date = binanceArticleDto.getReleaseDate();
-                Instant instant = Instant.ofEpochMilli(date);
-                LocalDateTime localDate = instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
-
-                NoticeParsedData noticeParsedData = new NoticeParsedData(title, alink, localDate);
-                noticeParsedDataList.add(noticeParsedData);
+            log.info("Binance Python 서비스를 통한 공지사항 파싱 시작");
+            
+            // flask 서비스에서 공지사항 가져오기
+            PythonNoticeResponseDto pythonResponse = super.fetchPythonNotices();
+            
+            // flask 응답을 NoticeParsedData로 변환
+            List<NoticeParsedData> noticeParsedDataList = super.convertPythonToNoticeParsedData(pythonResponse);
+            
+            if (noticeParsedDataList.isEmpty()) {
+                log.warn("Binance Python 서비스에서 공지사항을 가져오지 못했습니다");
+                return new ArrayList<>();
             }
-
-            if (noticeParsedDataList.size() != binanceArticleDtos.size()) {
-                log.info("binanceScrap parsedDataList is inaccurate.");
-                throw new IllegalStateException("binanceScrap parsedDataList is inaccurate.");
-            }
-
+            
+            log.info("Binance 공지사항 {} 개 파싱 완료", noticeParsedDataList.size());
             return noticeParsedDataList;
-        }catch(UnknownContentTypeException e) {
-
-            log.error("error occurred when parsing binance notice data : ", e);
-            return null;
+            
+        } catch (Exception e) {
+            log.error("Binance 공지사항 파싱 실패: {}", e.getMessage(), e);
+            throw new IOException("Binance 공지사항 파싱 실패: " + e.getMessage(), e);
         }
     }
 

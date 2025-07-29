@@ -61,7 +61,7 @@ public class BoardServiceImpl implements BoardService {
     @Transactional
     public List<Board> activatePinWithBoard(List<Long> boardIds) {
         if(board == null){
-            throw new IllegalArgumentException("board object is null");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Board object cannot be null", HttpStatus.BAD_REQUEST, "BoardServiceImpl.activatePinWithBoard");
         }
 
         List<Board> boards = this.boardDao.findAllByIds(boardIds);
@@ -73,7 +73,7 @@ public class BoardServiceImpl implements BoardService {
     @Transactional
     public List<Board> deactivatePinWithBoard(List<Long> boardIds) {
         if(board == null){
-            throw new IllegalArgumentException("board object is null");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Board object cannot be null", HttpStatus.BAD_REQUEST, "BoardServiceImpl.deactivatePinWithBoard");
         }
 
         List<Board> boards = this.boardDao.findAllByIds(boardIds);
@@ -102,7 +102,7 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public Board updateBoard(Board board, UpdateBoardRequestDto updateBoardRequestDto ){
         if(board == null){
-            throw new IllegalArgumentException("board is null");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Board object cannot be null", HttpStatus.BAD_REQUEST, "BoardServiceImpl.updateBoard");
         }
         return boardDao.updateBoard(board, updateBoardRequestDto.getTitle(), updateBoardRequestDto.getContent());
     }
@@ -110,7 +110,7 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public Boolean deleteBoard(Board board){
         if(board == null){
-            throw new IllegalArgumentException("board is null");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Board object cannot be null", HttpStatus.BAD_REQUEST, "BoardServiceImpl.deleteBoard");
         }
         this.boardDao.deleteBoardById(board.getId());
         return true;
@@ -129,7 +129,7 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public BoardResponseDto convertBoardToBoardResponseDto(Board board) {
         if(board == null){
-            throw new IllegalArgumentException("board object is null");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Board object cannot be null", HttpStatus.BAD_REQUEST, "BoardServiceImpl.convertBoardToBoardResponseDto");
         }
 
         return new BoardResponseDto(board.getId(), board.getMember().getId(), board.getCategory().getId(),board.getCategory().getCategoryName(), board.getMember().getNickname(), board.getTitle(), board.getContent(), board.getViews().getViews(), board.getBoardLikeCount().getLikes(),board.getRegistedAt(), board.getUpdatedAt(), board.getCommentCount().getCounts());

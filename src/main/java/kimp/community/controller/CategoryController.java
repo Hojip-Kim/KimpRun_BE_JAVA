@@ -7,6 +7,10 @@ import kimp.community.dto.category.request.UpdateCategoryRequestDto;
 import kimp.community.entity.Category;
 import kimp.community.service.CategoryPacadeService;
 import kimp.community.service.CategoryService;
+import kimp.exception.response.ApiResponse;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,56 +33,52 @@ public class CategoryController {
     }
 
     @GetMapping
-    public List<CategoryDto> getAllCategories(HttpServletRequest request){
+    public ApiResponse<List<CategoryDto>> getAllCategories(HttpServletRequest request){
 
         List<Category> category = categoryService.getAllCategories();
-
-        return categoryService.convertCategoryListToDto(category);
+        List<CategoryDto> result = categoryService.convertCategoryListToDto(category);
+        return ApiResponse.success(result);
     }
 
     @GetMapping("/{id}")
-    public CategoryDto getCategory(HttpServletRequest request, @PathVariable Long id){
+    public ApiResponse<CategoryDto> getCategory(HttpServletRequest request, @PathVariable Long id){
         if(id < 0){
-            throw new IllegalArgumentException("category Id is not available.");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, "Category ID must be greater than or equal to 0", HttpStatus.BAD_REQUEST, "CategoryController.getCategory");
         }
 
         Category category = categoryService.getCategoryByID(id);
-
-        return new CategoryDto(category.getId(), category.getCategoryName());
+        CategoryDto result = new CategoryDto(category.getId(), category.getCategoryName());
+        return ApiResponse.success(result);
     }
 
     @PreAuthorize("hasAnyAuthority('MANAGER','OPERATOR')")
     @PostMapping
-    public CategoryDto createCategory(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody CreateCategoryRequestDto createCategoryRequestDto){
+    public ApiResponse<CategoryDto> createCategory(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody CreateCategoryRequestDto createCategoryRequestDto){
 
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
         Category category = categoryPacadeService.createCategory(customUserDetails.getId(),createCategoryRequestDto);
-
-        return categoryService.convertCategoryToDto(category);
+        CategoryDto result = categoryService.convertCategoryToDto(category);
+        return ApiResponse.success(result);
     }
 
     @PreAuthorize("hasAnyAuthority('MANAGER','OPERATOR')")
     @PatchMapping
-    public CategoryDto patchCategory(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody UpdateCategoryRequestDto updateCategoryRequestDto){
+    public ApiResponse<CategoryDto> patchCategory(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody UpdateCategoryRequestDto updateCategoryRequestDto){
 
         Category category = categoryService.updatedCategory(updateCategoryRequestDto);
-
-        return new CategoryDto(category.getId(), category.getCategoryName());
+        CategoryDto result = new CategoryDto(category.getId(), category.getCategoryName());
+        return ApiResponse.success(result);
     }
 
     @PreAuthorize("hasAnyAuthority('MANAGER','OPERATOR')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable Long id){
+    public ApiResponse<Boolean> deleteCategory(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable Long id){
         if(id < 0){
-            throw new IllegalArgumentException("category Id is not available");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, "Category ID must be greater than or equal to 0", HttpStatus.BAD_REQUEST, "CategoryController.deleteCategory");
         }
         boolean deleted = categoryService.deleteCategory(id);
-        if(!deleted){
-            return ResponseEntity.notFound().build(); // 404 반환
-           }
-
-        return ResponseEntity.noContent().build(); // 204 반환
+        return ApiResponse.success(deleted);
     }
 
 }

@@ -3,79 +3,193 @@ package kimp.exchange.component.impl.exchange;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import kimp.exchange.component.ExchangeScrap;
-import kimp.exchange.dto.notice.NoticeParsedData;
-import kimp.exchange.dto.notice.NoticeResponseDto;
+import kimp.exchange.dto.python.PythonNoticeResponseDto;
+import kimp.notice.dto.notice.NoticeParsedData;
+import kimp.notice.dto.notice.NoticeResponseDto;
 import kimp.market.Enum.MarketType;
 import kimp.util.MumurHashUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.*;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 @Slf4j
 public abstract class ExchangeScrapAbstract<T> implements ExchangeScrap<T> {
 
-    private final RestTemplate restTemplate;
+    private final RestClient restClient;
     private final StringRedisTemplate redisTemplate;
     private final Class<T> responseType;
 
-    @Value("${admin.gateway}")
-    private String adminGateway;
+    @Value("${notice.server.url:http://localhost:8090}")
+    private String pythonServiceUrl;
 
-    public ExchangeScrapAbstract(RestTemplate restTemplate, StringRedisTemplate redisTemplate, Class<T> responseType) {
-        this.restTemplate = restTemplate;
+    // 날짜 파싱을 위한 포맷터들
+    private static final DateTimeFormatter PYTHON_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+    private static final DateTimeFormatter[] FALLBACK_FORMATS = {
+        DateTimeFormatter.ofPattern("yyyy-MM-dd"),
+        DateTimeFormatter.ofPattern("yyyy/MM/dd")
+    };
+
+    public ExchangeScrapAbstract(RestClient restClient, StringRedisTemplate redisTemplate, Class<T> responseType) {
+        this.restClient = restClient;
         this.redisTemplate = redisTemplate;
         this.responseType = responseType;
     }
 
+    /**
+     * Python 스크래핑 서비스에서 공지사항을 가져옴
+     */
     @Override
     public T getNoticeFromAPI() throws IOException {
-            String apiUrl = this.getNoticeUrl();
-
-            HttpHeaders headers = this.getHeaders();
-
-            HttpEntity<?> httpEntity = null;
-            String websiteUrl;
-
-            if(this.getMethod().equals(HttpMethod.GET)) {
-
-                httpEntity = new HttpEntity<>(headers);
-
-            }else if(this.getMethod().equals(HttpMethod.POST)) {
-
-                Map<String, String> body = new HashMap<>();
-
-                if(this.isNecessityOfDetour()) {
-                    websiteUrl = apiUrl.toString();
-                    apiUrl = adminGateway;
-                    body.put("url", websiteUrl);
-                }
-
-                httpEntity = new HttpEntity<>(body, headers);
-
+        try {
+            // Python 서비스 엔드포인트 구성
+            String exchangeName = getMarketType().name().toLowerCase();
+            String url = pythonServiceUrl + "/notices/" + exchangeName;
+            
+            log.info("Python 서비스 호출: {}", url);
+            
+            // Python 서비스 호출 (RestClient 사용)
+            PythonNoticeResponseDto responseBody = restClient.get()
+                .uri(url)
+                .retrieve()
+                .body(PythonNoticeResponseDto.class);
+            
+            if (responseBody != null && responseBody.isSuccess()) {
+                // Python 응답을 기존 타입으로 변환 (각 하위 클래스에서 구현)
+                return convertPythonResponse(responseBody);
+            } else {
+                String error = responseBody != null ? responseBody.getError() : "null response";
+                throw new KimprunException(
+                    KimprunExceptionEnum.INTERNAL_SERVER_ERROR, 
+                    "Python 서비스 오류: " + error, 
+                    HttpStatus.INTERNAL_SERVER_ERROR, 
+                    "trace"
+                );
             }
-
-            ResponseEntity<T> response = restTemplate.exchange(
-                    apiUrl, this.getMethod(), httpEntity, getResponseType()
+            
+        } catch (Exception e) {
+            log.error("Python 서비스 호출 실패: {}", e.getMessage());
+            throw new KimprunException(
+                KimprunExceptionEnum.INTERNAL_SERVER_ERROR, 
+                "Python 서비스 호출 실패: " + e.getMessage(), 
+                HttpStatus.INTERNAL_SERVER_ERROR, 
+                "trace"
             );
+        }
+    }
 
-            if(response == null || response.getBody() == null) {
-                throw new KimprunException(KimprunExceptionEnum.INTERNAL_SERVER_ERROR, "getNoticeAPI Error - " + getResponseType().toString(), HttpStatus.INTERNAL_SERVER_ERROR, "trace");
+    /**
+     * Python 서비스 응답을 기존 DTO 타입으로 변환 (추상 메서드)
+     */
+    protected abstract T convertPythonResponse(PythonNoticeResponseDto pythonResponse);
+
+    /**
+     * Python 응답을 NoticeParsedData 리스트로 변환하는 공통 메서드
+     */
+    protected List<NoticeParsedData> convertPythonToNoticeParsedData(PythonNoticeResponseDto pythonResponse) {
+        List<NoticeParsedData> result = new ArrayList<>();
+        
+        if (pythonResponse.getResults() == null) {
+            return result;
+        }
+        
+        for (PythonNoticeResponseDto.PythonNoticeDto pythonNotice : pythonResponse.getResults()) {
+            try {
+                String title = pythonNotice.getTitle();
+                String absoluteLink = buildAbsoluteLink(pythonNotice.getLink());
+                LocalDateTime parsedDate = parseDate(pythonNotice.getDate());
+                
+                NoticeParsedData parsedData = new NoticeParsedData(title, absoluteLink, parsedDate);
+                result.add(parsedData);
+                
+            } catch (Exception e) {
+                log.warn("공지사항 변환 실패: {} - {}", pythonNotice.getTitle(), e.getMessage());
             }
+        }
+        
+        return result;
+    }
 
-            return response.getBody();
+    /**
+     * RestClient를 사용하여 Python 서비스에서 공지사항을 직접 가져오는 메서드
+     */
+    protected PythonNoticeResponseDto fetchPythonNotices() throws IOException {
+        try {
+            String exchangeName = getMarketType().name().toLowerCase();
+            String url = pythonServiceUrl + "/notices/" + exchangeName;
+            
+            log.debug("Python 서비스 호출: {}", url);
+            
+            PythonNoticeResponseDto response = restClient.get()
+                .uri(url)
+                .retrieve()
+                .body(PythonNoticeResponseDto.class);
+                
+            if (response == null || !response.isSuccess()) {
+                String error = response != null ? response.getError() : "null response";
+                throw new IOException("Python 서비스 오류: " + error);
+            }
+            
+            return response;
+            
+        } catch (Exception e) {
+            log.error("Python 서비스 호출 실패: {}", e.getMessage());
+            throw new IOException("Python 서비스 호출 실패: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 상대 경로를 절대 경로로 변환
+     */
+    private String buildAbsoluteLink(String relativeLink) {
+        if (relativeLink == null || relativeLink.startsWith("http")) {
+            return relativeLink; // 이미 절대 경로
+        }
+        
+        return getAbsoluteUrl() + relativeLink;
+    }
+
+    /**
+     * 날짜 문자열을 LocalDateTime으로 파싱
+     */
+    private LocalDateTime parseDate(String dateString) {
+        if (dateString == null || dateString.trim().isEmpty()) {
+            return LocalDateTime.now();
+        }
+        
+        // 먼저 기본 포맷 시도
+        try {
+            return LocalDateTime.parse(dateString + " 00:00:00", 
+                DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+        } catch (DateTimeParseException e) {
+            // 폴백 포맷들 시도
+            for (DateTimeFormatter format : FALLBACK_FORMATS) {
+                try {
+                    return LocalDateTime.parse(dateString + " 00:00:00",
+                        DateTimeFormatter.ofPattern(format.toString() + " HH:mm:ss"));
+                } catch (DateTimeParseException ignored) {
+                    // 다음 포맷 시도
+                }
+            }
+        }
+        
+        log.warn("날짜 파싱 실패, 현재 시간 사용: {}", dateString);
+        return LocalDateTime.now();
     }
 
     protected StringRedisTemplate getRedisTemplate() {
         return this.redisTemplate;
     }
 
-    protected RestTemplate getRestTemplate() {
-        return this.restTemplate;
+    protected RestClient getRestClient() {
+        return this.restClient;
     }
 
     @Override
@@ -94,7 +208,6 @@ public abstract class ExchangeScrapAbstract<T> implements ExchangeScrap<T> {
         return new NoticeResponseDto(getMarketType(),getAbsoluteUrl(), getNoticeData());
     }
 
-
     public Class<T> getResponseType(){
         return responseType;
     };
@@ -107,7 +220,6 @@ public abstract class ExchangeScrapAbstract<T> implements ExchangeScrap<T> {
 
     @Override
     public abstract String getNoticeFromRedis() throws IOException;
-
 
     @Override
     public abstract List<NoticeParsedData> getNewNotice(List<NoticeParsedData> recentNoticeDataList);
@@ -141,5 +253,4 @@ public abstract class ExchangeScrapAbstract<T> implements ExchangeScrap<T> {
 
     @Override
     public abstract MarketType getMarketType();
-
 }

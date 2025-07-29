@@ -35,7 +35,7 @@ public class BoardPerformanceService {
         this.boardPacadeService = boardPacadeService;
     }
 
-    @Scheduled(fixedRate = 100)
+//    @Scheduled(fixedRate = 100)
     @Transactional
     public void flushQueue(){
 

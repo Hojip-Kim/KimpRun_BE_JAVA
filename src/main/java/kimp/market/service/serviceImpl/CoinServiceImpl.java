@@ -8,11 +8,13 @@ import kimp.market.dao.CoinDao;
 import kimp.market.dao.CoinExchangeDao;
 import kimp.market.dto.coin.common.ChangeCoinDto;
 import kimp.market.dto.coin.request.*;
+import kimp.market.dto.coin.response.CoinMarketDto;
 import kimp.market.dto.coin.response.CoinResponseDto;
 import kimp.market.dto.coin.response.CoinResponseWithMarketTypeDto;
 import kimp.market.entity.Coin;
 import kimp.market.entity.CoinExchange;
 import kimp.market.service.CoinService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 @Service
 public class CoinServiceImpl implements CoinService {
 
@@ -103,9 +106,17 @@ public class CoinServiceImpl implements CoinService {
         // 한번에 fetch-join해서 기존코인 + 연관된 coinExchange , Exchange 모두 로드
         List<Coin> existingCoins = coinDao.findWithExchangesBySymbols(symbols);
 
-        // 기존에 있던 심볼만 set으로
+        // 기존에 있던 심볼만 set으로 (중복 키가 있는 경우 첫 번째 값 유지)
         Map<String, Coin> existingMap = existingCoins.stream()
-                .collect(Collectors.toMap(Coin::getSymbol, Function.identity()));
+                .collect(Collectors.toMap(
+                    Coin::getSymbol, 
+                    Function.identity(),
+                    (existing, replacement) -> {
+                        log.warn("중복 심볼 발견: {} - 첫 번째 코인 유지 (ID: {})", 
+                                existing.getSymbol(), existing.getId());
+                        return existing;
+                    }
+                ));
 
         // 모든 MarketType에 해당하는 Exchange 한번씩 조회 (N+1방지용)
         Set<MarketType> allMarkets = createCoinDtos.stream()
@@ -237,5 +248,20 @@ public class CoinServiceImpl implements CoinService {
 
         coinDao.deleteCoin(coin);
 
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<CoinMarketDto> getCoinsByMarketType(MarketType marketType) {
+        Exchange exchange = exchangeDao.getExchangeByMarketType(marketType);
+        if (exchange == null) {
+            return new ArrayList<>();
+        }
+        
+        List<Coin> coins = coinDao.getCoinsByExchangeId(exchange.getId());
+        
+        return coins.stream()
+                .map(coin -> new CoinMarketDto(coin.getId(), coin.getSymbol()))
+                .collect(Collectors.toList());
     }
 }

@@ -2,6 +2,7 @@ package kimp.market.repository.impl;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import kimp.cmc.entity.coin.QCmcCoin;
 import kimp.exchange.entity.QExchange;
 import kimp.market.Enum.MarketType;
 import kimp.market.entity.Coin;
@@ -26,6 +27,7 @@ public class CoinRepositoryCustomImpl implements CoinRepositoryCustom {
     QCoin coin = QCoin.coin;
     QCoinExchange coinExchange = QCoinExchange.coinExchange;
     QExchange exchange = QExchange.exchange;
+    QCmcCoin cmcCoin = QCmcCoin.cmcCoin;
 
     @Override
     @Transactional
@@ -70,7 +72,9 @@ public class CoinRepositoryCustomImpl implements CoinRepositoryCustom {
                 .selectFrom(coin)
                 .distinct()
                 .join(coin.coinExchanges, coinExchange).fetchJoin()
-                .where(coinExchange.exchange.id.eq(exchangeId))
+                .join(coinExchange.exchange, exchange).fetchJoin()
+                .leftJoin(coin.cmcCoin, cmcCoin).fetchJoin()
+                .where(exchange.id.eq(exchangeId))
                 .fetch();
     }
 

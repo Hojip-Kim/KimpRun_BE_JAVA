@@ -11,9 +11,12 @@ import kimp.community.entity.Comment;
 import kimp.community.entity.CommentCount;
 import kimp.community.entity.CommentLikeCount;
 import kimp.community.service.CommentService;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
 import kimp.user.entity.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,10 +58,10 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public Comment createComment(Member member, Board board, RequestCreateCommentDto createCommentDto) {
         if(member == null){
-            throw new IllegalArgumentException("member must not be null");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Member cannot be null", HttpStatus.BAD_REQUEST, "CommentServiceImpl.createComment");
         }
         if(board == null){
-            throw new IllegalArgumentException("board must not be null");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Board cannot be null", HttpStatus.BAD_REQUEST, "CommentServiceImpl.createComment");
         }
 
         return commentDao.createComment(member, board, createCommentDto.getContent(), createCommentDto.getParentCommentId(), createCommentDto.getDepth());
@@ -75,7 +78,7 @@ public class CommentServiceImpl implements CommentService {
 
         Comment comment = commentDao.getComment(updateCommentDto.getCommentId());
         if(!comment.member.getId().equals(memberId)){
-            throw new IllegalArgumentException("comment id mismatch");
+            throw new KimprunException(KimprunExceptionEnum.AUTHENTICATION_REQUIRED_EXCEPTION, "User not authorized to update this comment", HttpStatus.UNAUTHORIZED, "CommentServiceImpl.updateComment");
         }
 
         return comment.updateCommentContent(updateCommentDto.getContent());
@@ -85,7 +88,7 @@ public class CommentServiceImpl implements CommentService {
     public Boolean deleteComment(long memberId, long commentId) {
         Comment comment = commentDao.getComment(commentId);
         if(!comment.member.getId().equals(memberId)){
-            throw new IllegalArgumentException("comment id mismatch");
+            throw new KimprunException(KimprunExceptionEnum.AUTHENTICATION_REQUIRED_EXCEPTION, "User not authorized to delete this comment", HttpStatus.UNAUTHORIZED, "CommentServiceImpl.deleteComment");
         }
 
         return commentDao.deleteComment(commentId);

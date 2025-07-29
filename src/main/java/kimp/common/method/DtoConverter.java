@@ -1,18 +1,20 @@
 package kimp.common.method;
 
 import kimp.exchange.dto.exchange.response.ExchangeDto;
-import kimp.exchange.dto.notice.ExchangeNoticeDto;
-import kimp.exchange.dto.notice.NoticeDto;
+import kimp.notice.dto.notice.ExchangeNoticeDto;
+import kimp.notice.dto.notice.NoticeDto;
 import kimp.exchange.entity.Exchange;
-import kimp.exchange.entity.Notice;
+import kimp.notice.entity.Notice;
 import kimp.market.Enum.MarketType;
 import kimp.market.dto.coin.response.CoinResponseDto;
 import kimp.market.dto.coin.response.CoinResponseWithMarketTypeDto;
 import kimp.market.entity.Coin;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +61,7 @@ public class DtoConverter {
 
     public NoticeDto convertNoticeToDto(Notice notice) {
         if(notice == null){
-            throw new IllegalArgumentException("not have notice");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Notice cannot be null", HttpStatus.BAD_REQUEST, "DtoConverter.convertNoticeToDto");
         }
 
         NoticeDto noticeDto =  new NoticeDto(notice.getId() ,notice.getExchange().getMarket(),notice.getTitle(),notice.getLink(), notice.getDate());

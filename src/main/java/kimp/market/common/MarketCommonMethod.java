@@ -1,12 +1,16 @@
 package kimp.market.common;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,11 +18,11 @@ import java.util.stream.Collectors;
 @Component
 public class MarketCommonMethod {
 
-    private final RestTemplate restTemplate;
+    private final RestClient restClient;
     private final ObjectMapper objectMapper;
 
-    public MarketCommonMethod(RestTemplate restTemplate, ObjectMapper objectMapper){
-        this.restTemplate =restTemplate;
+    public MarketCommonMethod(RestClient restClient, ObjectMapper objectMapper){
+        this.restClient = restClient;
         this.objectMapper = objectMapper;
     }
 
@@ -32,7 +36,10 @@ public class MarketCommonMethod {
      * @return : 파라미터로 넣어준 인자 dto 클래스의 List형식으로 데이터 반환
      */
     public <T> List<String> getMarketListByURLAndStartWith(String url, String startWith, String method,  Class<T[]> dtoClass) throws IOException {
-        String data = restTemplate.getForObject(url, String.class);
+        String data = restClient.get()
+                .uri(url)
+                .retrieve()
+                .body(String.class);
 
         T[] marketData = objectMapper.readValue(data, dtoClass);
 
@@ -42,13 +49,13 @@ public class MarketCommonMethod {
                     try {
                         return (String)componentType.getMethod(method).invoke(dto);
                     } catch (Exception e) {
-                        throw new RuntimeException("Failed to invoke method : " + method + " on DTO : " + dtoClass, e);
+                        throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "Failed to invoke method: " + method + " on DTO: " + dtoClass, HttpStatus.INTERNAL_SERVER_ERROR, "MarketCommonMethod.reflectionError");
                     }
                 })
                 .filter(market -> market != null && market.startsWith(startWith))
                 .collect(Collectors.toList());
 
-        return list;
+        return new ArrayList<>(list);
     }
 
     /**
@@ -60,32 +67,39 @@ public class MarketCommonMethod {
      * @return : 파라미터로 넣어준 인자 dto 클래스의 List형식으로 데이터 반환
      */
     public <T> List<String> getMarketListByURLAndEndWith(String url, String endWith, String method,  Class<T[]> dtoClass) throws IOException {
-        String data = restTemplate.getForObject(url, String.class);
+        String data = restClient.get()
+                .uri(url)
+                .retrieve()
+                .body(String.class);
 
         T[] marketData = objectMapper.readValue(data, dtoClass);
 
         Class<?> componentType = dtoClass.getComponentType();
-        List<String> list = Arrays.stream(marketData)
+        return Arrays.stream(marketData)
                 .map(dto -> {
                     try {
                         return (String)componentType.getMethod(method).invoke(dto);
                     } catch (Exception e) {
-                        throw new RuntimeException("Failed to invoke method : " + method + " on DTO : " + dtoClass, e);
+                        throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "Failed to invoke method: " + method + " on DTO: " + dtoClass, HttpStatus.INTERNAL_SERVER_ERROR, "MarketCommonMethod.reflectionError");
                     }
                 })
                 .filter(market -> market != null && market.endsWith(endWith))
                 .collect(Collectors.toList());
-
-        return list;
     }
 
     public <T> T getMarketByURLAndStartWith(String url, String startWith, String method,  Class<T> dtoClass) throws IOException {
-        String data = restTemplate.getForObject(url, String.class);
+        String data = restClient.get()
+                .uri(url)
+                .retrieve()
+                .body(String.class);
 
         return objectMapper.readValue(data, dtoClass);
     }
 
     public static BigDecimal setScale(BigDecimal input) {
+        if(input == null){
+            return BigDecimal.ZERO;
+        }
         return input.setScale(7, RoundingMode.HALF_UP);
     }
 

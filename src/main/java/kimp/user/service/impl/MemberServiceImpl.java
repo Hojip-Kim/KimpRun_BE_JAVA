@@ -13,8 +13,11 @@ import kimp.user.dto.request.*;
 import kimp.user.entity.*;
 import kimp.user.enums.UserRole;
 import kimp.user.service.MemberService;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -52,7 +55,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public String sendEmailVerifyCode(String email) {
         if(email.isEmpty() || email == null){
-            throw new IllegalArgumentException("email is null or empty");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Email cannot be null or empty", HttpStatus.BAD_REQUEST, "MemberServiceImpl.sendEmailVerifyCode");
         }
 
         String verificationCode = generateVerificationCode();
@@ -73,7 +76,7 @@ public class MemberServiceImpl implements MemberService {
             return verificationCode;
 
         } catch (MessagingException e) {
-            throw new RuntimeException("email 발송 실패",e);
+            throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "Failed to send email verification code", HttpStatus.INTERNAL_SERVER_ERROR, "MemberServiceImpl.sendEmailVerifyCode");
         }
 
     }
@@ -127,7 +130,7 @@ public class MemberServiceImpl implements MemberService {
 
         } catch (Exception e) {
             log.error("유저 생성 중 오류 발생", e);
-            throw new RuntimeException("유저 생성 실패: " + e.getMessage());
+            throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "Failed to create user: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, "MemberServiceImpl.createMember");
         }
     }
 
@@ -196,7 +199,7 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public void setMemberIP(Member member, String ip){
         if(ip == null){
-            throw new IllegalArgumentException("Ip is null");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "IP address cannot be null", HttpStatus.BAD_REQUEST, "MemberServiceImpl.setMemberIP");
         }
         log.info("ip : {}" , ip);
         Member foundMember = memberDao.findMemberById(member.getId());
@@ -210,7 +213,7 @@ public class MemberServiceImpl implements MemberService {
 
         boolean isMatched = passwordEncoder.matches(UpdateUserPasswordDTO.getOldPassword(), member.getPassword());
         if(!isMatched){
-            throw new IllegalArgumentException("password does not match");
+            throw new KimprunException(KimprunExceptionEnum.AUTHENTICATION_REQUIRED_EXCEPTION, "Old password does not match", HttpStatus.UNAUTHORIZED, "MemberServiceImpl.updateMember");
         }
         memberDao.updateMember(member, passwordEncoder.encode(UpdateUserPasswordDTO.getNewPassword()));
 

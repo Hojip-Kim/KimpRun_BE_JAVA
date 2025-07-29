@@ -3,7 +3,10 @@ package kimp.community.entity;
 import jakarta.persistence.*;
 import kimp.common.entity.TimeStamp;
 import kimp.user.entity.Member;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
 @Cacheable
 @Entity
@@ -34,7 +37,7 @@ public class Category extends TimeStamp {
 
     public Category updateCategoryName(String newCategoryName){
         if(newCategoryName.isBlank()){
-            throw new IllegalArgumentException("update category name is blank.");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Category name cannot be blank", HttpStatus.BAD_REQUEST, "Category.updateCategoryName");
         }
         this.categoryName = newCategoryName;
 
@@ -43,7 +46,7 @@ public class Category extends TimeStamp {
 
     public Category setBoardCount(BoardCount boardCount){
         if(boardCount == null){
-            throw new IllegalArgumentException("boardCount must not be null");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "BoardCount cannot be null", HttpStatus.BAD_REQUEST, "Category.setBoardCount");
         }
 
         this.boardCount = boardCount;
@@ -53,7 +56,7 @@ public class Category extends TimeStamp {
 
     public Category setMember(Member member){
         if(member == null){
-            throw new IllegalArgumentException("member must not be null");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Member cannot be null", HttpStatus.BAD_REQUEST, "Category.setMember");
         }
         this.member = member;
         return this;

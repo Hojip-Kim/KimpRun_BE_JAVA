@@ -1,5 +1,6 @@
 package kimp.market.controller;
 
+import kimp.exception.response.ApiResponse;
 import kimp.market.dto.market.response.MarketDollarResponseDto;
 import kimp.market.dto.market.response.MarketTetherResponseDto;
 import kimp.market.service.MarketInfoService;
@@ -19,12 +20,14 @@ public class MarketInfoController {
 
 
     @GetMapping("/dollar")
-    public MarketDollarResponseDto getDollar() {
-        return new MarketDollarResponseDto(marketInfoService.getDollarKRW());
+    public ApiResponse<MarketDollarResponseDto> getDollar() {
+        MarketDollarResponseDto result = new MarketDollarResponseDto(marketInfoService.getDollarKRW());
+        return ApiResponse.success(result);
     }
 
     @GetMapping("/tether")
-    public MarketTetherResponseDto getTether(){
-        return new MarketTetherResponseDto(marketInfoService.getTetherKRW());
+    public ApiResponse<MarketTetherResponseDto> getTether(){
+        MarketTetherResponseDto result = new MarketTetherResponseDto(marketInfoService.getTetherKRW());
+        return ApiResponse.success(result);
     }
 }
