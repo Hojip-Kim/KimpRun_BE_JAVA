@@ -1,6 +1,6 @@
 services:
       fe:
-        image: hojipkim/kimprun_fe:latest
+        image: fe_image
         ports:
           - '3000:3000'
         env_file:
