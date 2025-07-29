@@ -24,6 +24,7 @@ jobs:
           run_id: ${{ github.event.workflow_run.id }}
           name: commit-id
           path: .
+          github_token: ${{ secrets.CHARTS_REPO_PAT }}
 
       - name: Read commit ID
         id: read-commit-id
