@@ -135,6 +135,9 @@ public class Binance extends Market<BinanceCryptoDto> {
         List<BinanceDto> marketDataList = new ArrayList<>();
 
         for(String[] binanceCrypto : binanceCryptoListSplit){
+            if(binanceCrypto.length == 0){
+                continue;
+            }
             String requestUrl = binanceTickerUrl + "[\"" + String.join("\",\"", binanceCrypto) + "\"]";
             BinanceTicker[] tickerData = restClient.get()
                     .uri(requestUrl)
