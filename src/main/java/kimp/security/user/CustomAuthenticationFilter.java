@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import kimp.exception.response.ApiResponse;
 import kimp.security.user.dto.LoginResponseDto;
 import kimp.user.entity.Member;
 import kimp.user.service.MemberService;
@@ -86,11 +87,14 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 
         LoginResponseDto loginResponseDto = new LoginResponseDto();
 
+        ApiResponse<LoginResponseDto> apiResponse;
         if(memberService.isFirstLogin(member)) {
 
             memberService.setMemberIP(member, ip);
             loginResponseDto.setResult("success");
             loginResponseDto.setMessage("로그인에 성공하였습니다.");
+
+            apiResponse = ApiResponse.success(loginResponseDto);
 
         }else{
             if(!memberService.isEqualIpBeforeLogin(member, ip)){
@@ -104,6 +108,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
                 loginResponseDto.setResult("success");
                 loginResponseDto.setMessage("로그인에 성공하였습니다.");
             }
+            apiResponse = ApiResponse.success(loginResponseDto);
         }
 
         SecurityContext context = SecurityContextHolder.createEmptyContext();
@@ -117,7 +122,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 
         response.setContentType("application/json;charset=UTF-8");
 
-        String jsonResponse = mapper.writeValueAsString(loginResponseDto);
+        String jsonResponse = mapper.writeValueAsString(apiResponse);
 
         response.getWriter().write(jsonResponse);
 
