@@ -85,31 +85,6 @@ jobs:
           git commit -m "🚀 Update backend image tag to $COMMIT_ID"
           git push origin main
 
-      - name: Deploy with ArgoCD CLI
-        run: |
-          echo "🚀 Starting ArgoCD deployment..."
-
-          kubectl port-forward svc/argocd-server -n argocd 8080:443 &
-          PORT_FORWARD_PID=$!
-
-          echo "⏳ Preparing ArgoCD connection..."
-          sleep 15
-
-          argocd login localhost:8080 \
-            --username ${{ secrets.ARGOCD_USERNAME }} \
-            --password ${{ secrets.ARGOCD_PASSWORD }} \
-            --insecure
-
-          echo "✅ ArgoCD login successful!"
-
-          argocd app get kimprun-app --insecure --grpc-web
-
-          argocd app sync kimprun-app --insecure --grpc-web
-
-          kill $PORT_FORWARD_PID || true
-
-          echo "✅ Deployment completed successfully!"
-
       - name: Deployment summary
         run: |
           echo "🎉 ===== DEPLOYMENT SUMMARY ====="
