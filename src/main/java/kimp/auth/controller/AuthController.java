@@ -25,7 +25,7 @@ public class AuthController {
     }
 
     @GetMapping("/status")
-    public ApiResponse<CheckAuthResponseDto> checkmemberStatus(@AuthenticationPrincipal UserDetails member, HttpServletRequest request, HttpServletResponse response) {
+    public ApiResponse<CheckAuthResponseDto> checkMemberStatus(@AuthenticationPrincipal UserDetails member, HttpServletRequest request, HttpServletResponse response) {
 
         if(member == null){
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

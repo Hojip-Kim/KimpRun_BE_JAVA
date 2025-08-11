@@ -48,7 +48,7 @@ public class AuthControllerTest {
         when(authService.checkAuthStatus(authenticatedUser)).thenReturn(mockResponseDto);
 
         // Act
-        ApiResponse<CheckAuthResponseDto> apiResponse = authController.checkmemberStatus(authenticatedUser, request, response);
+        ApiResponse<CheckAuthResponseDto> apiResponse = authController.checkMemberStatus(authenticatedUser, request, response);
 
         // Assert
         assertNotNull(apiResponse);
@@ -66,7 +66,7 @@ public class AuthControllerTest {
         UserDetails unauthenticatedUser = null;
 
         // Act
-        ApiResponse<CheckAuthResponseDto> apiResponse = authController.checkmemberStatus(unauthenticatedUser, request, response);
+        ApiResponse<CheckAuthResponseDto> apiResponse = authController.checkMemberStatus(unauthenticatedUser, request, response);
 
         // Assert
         assertNotNull(apiResponse);
