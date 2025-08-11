@@ -64,7 +64,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST,"/login", "/user/sign-up", "/user/email", "/user/email/verify", "/batch/cmc/sync").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/login", "/user/sign-up", "/user/email", "/user/email/verify", "/batch/cmc/sync", "/logout").permitAll()
                         .requestMatchers(HttpMethod.POST, "/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/**").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/**").authenticated()
@@ -83,7 +83,11 @@ public class SecurityConfig {
                         .successHandler(oAuth2AuthenticationSuccessHandler)
                         .failureHandler((request, response, exception) -> {
                             log.error("OAuth 로그인 실패: ", exception);
-                            response.sendRedirect("http://localhost:3000/login?error=true");
+                            String origin = request.getHeader("Origin");
+                            String redirectUrl = (origin != null && origin.startsWith("http://localhost:3000")) 
+                                ? "http://localhost:3000/login?error=true"
+                                : "https://kimprun.com/login?error=true";
+                            response.sendRedirect(redirectUrl);
                         })
                 )
                 .logout(logout -> logout
@@ -100,12 +104,17 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("https://kimp-run-fe-jvmn-dev.vercel.app", "http://localhost", "http://localhost:3000"));
+        configuration.setAllowedOrigins(Arrays.asList(
+            "https://kimp-run-fe-jvmn-dev.vercel.app", 
+            "http://localhost:3000",
+            "http://127.0.0.1:3000"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Set-Cookie"));
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
