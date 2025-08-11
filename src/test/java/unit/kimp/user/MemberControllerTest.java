@@ -75,7 +75,7 @@ public class MemberControllerTest {
         when(memberService.convertUserToUserDto(any(Member.class))).thenReturn(mockUserDto);
 
         // Act
-        ApiResponse<UserDto> response = memberController.getmember(customUserDetails);
+        ApiResponse<UserDto> response = memberController.getMember(customUserDetails);
 
         // Assert
         assertNotNull(response);

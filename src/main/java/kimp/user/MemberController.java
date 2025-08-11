@@ -27,7 +27,7 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("/user")
-@Tag(name = "유저 관련 게이트웨이", description = "유저에 관련된.")
+@Tag(name = "유저 관련 게이트웨이", description = "유저에 관련된 컨트롤러.")
 @Slf4j
 public class MemberController {
 
@@ -41,10 +41,13 @@ public class MemberController {
     }
 
 
-    @GetMapping()
-    public ApiResponse<UserDto> getmember(@AuthenticationPrincipal UserDetails UserDetails) {
+    @GetMapping
+    public ApiResponse<UserDto> getMember(@AuthenticationPrincipal UserDetails UserDetails) {
+        if (UserDetails == null) {
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "User not authenticated", HttpStatus.UNAUTHORIZED, "MemberController.getMember");
+        }
+        
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
-
 
         Member member = memberService.getmemberById(customUserDetails.getId());
         UserDto result = memberService.convertUserToUserDto(member);
