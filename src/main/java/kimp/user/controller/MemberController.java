@@ -1,4 +1,4 @@
-package kimp.user;
+package kimp.user.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,7 +16,6 @@ import kimp.user.service.MemberService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import kimp.security.user.CustomUserDetails;
@@ -55,7 +54,7 @@ public class MemberController {
     }
 
     // 관리자 전용
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAuthority('MANAGER')")
     @GetMapping("/{id}")
     public ApiResponse<UserDto> findMemberById(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("id") long id ) throws IOException {
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
@@ -109,7 +108,7 @@ public class MemberController {
     }
 
     // MANAGER 권한 이상일 시에만 접근허용
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAuthority('MANAGER')")
     @PatchMapping("/update/role")
     public ApiResponse<UserDto> updateUserRole(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody UpdateUserRoleDTO updateUserRoleDTO){
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
@@ -139,7 +138,7 @@ public class MemberController {
         }
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
         Member member = memberService.updateNickname(customUserDetails.getId(), UpdateUserNicknameDTO);
-        UserWithIdNameEmailDto result = new UserWithIdNameEmailDto(member.getEmail(), member.getNickname(), member.getRole().name());
+        UserWithIdNameEmailDto result = new UserWithIdNameEmailDto(member.getEmail(), member.getNickname(), member.getRole().getRoleName().name());
         return ApiResponse.success(result);
     }
 

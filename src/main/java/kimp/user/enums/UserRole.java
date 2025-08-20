@@ -1,5 +1,8 @@
 package kimp.user.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum UserRole {
     USER("ROLE_USER"),
     INFLUENCER("ROLE_INFLUENCER"),

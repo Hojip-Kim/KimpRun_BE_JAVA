@@ -5,12 +5,15 @@ import kimp.user.dto.UserDto;
 import kimp.user.dto.request.*;
 import kimp.user.entity.Member;
 import kimp.user.enums.UserRole;
+import kimp.user.enums.Oauth;
 
 public interface MemberService {
 
     public Member createMember(CreateUserDTO request);
 
     public Member getmemberByEmail(String email);
+
+    public Member getMemberByOAuthProviderId(String provider, String providerId);
 
     public String sendEmailVerifyCode(String email);
 
@@ -37,4 +40,8 @@ public interface MemberService {
     public UserDto convertUserToUserDto(Member member);
 
     public Member grantRole(Long memberId, UserRole grantRole);
+
+    public Member attachOAuthToMember(Member member, String provider, String providerId, 
+                                     String accessToken, String refreshToken, String tokenType, 
+                                     Long expiresIn, String scope);
 }
