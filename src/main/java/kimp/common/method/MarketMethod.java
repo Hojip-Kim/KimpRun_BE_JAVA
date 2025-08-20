@@ -1,9 +1,9 @@
 package kimp.common.method;
 
-import kimp.exchange.component.impl.exchange.BinanceScrap;
-import kimp.exchange.component.impl.exchange.BithumbScrap;
-import kimp.exchange.component.impl.exchange.CoinoneScrap;
-import kimp.exchange.component.impl.exchange.UpbitScrap;
+import kimp.scrap.component.impl.exchange.BinanceScrap;
+import kimp.scrap.component.impl.exchange.BithumbScrap;
+import kimp.scrap.component.impl.exchange.CoinoneScrap;
+import kimp.scrap.component.impl.exchange.UpbitScrap;
 import kimp.market.Enum.MarketType;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
