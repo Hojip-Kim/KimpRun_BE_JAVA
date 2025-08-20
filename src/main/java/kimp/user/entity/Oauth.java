@@ -3,8 +3,9 @@ package kimp.user.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import kimp.common.entity.TimeStamp;
-import kimp.user.entity.Member;
 import lombok.Getter;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "oauth")
@@ -31,6 +32,18 @@ public class Oauth extends TimeStamp {
     @Column(name= "refresh_token")
     @JsonIgnore
     private String refreshToken;
+
+    @Column(name = "token_type")
+    private String tokenType;
+
+    @Column(name = "expires_in")
+    private Long expiresIn;
+
+    @Column(name = "scope")
+    private String scope;
+
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
 
     public Oauth() {
     }
@@ -65,6 +78,26 @@ public class Oauth extends TimeStamp {
     }
     public Oauth setRefreshToken(String refreshToken){
         this.refreshToken = refreshToken;
+        return this;
+    }
+
+    public Oauth setTokenType(String tokenType) {
+        this.tokenType = tokenType;
+        return this;
+    }
+
+    public Oauth setExpiresIn(Long expiresIn) {
+        this.expiresIn = expiresIn;
+        return this;
+    }
+
+    public Oauth setScope(String scope) {
+        this.scope = scope;
+        return this;
+    }
+
+    public Oauth setExpiresAt(LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
         return this;
     }
 }
