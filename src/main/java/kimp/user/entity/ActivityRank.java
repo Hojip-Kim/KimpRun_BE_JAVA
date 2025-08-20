@@ -1,12 +1,15 @@
 package kimp.user.entity;
 
 import jakarta.persistence.*;
+import kimp.common.entity.TimeStamp;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "activity_rank")
 @Getter
-public class ActivityRank {
+@NoArgsConstructor
+public class ActivityRank extends TimeStamp {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,15 +18,20 @@ public class ActivityRank {
     @Column(name="rank_key",unique = true, nullable = false)
     private String rankKey;
 
-    @Column
+    @Column(nullable = false)
     private String grade;
 
-    public ActivityRank() {
+    public ActivityRank(String rankKey, String grade) {
+        this.rankKey = rankKey;
+        this.grade = grade;
     }
 
-    public ActivityRank(Long id, String rankKey, String grade) {
-        this.id = id;
-        this.rankKey = rankKey;
+    public ActivityRank updateGrade(String grade) {
+        this.grade = grade;
+        return this;
+    }
+
+    public void setGrade(String grade) {
         this.grade = grade;
     }
 }

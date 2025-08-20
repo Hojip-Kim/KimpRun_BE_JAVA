@@ -1,6 +1,6 @@
 package unit.kimp.chat.service.impl;
 
-import kimp.chat.dao.ChatDao;
+import kimp.chat.dao.impl.ChatDaoImpl;
 import kimp.chat.dto.response.ChatLogResponseDto;
 import kimp.chat.entity.Chat;
 import kimp.chat.service.serviceImpl.ChatServiceImpl;
@@ -11,6 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,21 +26,35 @@ import static org.mockito.Mockito.*;
 public class ChatServiceImplTest {
 
     @Mock
-    private ChatDao chatDao;
+    private ChatDaoImpl chatDao;
 
     @InjectMocks
     private ChatServiceImpl chatService;
 
     private Chat chat1;
     private Chat chat2;
-    private List<Chat> chatList;
+    private Page<Chat> chatList;
 
     @BeforeEach
-    void setUp() {
-        // Setup test data
-        chat1 = new Chat("user1", "Hello, world!", "true");
-        chat2 = new Chat("user2", "Hi there!", "false");
-        chatList = Arrays.asList(chat1, chat2);
+    void setUp() throws Exception {
+        // Setup test data using reflection to set required fields
+        chat1 = new Chat("user1", "Hello, world!", true);
+        setPrivateField(chat1, "userIp", "192.168.1.1");
+        setPrivateField(chat1, "cookiePayload", "cookie1");
+        setPrivateField(chat1, "registedAt", java.time.LocalDateTime.now().minusMinutes(10));
+        
+        chat2 = new Chat("user2", "Hi there!", false);
+        setPrivateField(chat2, "userIp", "192.168.1.2");
+        setPrivateField(chat2, "cookiePayload", "cookie2");
+        setPrivateField(chat2, "registedAt", java.time.LocalDateTime.now().minusMinutes(5));
+        
+        chatList = new PageImpl<>(Arrays.asList(chat1, chat2));
+    }
+    
+    private void setPrivateField(Object object, String fieldName, Object value) throws Exception {
+        java.lang.reflect.Field field = object.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(object, value);
     }
 
     @Test
@@ -48,12 +64,11 @@ public class ChatServiceImplTest {
         when(chatDao.getAllChats(anyInt(), anyInt())).thenReturn(chatList);
 
         // Act
-        List<Chat> result = chatService.getChatMessages(0, 10);
+        Page<ChatLogResponseDto> result = chatService.getChatMessages(0, 10);
 
         // Assert
         assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(chatList, result);
+        assertEquals(2, result.getNumberOfElements());
         verify(chatDao, times(1)).getAllChats(0, 10);
     }
 
@@ -69,34 +84,23 @@ public class ChatServiceImplTest {
     }
 
     @Test
-    @DisplayName("채팅 로그 DTO 변환")
-    void shouldConvertChatLogsToDto() {
+    @DisplayName("채팅 메시지 페이지 정렬 확인")
+    void shouldReturnChatMessagesInAscendingOrder() {
+        // Arrange
+        when(chatDao.getAllChats(anyInt(), anyInt())).thenReturn(chatList);
+
         // Act
-        List<ChatLogResponseDto> result = chatService.convertChatLogToDto(chatList);
+        Page<ChatLogResponseDto> result = chatService.getChatMessages(0, 10);
 
         // Assert
         assertNotNull(result);
-        assertEquals(2, result.size());
+        assertEquals(2, result.getNumberOfElements());
         
-        // Verify first DTO
-        assertEquals("user1", result.get(0).getChatID());
-        assertEquals("Hello, world!", result.get(0).getContent());
-        assertEquals("true", result.get(0).getAuthenticated());
+        // Check if messages are sorted by time (ascending)
+        List<ChatLogResponseDto> content = result.getContent();
+        assertEquals("user1", content.get(0).getChatID());
+        assertEquals("user2", content.get(1).getChatID());
         
-        // Verify second DTO
-        assertEquals("user2", result.get(1).getChatID());
-        assertEquals("Hi there!", result.get(1).getContent());
-        assertEquals("false", result.get(1).getAuthenticated());
-    }
-
-    @Test
-    @DisplayName("채팅 로그 DTO 변환: 입력 없음")
-    void shouldReturnEmptyListWhenInputIsEmpty() {
-        // Act
-        List<ChatLogResponseDto> result = chatService.convertChatLogToDto(new ArrayList<>());
-
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        verify(chatDao, times(1)).getAllChats(0, 10);
     }
 }

@@ -7,6 +7,7 @@ import kimp.user.dto.request.CreateUserDTO;
 import kimp.user.entity.Member;
 import kimp.user.enums.Oauth;
 import kimp.user.enums.UserRole;
+import kimp.user.entity.MemberRole;
 import kimp.user.service.MemberService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -59,12 +60,14 @@ public class OAuth2ServiceImplTest {
 
         when(oauth2User.getAttributes()).thenReturn(attributes);
         when(memberService.getmemberByEmail(email)).thenReturn(null);
+        when(memberService.getMemberByOAuthProviderId(anyString(), anyString())).thenReturn(null);
 
-        Member newMember = new Member(email, name, "generated-password");
+        MemberRole userRole = new MemberRole("user-role-key", UserRole.USER);
+        Member newMember = new Member(email, name, "generated-password", userRole);
 
         when(memberService.createMember(any(CreateUserDTO.class))).thenReturn(newMember);
 
-        OauthProcessDTO oauthProcessDTO = new OauthProcessDTO(accessToken, refreshToken, oauth2User);
+        OauthProcessDTO oauthProcessDTO = new OauthProcessDTO(accessToken, refreshToken, "Bearer", 3600L, "email profile", oauth2User);
 
         // Act
         UserCopyDto result = oauth2Service.processOAuth2member(oauthProcessDTO);
@@ -101,11 +104,14 @@ public class OAuth2ServiceImplTest {
 
         when(oauth2User.getAttributes()).thenReturn(attributes);
 
-        Member existingMember = new Member(email, name, "existing-password");
+        MemberRole userRole = new MemberRole("user-role-key", UserRole.USER);
+        Member existingMember = new Member(email, name, "existing-password", userRole);
 
         when(memberService.getmemberByEmail(email)).thenReturn(existingMember);
+        when(memberService.getMemberByOAuthProviderId(anyString(), anyString())).thenReturn(null);
+        when(memberService.attachOAuthToMember(any(Member.class), anyString(), anyString(), anyString(), anyString(), anyString(), any(), anyString())).thenReturn(existingMember);
 
-        OauthProcessDTO oauthProcessDTO = new OauthProcessDTO("access-token", "refresh-token", oauth2User);
+        OauthProcessDTO oauthProcessDTO = new OauthProcessDTO("access-token", "refresh-token", "Bearer", 3600L, "email profile", oauth2User);
 
         // Act
         UserCopyDto result = oauth2Service.processOAuth2member(oauthProcessDTO);
@@ -117,5 +123,6 @@ public class OAuth2ServiceImplTest {
         assertEquals(UserRole.USER, result.getRole());
 
         verify(memberService, never()).createMember(any(CreateUserDTO.class));
+        verify(memberService).attachOAuthToMember(any(Member.class), anyString(), anyString(), anyString(), anyString(), anyString(), any(), anyString());
     }
 }

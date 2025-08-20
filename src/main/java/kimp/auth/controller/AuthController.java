@@ -1,8 +1,11 @@
 package kimp.auth.controller;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kimp.auth.dto.CheckAuthResponseDto;
+import kimp.auth.dto.AuthResponseDto;
+import kimp.auth.dto.LoginMemberResponseDto;
+import kimp.auth.dto.UnLoginMemberResponseDto;
 import kimp.auth.service.AuthService;
 import kimp.exception.response.ApiResponse;
 import kimp.security.user.CustomUserDetails;
@@ -25,15 +28,22 @@ public class AuthController {
     }
 
     @GetMapping("/status")
-    public ApiResponse<CheckAuthResponseDto> checkmemberStatus(@AuthenticationPrincipal UserDetails member, HttpServletRequest request, HttpServletResponse response) {
-
-        if(member == null){
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return ApiResponse.error(401, "UNAUTHORIZED", "Authentication required");
+    public ApiResponse<AuthResponseDto> checkMemberStatus(@AuthenticationPrincipal UserDetails member, HttpServletRequest request, HttpServletResponse response) {
+        String kimprunToken = null;
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("kimprun-token")) {
+                    kimprunToken = cookie.getValue();
+                }
+            }
+            if (member == null) {
+                return ApiResponse.success(new UnLoginMemberResponseDto(kimprunToken));
+            }
         }
-
         CustomUserDetails customUserDetails = (CustomUserDetails) member;
-        CheckAuthResponseDto result = authService.checkAuthStatus(customUserDetails);
+        LoginMemberResponseDto result = authService.checkAuthStatus(customUserDetails);
+        result.setUuid(kimprunToken);
         return ApiResponse.success(result);
     }
 }

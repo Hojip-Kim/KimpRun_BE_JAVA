@@ -1,6 +1,7 @@
 package unit.kimp.batch.scheduler;
 
 import kimp.batch.scheduler.CmcBatchScheduler;
+import kimp.cmc.dao.CmcBatchDao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,9 +31,18 @@ public class CmcBatchSchedulerTest {
 
     @Mock
     private Job cmcDataSyncJob;
+    
+    @Mock
+    private CmcBatchDao cmcBatchDao;
 
     @BeforeEach
     void setUp() {
+        // CmcBatchDao mock 기본 설정 - 동기화가 필요하도록 설정
+        when(cmcBatchDao.shouldRunCoinMapSync()).thenReturn(true);
+        when(cmcBatchDao.shouldRunCoinInfoSync()).thenReturn(false);
+        when(cmcBatchDao.shouldRunExchangeSync()).thenReturn(false);
+        when(cmcBatchDao.shouldRunCoinRankSync()).thenReturn(false);
+        when(cmcBatchDao.shouldRunCoinMetaSync()).thenReturn(false);
     }
 
     @Test
@@ -57,5 +67,22 @@ public class CmcBatchSchedulerTest {
 
         // Assert
         verify(jobLauncher, times(1)).run(eq(cmcDataSyncJob), any(JobParameters.class));
+    }
+    
+    @Test
+    @DisplayName("동기화가 필요하지 않을 때 Job 실행 안 함")
+    void shouldSkipJobWhenNoSyncNeeded() throws Exception {
+        // Arrange - 모든 동기화가 필요하지 않도록 설정
+        when(cmcBatchDao.shouldRunCoinMapSync()).thenReturn(false);
+        when(cmcBatchDao.shouldRunCoinInfoSync()).thenReturn(false);
+        when(cmcBatchDao.shouldRunExchangeSync()).thenReturn(false);
+        when(cmcBatchDao.shouldRunCoinRankSync()).thenReturn(false);
+        when(cmcBatchDao.shouldRunCoinMetaSync()).thenReturn(false);
+
+        // Act
+        cmcBatchScheduler.runCmcDataSyncJob();
+
+        // Assert - Job이 실행되지 않아야 함
+        verify(jobLauncher, never()).run(any(Job.class), any(JobParameters.class));
     }
 }

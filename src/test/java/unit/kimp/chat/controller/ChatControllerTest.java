@@ -14,6 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -57,15 +59,14 @@ public class ChatControllerTest {
     @DisplayName("채팅 로그 조회 성공")
     void shouldReturnChatLogsWhenRequestIsValid() {
         // given
-        List<Chat> mockChatList = new ArrayList<>();
+        Page<ChatLogResponseDto> mockChatList = new PageImpl<>(new ArrayList<>());
         List<ChatLogResponseDto> mockResponseList = new ArrayList<>();
         
         when(chatService.getChatMessages(anyInt(), anyInt())).thenReturn(mockChatList);
-        when(chatService.convertChatLogToDto(mockChatList)).thenReturn(mockResponseList);
 
         // when
         PageRequestDto validDto = new PageRequestDto(0, 10);
-        ApiResponse<List<ChatLogResponseDto>> response = chatController.getChats(validDto, request);
+        ApiResponse<Page<ChatLogResponseDto>> response = chatController.getChats(validDto, request);
         
         // then
         assertNotNull(response);

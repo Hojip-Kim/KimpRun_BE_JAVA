@@ -1,40 +1,59 @@
 package kimp.chat.service.serviceImpl;
 
-import kimp.chat.dao.ChatDao;
-import kimp.chat.dto.request.ChatMessage;
+import kimp.chat.dao.impl.ChatDaoImpl;
 import kimp.chat.dto.response.ChatLogResponseDto;
 import kimp.chat.entity.Chat;
 import kimp.chat.service.ChatService;
 
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
+import kimp.util.IpMaskUtil;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ChatServiceImpl implements ChatService {
 
-    private final ChatDao chatDao;
+    private final ChatDaoImpl chatDao;
 
-    public ChatServiceImpl(ChatDao chatDao){
+    public ChatServiceImpl(ChatDaoImpl chatDao){
         this.chatDao = chatDao;
     }
 
     @Override
-    public List<Chat> getChatMessages(int page, int size) {
-        return chatDao.getAllChats(page, size);
+    public Page<ChatLogResponseDto> getChatMessages(int page, int size) {
+        Page<Chat> chats = chatDao.getAllChats(page, size);
+        if (chats == null || chats.isEmpty()) {
+            throw new KimprunException(
+                    KimprunExceptionEnum.INTERNAL_SERVER_ERROR,
+                    "message가 비어있습니다.",
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "ChatServiceImpl.getChatMessages"
+            );
+        }
+
+        // 페이지의 콘텐츠만 ASC로 재정렬
+        List<Chat> contentAsc = new ArrayList<>(chats.getContent());
+        contentAsc.sort(Comparator.comparing(Chat::getRegistedAt)); // ASC
+
+        // DTO 매핑
+        List<ChatLogResponseDto> dtos = contentAsc.stream()
+                .map(chat -> new ChatLogResponseDto(
+                        chat.getChatID(),
+                        chat.getContent(),
+                        chat.getAuthenticated(),
+                        chat.getCookiePayload(),
+                        IpMaskUtil.mask(chat.getUserIp()),
+                        chat.getRegistedAt()
+                ))
+                .toList();
+
+        return new PageImpl<>(dtos, chats.getPageable(), chats.getTotalElements());
     }
-
-    @Override
-    public List<ChatLogResponseDto> convertChatLogToDto(List<Chat> chatList){
-
-        List<ChatLogResponseDto> responseDtos = chatList.stream()
-                .map(chat -> new ChatLogResponseDto(chat.getChatID(), chat.getContent(), chat.getAuthenticated()))
-                .collect(Collectors.toList());
-
-        return responseDtos;
-    }
-
-
-
 }

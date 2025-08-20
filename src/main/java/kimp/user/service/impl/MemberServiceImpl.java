@@ -6,7 +6,9 @@ import kimp.member.util.NicknameGeneratorUtils;
 import kimp.user.dao.BannedCountDao;
 import kimp.user.dao.MemberDao;
 import kimp.user.dao.MemberWithDrawDao;
+import kimp.user.dao.ProfileDao;
 import kimp.user.dao.UserAgentDao;
+import kimp.user.service.MemberRoleService;
 import kimp.user.dto.UserCopyDto;
 import kimp.user.dto.UserDto;
 import kimp.user.dto.request.*;
@@ -24,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -35,17 +38,21 @@ public class MemberServiceImpl implements MemberService {
     private final UserAgentDao userAgentDao;
     private final BannedCountDao bannedCountDao;
     private final MemberWithDrawDao memberWithDrawDao;
+    private final ProfileDao profileDao;
+    private final MemberRoleService memberRoleService;
     private final PasswordEncoder passwordEncoder;
     private final NicknameGeneratorUtils nicknameGeneratorUtils;
     private final JavaMailSender mailSender;
     private final StringRedisTemplate redisTemplate;
 
 
-    public MemberServiceImpl(MemberDao memberDao, UserAgentDao userAgentDao, BannedCountDao bannedCountDao, MemberWithDrawDao memberWithDrawDao, PasswordEncoder passwordEncoder, NicknameGeneratorUtils nicknameGeneratorUtils, JavaMailSender mailSender, StringRedisTemplate stringRedisTemplate){
+    public MemberServiceImpl(MemberDao memberDao, UserAgentDao userAgentDao, BannedCountDao bannedCountDao, MemberWithDrawDao memberWithDrawDao, ProfileDao profileDao, MemberRoleService memberRoleService, PasswordEncoder passwordEncoder, NicknameGeneratorUtils nicknameGeneratorUtils, JavaMailSender mailSender, StringRedisTemplate stringRedisTemplate){
         this.memberDao = memberDao;
         this.userAgentDao = userAgentDao;
         this.bannedCountDao = bannedCountDao;
         this.memberWithDrawDao = memberWithDrawDao;
+        this.profileDao = profileDao;
+        this.memberRoleService = memberRoleService;
         this.passwordEncoder = passwordEncoder;
         this.nicknameGeneratorUtils = nicknameGeneratorUtils;
         this.mailSender = mailSender;
@@ -95,43 +102,97 @@ public class MemberServiceImpl implements MemberService {
         try {
             log.info("유저 생성 시작 - Email: {}, Nickname: {}", request.getEmail(), request.getNickname());
 
+            // 기존 이메일로 가입된 사용자가 있는지 확인
+            Member existingMember = memberDao.findMemberByEmail(request.getEmail());
+            
+            if (existingMember != null) {
+                // 기존 사용자가 OAuth만 가입한 경우 (비밀번호가 없거나 OAuth 정보가 있는 경우)
+                if (existingMember.getOauth() != null && request.getOauth() == null) {
+                    log.info("기존 OAuth 사용자에게 비밀번호 추가 - Email: {}", request.getEmail());
+                    return addPasswordToExistingOAuthMember(existingMember, request);
+                } else {
+                    // 이미 일반 회원가입이 완료된 경우
+                    throw new KimprunException(KimprunExceptionEnum.DUPLICATE_EMAIL_EXCEPTION, 
+                        "이미 가입된 이메일입니다.", HttpStatus.CONFLICT, "MemberServiceImpl.createMember");
+                }
+            }
+
             Member member = null;
             String nickname;
 
             if (request.getNickname() == null || request.getNickname().trim().isEmpty()) {
                 nickname = nicknameGeneratorUtils.createRandomNickname();
-                log.info("랜덤 닉네임 생성: {}", nickname);
             } else {
                 nickname = request.getNickname();
             }
 
+            MemberRole defaultRole = memberRoleService.getDefaultUserRole();
+            
             member = memberDao.createMember(
                     request.getEmail(),
                     nickname,
-                    passwordEncoder.encode(request.getPassword())
+                    passwordEncoder.encode(request.getPassword()),
+                    defaultRole
             );
             Oauth oauth = new Oauth();
             oauth.setMember(member);
 
             if(request.getOauth() != null){
+                LocalDateTime now = LocalDateTime.now();
+                
                 oauth.setProvider(request.getOauth().name())
-                .setProviderId(request.getProviderId())
-                .setAccessToken(passwordEncoder.encode(request.getAccessToken()));
+                      .setProviderId(request.getProviderId())
+                      .setAccessToken(request.getAccessToken());
+                      
+                if(request.getRefreshToken() != null) {
+                    oauth.setRefreshToken(request.getRefreshToken());
+                }
+                if(request.getTokenType() != null) {
+                    oauth.setTokenType(request.getTokenType());
+                }
+                if(request.getExpiresIn() != null) {
+                    oauth.setExpiresIn(request.getExpiresIn())
+                         .setExpiresAt(now.plusSeconds(request.getExpiresIn()));
+                }
+                if(request.getScope() != null) {
+                    oauth.setScope(request.getScope());
+                }
             }
 
             UserAgent userAgent = userAgentDao.createUserAgent(member);
             MemberWithdraw memberWithdraw = memberWithDrawDao.createMemberWithDraw(member);
             BannedCount bannedCount = bannedCountDao.createBannedCount(userAgent);
+            Profile profile = profileDao.createDefaultProfile(member);
 
             userAgent.setBannedCount(bannedCount);
 
             log.info("유저 생성 완료: {}", member);
             return member;
 
+        } catch (KimprunException e) {
+            // KimprunException은 그대로 다시 던지기
+            throw e;
         } catch (Exception e) {
             log.error("유저 생성 중 오류 발생", e);
             throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "Failed to create user: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, "MemberServiceImpl.createMember");
         }
+    }
+    
+    private Member addPasswordToExistingOAuthMember(Member existingMember, CreateUserDTO request) {
+        log.info("기존 OAuth 사용자에게 비밀번호 추가 - Member ID: {}", existingMember.getId());
+        
+        // 비밀번호 설정
+        existingMember.updatePassword(passwordEncoder.encode(request.getPassword()));
+        
+        // 닉네임이 요청에 있는 경우 업데이트
+        if (request.getNickname() != null && !request.getNickname().trim().isEmpty()) {
+            if (!request.getNickname().equals(existingMember.getNickname())) {
+                existingMember.updateNickname(request.getNickname());
+            }
+        }
+        
+        log.info("기존 OAuth 사용자에게 비밀번호 추가 완료 - Member ID: {}", existingMember.getId());
+        return existingMember;
     }
 
     @Override
@@ -164,13 +225,19 @@ public class MemberServiceImpl implements MemberService {
         return member;
     }
 
+    @Override
+    public Member getMemberByOAuthProviderId(String provider, String providerId) {
+        return memberDao.findMemberByOAuthProviderId(provider, providerId);
+    }
+
     // 외부 서비스에서 호출하는 메소드
     // 외부 서비스에서 객체 변경 방지를 위한 dto화
     @Override
+    @Transactional
     public UserCopyDto createCopyUserDtoByEmail(String email) {
         Member member = memberDao.findMemberByEmail(email);
         if(member != null) {
-            return new UserCopyDto(member.getId(), member.getEmail(), member.getPassword(), member.getNickname(), member.getRole());
+            return new UserCopyDto(member.getId(), member.getEmail(), member.getPassword(), member.getNickname(), member.getRole().getRoleName());
         }else{
             return null;
         }
@@ -235,15 +302,88 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public UserDto convertUserToUserDto(Member member) {
 
-        return new UserDto(member.getEmail(), member.getNickname(), member.getRole());
+        return new UserDto(member.getEmail(), member.getNickname(), member.getRole().getRoleName());
     }
 
     @Override
     @Transactional
     public Member grantRole(Long memberId, UserRole grantRole) {
         Member member = memberDao.findMemberById(memberId);
-        member.grantRole(grantRole);
+        MemberRole memberRole = memberRoleService.getRoleByName(grantRole);
+        member.grantRole(memberRole);
         return member;
+    }
+
+    @Override
+    @Transactional
+    public Member attachOAuthToMember(Member member, String provider, String providerId, 
+                                     String accessToken, String refreshToken, String tokenType, 
+                                     Long expiresIn, String scope) {
+        try {
+            log.info("OAuth 정보 연결 시작 - Member ID: {}, Provider: {}", member.getId(), provider);
+            
+            // 기존 OAuth 정보가 있는지 확인
+            kimp.user.entity.Oauth existingOAuth = member.getOauth();
+            
+            if (existingOAuth != null) {
+                // 기존 OAuth 정보가 있으면 업데이트
+                log.info("기존 OAuth 정보 업데이트 - Member ID: {}", member.getId());
+                LocalDateTime now = LocalDateTime.now();
+                
+                existingOAuth.setProvider(provider)
+                            .setProviderId(providerId)
+                            .setAccessToken(accessToken);
+                            
+                if (refreshToken != null) {
+                    existingOAuth.setRefreshToken(refreshToken);
+                }
+                if (tokenType != null) {
+                    existingOAuth.setTokenType(tokenType);
+                }
+                if (expiresIn != null) {
+                    existingOAuth.setExpiresIn(expiresIn)
+                               .setExpiresAt(now.plusSeconds(expiresIn));
+                }
+                if (scope != null) {
+                    existingOAuth.setScope(scope);
+                }
+            } else {
+                // 새로운 OAuth 정보 생성
+                log.info("새로운 OAuth 정보 생성 - Member ID: {}", member.getId());
+                LocalDateTime now = LocalDateTime.now();
+                
+                kimp.user.entity.Oauth oauth = new kimp.user.entity.Oauth();
+                oauth.setMember(member)
+                     .setProvider(provider)
+                     .setProviderId(providerId)
+                     .setAccessToken(accessToken);
+                     
+                if (refreshToken != null) {
+                    oauth.setRefreshToken(refreshToken);
+                }
+                if (tokenType != null) {
+                    oauth.setTokenType(tokenType);
+                }
+                if (expiresIn != null) {
+                    oauth.setExpiresIn(expiresIn)
+                         .setExpiresAt(now.plusSeconds(expiresIn));
+                }
+                if (scope != null) {
+                    oauth.setScope(scope);
+                }
+                
+                member.setOauth(oauth);
+            }
+            
+            log.info("OAuth 정보 연결 완료 - Member ID: {}", member.getId());
+            return member;
+            
+        } catch (Exception e) {
+            log.error("OAuth 정보 연결 중 오류 발생 - Member ID: {}", member.getId(), e);
+            throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, 
+                                     "Failed to attach OAuth to member: " + e.getMessage(), 
+                                     HttpStatus.INTERNAL_SERVER_ERROR, "MemberServiceImpl.attachOAuthToMember");
+        }
     }
 
     private String generateVerificationCode(){

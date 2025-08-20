@@ -2,6 +2,7 @@ package kimp.user.dao.impl;
 
 import kimp.user.dao.MemberDao;
 import kimp.user.entity.Member;
+import kimp.user.entity.MemberRole;
 import kimp.user.repository.MemberRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -41,13 +42,22 @@ public class UserDaoImpl implements MemberDao {
     }
 
     @Override
+    public Member findMemberByOAuthProviderId(String provider, String providerId){
+        Optional<Member> member = this.memberRepository.findByOauthProviderAndOauthProviderId(provider, providerId);
+        if(member.isEmpty()){
+            return null;
+        }
+        return member.get();
+    }
+
+    @Override
     @Transactional
-    public Member createMember(String email, String nickname, String password){
+    public Member createMember(String email, String nickname, String password, MemberRole role){
 //        Optional<member> member = this.memberRepository.findByEmail(email);
 //        if (member.isPresent()) {
 //            throw new IllegalArgumentException("member already exists");
 //        }
-        Member createdMember = new Member(email, nickname, password);
+        Member createdMember = new Member(email, nickname, password, role);
         return this.memberRepository.save(createdMember);
     }
 

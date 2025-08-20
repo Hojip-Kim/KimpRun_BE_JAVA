@@ -102,4 +102,27 @@ public class NoticeServiceImpl implements NoticeService
             return List.of(); // 빈 리스트 반환
         }
     }
+
+    @Override
+    public LocalDateTime getLatestNoticeDate(MarketType marketType) {
+        try {
+            return noticeDao.getLatestNoticeDate(marketType);
+        } catch (Exception e) {
+            log.error("최신 공지사항 날짜 조회 실패: {} - {}", marketType, e.getMessage());
+            return null;
+        }
+    }
+
+    @Override
+    public List<String> getNoticeLinksAfterDate(MarketType marketType, LocalDateTime afterDate) {
+        try {
+            if (afterDate == null) {
+                return List.of();
+            }
+            return noticeDao.getNoticeLinksAfterDate(marketType, afterDate);
+        } catch (Exception e) {
+            log.error("날짜 이후 공지사항 링크 조회 실패: {} - {}", marketType, e.getMessage());
+            return List.of();
+        }
+    }
 }

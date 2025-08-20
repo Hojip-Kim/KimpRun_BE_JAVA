@@ -2,11 +2,11 @@ package kimp.exchange.service.impl;
 
 import kimp.notice.dto.notice.NoticeDto;
 import kimp.notice.dto.notice.NoticeParsedData;
-import kimp.exchange.component.ExchangeScrap;
-import kimp.exchange.dto.binance.BinanceNoticeDto;
-import kimp.exchange.dto.bithumb.BithumbNoticeDto;
-import kimp.exchange.dto.coinone.CoinoneNoticeDto;
-import kimp.exchange.dto.upbit.UpbitNoticeDto;
+import kimp.scrap.component.ExchangeScrap;
+import kimp.scrap.dto.binance.BinanceNoticeDto;
+import kimp.scrap.dto.bithumb.BithumbNoticeDto;
+import kimp.scrap.dto.coinone.CoinoneNoticeDto;
+import kimp.scrap.dto.upbit.UpbitNoticeDto;
 import kimp.notice.service.NoticeService;
 import kimp.exchange.service.ScrapService;
 import kimp.market.handler.MarketInfoHandler;
@@ -16,6 +16,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -49,7 +50,7 @@ public class ScrapServiceImpl implements ScrapService {
 
     /**
      * Python 서비스를 통한 거래소별 공지사항 스크래핑
-     * 각 거래소 컴포넌트에서 Python 서비스를 호출하여 기존 Redis 해시 비교 로직 유지
+     * Redis 종속성 제거 - DB 기반 날짜 비교로 효율적인 새로운 공지사항 감지
      */
     @Scheduled(fixedRate = 30000) // 30초에서
     public void scrapNoticeData() throws IOException {
@@ -86,31 +87,12 @@ public class ScrapServiceImpl implements ScrapService {
             
             log.debug("{} 거래소에서 {} 개의 공지사항을 가져왔습니다 (최신순 정렬 완료)", exchangeName, currentNotices.size());
             
-            // 2. Redis에서 이전 해시 가져오기
-            String previousHash = scrapComponent.getNoticeFromRedis();
-            log.debug("{} 이전 Redis 해시: {}", exchangeName, previousHash);
-            
-            // 3. 해시 비교를 통한 변경사항 확인
-            boolean hasUpdate = scrapComponent.isUpdatedNotice(previousHash, currentNotices);
+            // 2. DB 기반 새로운 공지사항 감지 (Redis 해시 비교 제거)
+            List<NoticeParsedData> newNotices = findNewNoticesFromDB(scrapComponent.getMarketType(), currentNotices);
+            boolean hasUpdate = !newNotices.isEmpty();
             
             if (hasUpdate) {
-                log.info("{} 거래소에 변경사항 발견", exchangeName);
-                
-                // 4. 새로운 공지사항 찾기 (현재 상태를 먼저 백업)
-                List<NoticeParsedData> previousNotices = scrapComponent.getNoticeData();
-                log.debug("{} 이전 저장된 공지사항 개수: {}", exchangeName, previousNotices.size());
-                
-                List<NoticeParsedData> newNotices;
-                
-                // 초기화 실패 등으로 이전 데이터가 없는 경우 처리
-                if (previousNotices.isEmpty()) {
-                    log.warn("{} 이전 공지사항 데이터가 비어있음 - DB에서 최신 공지사항과 비교", exchangeName);
-                    // DB에서 최신 공지사항 몇 개를 가져와서 비교
-                    newNotices = findNewNoticesFromDB(scrapComponent.getMarketType(), currentNotices);
-                } else {
-                    // 정상적인 경우: 메모리의 이전 데이터와 비교
-                    newNotices = scrapComponent.getNewNotice(currentNotices);
-                }
+                log.info("{} 거래소에 새로운 공지사항 {} 개 발견", exchangeName, newNotices.size());
                 
                 // 4-1. 새로운 공지사항들도 최신순으로 정렬
                 if (newNotices != null && !newNotices.isEmpty()) {
@@ -125,8 +107,7 @@ public class ScrapServiceImpl implements ScrapService {
                     log.info("🔔 가장 최신 공지사항: {} - {} ({})", 
                             exchangeName, latestNotice.getTitle(), latestNotice.getDate());
                     
-                    // 5. 상태 업데이트 (반드시 새로운 공지사항 처리 후에)
-                    scrapComponent.setNoticeToRedis(currentNotices);
+                    // 5. 메모리 상태 업데이트 (Redis 저장 제거)
                     scrapComponent.setNewParsedData(currentNotices);
                     scrapComponent.setNewNotice(newNotices);
                     
@@ -160,46 +141,80 @@ public class ScrapServiceImpl implements ScrapService {
                     }
                 } else {
                     log.debug("{} 거래소 새로운 공지사항 추출 결과 없음", exchangeName);
-                    // 해시는 변경되었지만 새로운 공지사항이 없는 경우도 상태 업데이트
-                    scrapComponent.setNoticeToRedis(currentNotices);
+                    // 새로운 공지사항이 없어도 현재 상태는 업데이트
                     scrapComponent.setNewParsedData(currentNotices);
                 }
             } else {
                 log.debug("{} 거래소에 변경사항 없음", exchangeName);
             }
             
-        } catch (IllegalStateException e) {
-            // 새로운 공지사항이 없는 경우 (정상적인 상황)
-            log.debug("{} 거래소에 새로운 공지사항이 없습니다: {}", exchangeName, e.getMessage());
         } catch (Exception e) {
             log.error("{} 거래소 공지사항 처리 중 오류 발생: {}", exchangeName, e.getMessage(), e);
         }
     }
     
     /**
-     * DB에서 최신 공지사항과 비교하여 새로운 것만 찾기
-     * 초기화 실패 시 사용되는 백업 로직
+     * DB 기반 효율적 새로운 공지사항 감지 로직
+     * Redis 대신 DB의 최신 공지사항 날짜를 기준으로 새로운 공지사항 필터링
      */
     private List<NoticeParsedData> findNewNoticesFromDB(MarketType marketType, List<NoticeParsedData> currentNotices) {
         try {
-            // DB에서 해당 거래소의 최신 공지사항 링크들 가져오기 (최근 100개 정도)
-            List<String> existingLinks = noticeService.getRecentNoticeLinks(marketType, 100);
+            // 1. DB에서 해당 거래소의 가장 최근 공지사항 날짜 가져오기
+            LocalDateTime latestDbDate = noticeService.getLatestNoticeDate(marketType);
             
-            // 현재 공지사항 중에서 DB에 없는 것만 필터링하고 최신순으로 정렬 (분석용)
+            if (latestDbDate == null) {
+                // DB에 해당 거래소 공지사항이 없는 경우 - 모든 현재 공지사항을 새로운 것으로 간주
+                log.info("DB에 {} 거래소 공지사항이 없음 - 모든 현재 공지사항({} 개)을 새로운 것으로 처리", 
+                        marketType, currentNotices.size());
+                return currentNotices.stream()
+                    .sorted((a, b) -> b.getDate().compareTo(a.getDate()))
+                    .toList();
+            }
+            
+            // 2. 현재 공지사항 중에서 DB 최신 날짜보다 최신인 것들만 필터링
             List<NoticeParsedData> newNotices = currentNotices.stream()
-                .filter(notice -> !existingLinks.contains(notice.getAlink()))
-                .sorted((a, b) -> b.getDate().compareTo(a.getDate())) // 최신순 정렬 (분석 및 로깅용)
+                .filter(notice -> notice.getDate().isAfter(latestDbDate))
+                .sorted((a, b) -> b.getDate().compareTo(a.getDate())) // 최신순 정렬
                 .toList();
-                
-            log.info("DB 비교 결과: 전체 {} 개 중 새로운 공지사항 {} 개 발견", 
-                    currentNotices.size(), newNotices.size());
-                
-            // 반환은 최신순으로 (처리 로직에서 저장 시 다시 정렬함)
+            
+            log.info("DB 날짜 기반 비교 결과: DB 최신 날짜 [{}], 전체 {} 개 중 새로운 공지사항 {} 개 발견", 
+                    latestDbDate, currentNotices.size(), newNotices.size());
+            
+            if (!newNotices.isEmpty()) {
+                NoticeParsedData latestNew = newNotices.get(0);
+                log.info("가장 최신 공지사항: {} - {}", latestNew.getTitle(), latestNew.getDate());
+            }
+            
             return newNotices;
                 
         } catch (Exception e) {
-            log.error("DB에서 기존 공지사항 확인 실패: {}", e.getMessage());
-            // 실패 시 모든 현재 공지사항을 새로운 것으로 간주하되 최신순으로 정렬 (분석용)
+            log.error("DB 기반 새로운 공지사항 감지 실패: {} - {}", marketType, e.getMessage());
+            
+            // 실패 시 링크 기반 백업 로직 사용
+            log.warn("링크 기반 백업 로직으로 전환");
+            return findNewNoticesByLinks(marketType, currentNotices);
+        }
+    }
+    
+    /**
+     * 링크 기반 백업 로직 - DB 날짜 비교 실패 시 사용
+     */
+    private List<NoticeParsedData> findNewNoticesByLinks(MarketType marketType, List<NoticeParsedData> currentNotices) {
+        try {
+            List<String> existingLinks = noticeService.getRecentNoticeLinks(marketType, 100);
+            
+            List<NoticeParsedData> newNotices = currentNotices.stream()
+                .filter(notice -> !existingLinks.contains(notice.getAlink()))
+                .sorted((a, b) -> b.getDate().compareTo(a.getDate()))
+                .toList();
+                
+            log.info("링크 기반 백업 결과: 전체 {} 개 중 새로운 공지사항 {} 개 발견", 
+                    currentNotices.size(), newNotices.size());
+            
+            return newNotices;
+        } catch (Exception e) {
+            log.error("링크 기반 백업 로직도 실패: {}", e.getMessage());
+            // 최종 백업: 모든 현재 공지사항을 새로운 것으로 간주 (안전장치)
             return currentNotices.stream()
                 .sorted((a, b) -> b.getDate().compareTo(a.getDate()))
                 .toList();

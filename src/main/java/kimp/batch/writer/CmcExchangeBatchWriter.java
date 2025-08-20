@@ -1,6 +1,6 @@
 package kimp.batch.writer;
 
-import kimp.cmc.dao.jdbc.CmcBatchDao;
+import kimp.cmc.dao.CmcBatchDao;
 import kimp.cmc.dto.common.exchange.CmcExchangeDetailDto;
 import kimp.cmc.dto.common.exchange.CmcExchangeDto;
 import lombok.extern.slf4j.Slf4j;

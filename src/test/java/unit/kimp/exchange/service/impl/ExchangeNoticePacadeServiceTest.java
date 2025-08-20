@@ -146,10 +146,8 @@ public class ExchangeNoticePacadeServiceTest {
     @DisplayName("createNotice 메서드 테스트")
     void shouldCreateNotice() {
         // Given
-        // Create a new Notice without an Exchange set
         Notice noticeWithoutExchange = new Notice(title, link, date);
 
-        // Create a Notice with Exchange set for the return value of createNotice
         Notice savedNotice = new Notice(title, link, date);
         savedNotice.setExchange(exchange);
 

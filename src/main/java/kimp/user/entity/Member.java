@@ -7,6 +7,7 @@ import kimp.community.entity.Board;
 import kimp.community.entity.Comment;
 import kimp.user.enums.UserRole;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
 @Entity
 @Table(name= "member")
 @Getter
+@NoArgsConstructor
 public class Member extends TimeStamp {
 
     @Id
@@ -31,24 +33,23 @@ public class Member extends TimeStamp {
     @Column(nullable = true)
     private String nickname;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private UserRole role;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id")
+    private MemberRole role;
 
     @Column(name="is_active", nullable = false)
     private boolean isActive = true;
 
-    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL)
-    @JsonIgnore
+    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private Oauth oauth;
 
-    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private UserAgent memberAgent;
 
-    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private MemberWithdraw MemberWithdraw;
 
-    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Profile profile;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -57,22 +58,11 @@ public class Member extends TimeStamp {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Comment> comments = new ArrayList<>();
 
-    public Member(){
-        this.role = UserRole.USER;
-    }
-
-    public Member(String email, String password) {
-        this.email = email;
-        this.password = password;
-        this.role = UserRole.USER;
-    }
-
-    public Member(String email, String nickname, String password) {
+    public Member(String email, String nickname, String password, MemberRole role) {
         this.email = email;
         this.nickname = nickname;
         this.password = password;
-        this.role = UserRole.USER;
-
+        this.role = role;
     }
 
     public Member updateNickname(String newNickname){
@@ -100,7 +90,7 @@ public class Member extends TimeStamp {
         return this;
     }
 
-    public Member grantRole(UserRole role){
+    public Member grantRole(MemberRole role){
         if(this.role == null){
             throw new IllegalArgumentException("Role cannot be null");
         }

@@ -1,7 +1,7 @@
 package unit.kimp.chat.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kimp.chat.dao.ChatDao;
+import kimp.chat.dao.impl.ChatDaoImpl;
 import kimp.chat.service.serviceImpl.ChatWebsocketServiceImpl;
 import kimp.exception.KimprunException;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +26,7 @@ public class ChatWebsocketServiceImplTest {
     private ChatWebsocketServiceImpl chatWebsocketServiceImpl;
 
     @Mock
-    private ChatDao chatDao;
+    private ChatDaoImpl chatDao;
 
 
     @Mock

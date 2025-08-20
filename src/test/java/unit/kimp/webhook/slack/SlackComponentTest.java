@@ -6,6 +6,7 @@ import com.slack.api.webhook.Payload;
 import com.slack.api.webhook.WebhookResponse;
 import kimp.exception.response.ErrorResponseDTO;
 import kimp.webhook.slack.SlackComponent;
+import kimp.webhook.slack.impl.SlackComponentImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,6 @@ public class SlackComponentTest {
     @Mock
     private ObjectMapper objectMapper;
 
-    @InjectMocks
     private SlackComponent slackComponent;
 
     private final String webhookUrl = "https://dummy-webhook-url.com/test";
@@ -39,12 +39,7 @@ public class SlackComponentTest {
     @BeforeEach
     void setUp() throws NoSuchFieldException, IllegalAccessException {
         // SlackComponent를 생성자 주입으로 초기화
-        slackComponent = new SlackComponent(webhookUrl, slack);
-        
-        // ObjectMapper를 reflection으로 주입
-        Field mapperField = SlackComponent.class.getDeclaredField("mapper");
-        mapperField.setAccessible(true);
-        mapperField.set(slackComponent, objectMapper);
+        slackComponent = new SlackComponentImpl(webhookUrl, slack, objectMapper);
     }
 
     @Test

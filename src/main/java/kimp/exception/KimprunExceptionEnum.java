@@ -21,6 +21,7 @@ public enum KimprunExceptionEnum {
     INVALID_PARAMETER_EXCEPTION(HttpStatus.BAD_REQUEST, "E0006"),
     INVALID_PAGE_PARAMETER_EXCEPTION(HttpStatus.BAD_REQUEST, "E0007"),
     INVALID_ID_PARAMETER_EXCEPTION(HttpStatus.BAD_REQUEST, "E0008"),
+    INVALID_REQUEST_EXCEPTION(HttpStatus.BAD_REQUEST, "E00017"),
     
     // Resource Exceptions
     RESOURCE_NOT_FOUND_EXCEPTION(HttpStatus.NOT_FOUND, "E0009"),
@@ -37,7 +38,12 @@ public enum KimprunExceptionEnum {
     // Data Processing Exceptions
     DATA_PROCESSING_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "E0015"),
     PYTHON_SERVICE_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "E0016"),
-    ;
+
+    // cloudflare Processing Exceptions
+    IP_BAN_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E0018"),
+    
+    // Member Exceptions
+    DUPLICATE_EMAIL_EXCEPTION(HttpStatus.CONFLICT, "E0019");
 
     private final HttpStatus httpStatus;
     private final String errorCode;

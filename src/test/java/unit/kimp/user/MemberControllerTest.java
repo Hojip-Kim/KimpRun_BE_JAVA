@@ -3,7 +3,7 @@ package unit.kimp.user;
 import kimp.exception.KimprunException;
 import kimp.exception.response.ApiResponse;
 import kimp.security.user.CustomUserDetails;
-import kimp.user.MemberController;
+import kimp.user.controller.MemberController;
 import kimp.user.dto.UserDto;
 import kimp.user.dto.UserWithIdNameEmailDto;
 import kimp.user.dto.request.*;
@@ -12,6 +12,7 @@ import kimp.user.dto.response.EmailVerifyCodeResponseDTO;
 import kimp.user.dto.response.EmailVerifyResponseDTO;
 import kimp.user.entity.Member;
 import kimp.user.enums.UserRole;
+import kimp.user.entity.MemberRole;
 import kimp.user.service.MemberService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,9 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -51,12 +50,12 @@ public class MemberControllerTest {
 
     @BeforeEach
     void setUp() throws NoSuchFieldException, IllegalAccessException {
-        mockMember = new Member("test@example.com", "testuser", "password");
+        MemberRole userRole = new MemberRole("user-role-key", UserRole.USER);
+        mockMember = new Member("test@example.com", "testuser", "password", userRole);
         // Use reflection to set the id field as it's not exposed by a setter
         Field idField = Member.class.getDeclaredField("id");
         idField.setAccessible(true);
         idField.set(mockMember, 1L);
-        mockMember.grantRole(UserRole.USER); // Use the public method to set role
         mockUserDto = new UserDto("test@example.com", "testuser", UserRole.USER);
 
         // Set adminUrl field using reflection for the admin redirect test
@@ -75,7 +74,7 @@ public class MemberControllerTest {
         when(memberService.convertUserToUserDto(any(Member.class))).thenReturn(mockUserDto);
 
         // Act
-        ApiResponse<UserDto> response = memberController.getmember(customUserDetails);
+        ApiResponse<UserDto> response = memberController.getMember(customUserDetails);
 
         // Assert
         assertNotNull(response);
@@ -187,7 +186,8 @@ public class MemberControllerTest {
     void shouldCreateNewMember() {
         // Arrange
         CreateUserDTO createUserDTO = new CreateUserDTO("newuser@example.com", "newuser", "password123");
-        Member newMember = new Member("newuser@example.com", "newuser", "password123");
+        MemberRole userRole = new MemberRole("user-role-key", UserRole.USER);
+        Member newMember = new Member("newuser@example.com", "newuser", "password123", userRole);
         UserDto newUserDto = new UserDto("newuser@example.com", "newuser", UserRole.USER);
 
         when(memberService.createMember(any(CreateUserDTO.class))).thenReturn(newMember);
@@ -210,7 +210,8 @@ public class MemberControllerTest {
     void shouldUpdateUserRoleForManager() {
         // Arrange
         UpdateUserRoleDTO updateUserRoleDTO = new UpdateUserRoleDTO(1L, UserRole.MANAGER);
-        Member updatedMember = new Member("test@example.com", "testuser", "password");
+        MemberRole managerRole = new MemberRole("manager-role-key", UserRole.MANAGER);
+        Member updatedMember = new Member("test@example.com", "testuser", "password", managerRole);
         UserDto updatedUserDto = new UserDto("test@example.com", "testuser", UserRole.MANAGER);
 
         when(memberService.grantRole(anyLong(), any(UserRole.class))).thenReturn(updatedMember);
@@ -233,7 +234,8 @@ public class MemberControllerTest {
     void shouldUpdateMemberInformation() {
         // Arrange
         UpdateUserPasswordDTO updatePasswordDTO = new UpdateUserPasswordDTO("oldpass", "newpass");
-        Member updatedMember = new Member("test@example.com", "testuser", "newpass");
+        MemberRole userRole = new MemberRole("user-role-key", UserRole.USER);
+        Member updatedMember = new Member("test@example.com", "testuser", "newpass", userRole);
         UserDto updatedUserDto = new UserDto("test@example.com", "testuser", UserRole.USER);
 
         when(memberService.updateMember(anyLong(), any(UpdateUserPasswordDTO.class))).thenReturn(updatedMember);
@@ -267,9 +269,8 @@ public class MemberControllerTest {
     void shouldUpdateMemberNickname() {
         // Arrange
         UpdateUserNicknameDTO updateNicknameDTO = new UpdateUserNicknameDTO("newnickname");
-        Member updatedMember = new Member("test@example.com", "newnickname", "password");
-        // Member entity doesn't have public setters
-        mockMember.grantRole(UserRole.USER);
+        MemberRole userRole = new MemberRole("user-role-key", UserRole.USER);
+        Member updatedMember = new Member("test@example.com", "newnickname", "password", userRole);
         UserWithIdNameEmailDto updatedUserDto = new UserWithIdNameEmailDto("test@example.com", "newnickname", UserRole.USER.name());
 
         when(memberService.updateNickname(anyLong(), any(UpdateUserNicknameDTO.class))).thenReturn(updatedMember);

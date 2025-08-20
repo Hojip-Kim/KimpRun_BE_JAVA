@@ -1,11 +1,10 @@
 package unit.kimp.exchange.service.impl;
 
-import kimp.exchange.component.ExchangeScrap;
-import kimp.exchange.component.impl.exchange.ExchangeScrapAbstract;
-import kimp.exchange.dto.binance.BinanceNoticeDto;
-import kimp.exchange.dto.bithumb.BithumbNoticeDto;
-import kimp.exchange.dto.coinone.CoinoneNoticeDto;
-import kimp.exchange.dto.upbit.UpbitNoticeDto;
+import kimp.scrap.component.impl.exchange.ExchangeScrapAbstract;
+import kimp.scrap.dto.binance.BinanceNoticeDto;
+import kimp.scrap.dto.bithumb.BithumbNoticeDto;
+import kimp.scrap.dto.coinone.CoinoneNoticeDto;
+import kimp.scrap.dto.upbit.UpbitNoticeDto;
 import kimp.exchange.service.ExchangeService;
 import kimp.exchange.service.impl.ExchangeNoticePacadeService;
 import kimp.exchange.service.impl.ScrapServiceImpl;
@@ -99,21 +98,20 @@ public class ScrapServiceImplTest {
     }
 
     @Test
-    @DisplayName("스크랩 서비스 테스트 - Upbit에 새로운 공지사항이 있을 때")
+    @DisplayName("스크랩 서비스 테스트 - Upbit에 새로운 공지사항이 있을 때 (DB 기반)")
     void shouldScrapNoticeDataWhenNewUpbitNoticeExists() throws IOException {
         // Given
         doReturn(upbitNoticeParsedDataList).when(upbitScrapComponent).parseNoticeData();
         doReturn(coinoneNoticeParsedDataList).when(coinoneScrapComponent).parseNoticeData();
-
-        doReturn("old-hash").when(upbitScrapComponent).getNoticeFromRedis();
-        doReturn(true).when(upbitScrapComponent).isUpdatedNotice(anyString(), anyList());
-        doReturn(upbitNoticeParsedDataList).when(upbitScrapComponent).getNoticeData(); // Mock existing notice data
-        doReturn(upbitNewNoticeList).when(upbitScrapComponent).getNewNotice(anyList());
+        
         doReturn(MarketType.UPBIT).when(upbitScrapComponent).getMarketType();
-
-        doReturn("old-hash").when(coinoneScrapComponent).getNoticeFromRedis();
-        doReturn(false).when(coinoneScrapComponent).isUpdatedNotice(anyString(), anyList());
-
+        doReturn(MarketType.COINONE).when(coinoneScrapComponent).getMarketType();
+        
+        // DB에서 최신 날짜 조회 - Upbit는 새로운 공지사항이 있도록 설정
+        LocalDateTime yesterdayDate = LocalDateTime.now().minusDays(1);
+        when(noticeService.getLatestNoticeDate(MarketType.UPBIT)).thenReturn(yesterdayDate);
+        when(noticeService.getLatestNoticeDate(MarketType.COINONE)).thenReturn(LocalDateTime.now().plusHours(1)); // 새로운 공지사항 없음
+        
         when(noticeService.getNoticeByLink(anyString())).thenReturn(noticeDto);
         doNothing().when(marketInfoHandler).sendNewNotice(any(NoticeDto.class));
         when(exchangeNoticePacadeService.createNoticesBulk(any(MarketType.class), anyList())).thenReturn(true);
@@ -121,40 +119,40 @@ public class ScrapServiceImplTest {
         // When
         scrapService.scrapNoticeData();
 
-        // Then
+        // Then - DB 기반 로직 검증
         verify(upbitScrapComponent, times(1)).parseNoticeData();
         verify(coinoneScrapComponent, times(1)).parseNoticeData();
-        verify(upbitScrapComponent, times(1)).getNoticeFromRedis();
-        verify(upbitScrapComponent, times(1)).isUpdatedNotice(anyString(), anyList());
-        verify(upbitScrapComponent, times(1)).getNewNotice(anyList());
-        verify(upbitScrapComponent, times(1)).setNoticeToRedis(anyList());
+        
+        // DB 날짜 조회 검증
+        verify(noticeService, times(1)).getLatestNoticeDate(MarketType.UPBIT);
+        verify(noticeService, times(1)).getLatestNoticeDate(MarketType.COINONE);
+        
+        // Upbit만 새로운 공지사항 처리
         verify(upbitScrapComponent, times(1)).setNewParsedData(anyList());
         verify(upbitScrapComponent, times(1)).setNewNotice(anyList());
-        verify(exchangeNoticePacadeService, times(1)).createNoticesBulk(any(MarketType.class), anyList());
-        verify(noticeService, times(1)).getNoticeByLink(anyString());
-        verify(marketInfoHandler, times(1)).sendNewNotice(any(NoticeDto.class));
-
-        verify(coinoneScrapComponent, times(1)).getNoticeFromRedis();
-        verify(coinoneScrapComponent, times(1)).isUpdatedNotice(anyString(), anyList());
-        verify(coinoneScrapComponent, never()).getNewNotice(anyList());
+        verify(exchangeNoticePacadeService, times(1)).createNoticesBulk(eq(MarketType.UPBIT), anyList());
+        verify(noticeService, atLeastOnce()).getNoticeByLink(anyString());
+        verify(marketInfoHandler, atLeastOnce()).sendNewNotice(any(NoticeDto.class));
+        
+        // Coinone은 새로운 공지사항이 없으므로 처리 없음
+        verify(coinoneScrapComponent, never()).setNewNotice(anyList());
     }
 
     @Test
-    @DisplayName("스크랩 서비스 테스트 - Coinone에 새로운 공지사항이 있을 때")
+    @DisplayName("스크랩 서비스 테스트 - Coinone에 새로운 공지사항이 있을 때 (DB 기반)")
     void shouldScrapNoticeDataWhenNewCoinoneNoticeExists() throws IOException {
         // Given
         doReturn(upbitNoticeParsedDataList).when(upbitScrapComponent).parseNoticeData();
         doReturn(coinoneNoticeParsedDataList).when(coinoneScrapComponent).parseNoticeData();
-
-        doReturn("old-hash").when(upbitScrapComponent).getNoticeFromRedis();
-        doReturn(false).when(upbitScrapComponent).isUpdatedNotice(anyString(), anyList());
-
-        doReturn("old-hash").when(coinoneScrapComponent).getNoticeFromRedis();
-        doReturn(true).when(coinoneScrapComponent).isUpdatedNotice(anyString(), anyList());
-        doReturn(coinoneNoticeParsedDataList).when(coinoneScrapComponent).getNoticeData(); // Mock existing notice data
-        doReturn(coinoneNewNoticeList).when(coinoneScrapComponent).getNewNotice(anyList());
+        
+        doReturn(MarketType.UPBIT).when(upbitScrapComponent).getMarketType();
         doReturn(MarketType.COINONE).when(coinoneScrapComponent).getMarketType();
-
+        
+        // DB에서 최신 날짜 조회 - Coinone만 새로운 공지사항이 있도록 설정
+        LocalDateTime yesterdayDate = LocalDateTime.now().minusDays(1);
+        when(noticeService.getLatestNoticeDate(MarketType.UPBIT)).thenReturn(LocalDateTime.now().plusHours(1)); // 새로운 공지사항 없음
+        when(noticeService.getLatestNoticeDate(MarketType.COINONE)).thenReturn(yesterdayDate); // 새로운 공지사항 있음
+        
         NoticeDto coinoneNoticeDto = new NoticeDto(2L, MarketType.COINONE, "Coinone New Notice", "https://coinone.co.kr/notice/new", LocalDateTime.now());
         when(noticeService.getNoticeByLink(anyString())).thenReturn(coinoneNoticeDto);
         doNothing().when(marketInfoHandler).sendNewNotice(any(NoticeDto.class));
@@ -163,53 +161,55 @@ public class ScrapServiceImplTest {
         // When
         scrapService.scrapNoticeData();
 
-        // Then
+        // Then - DB 기반 로직 검증
         verify(upbitScrapComponent, times(1)).parseNoticeData();
         verify(coinoneScrapComponent, times(1)).parseNoticeData();
-        verify(upbitScrapComponent, times(1)).getNoticeFromRedis();
-        verify(upbitScrapComponent, times(1)).isUpdatedNotice(anyString(), anyList());
-        verify(upbitScrapComponent, never()).getNewNotice(anyList());
-
-        verify(coinoneScrapComponent, times(1)).getNoticeFromRedis();
-        verify(coinoneScrapComponent, times(1)).isUpdatedNotice(anyString(), anyList());
-        verify(coinoneScrapComponent, times(1)).getNewNotice(anyList());
-        verify(coinoneScrapComponent, times(1)).setNoticeToRedis(anyList());
+        
+        // DB 날짜 조회 검증
+        verify(noticeService, times(1)).getLatestNoticeDate(MarketType.UPBIT);
+        verify(noticeService, times(1)).getLatestNoticeDate(MarketType.COINONE);
+        
+        // Coinone만 새로운 공지사항 처리
         verify(coinoneScrapComponent, times(1)).setNewParsedData(anyList());
         verify(coinoneScrapComponent, times(1)).setNewNotice(anyList());
         verify(exchangeNoticePacadeService, times(1)).createNoticesBulk(eq(MarketType.COINONE), anyList());
-        verify(noticeService, times(1)).getNoticeByLink(anyString());
-        verify(marketInfoHandler, times(1)).sendNewNotice(any(NoticeDto.class));
+        verify(noticeService, atLeastOnce()).getNoticeByLink(anyString());
+        verify(marketInfoHandler, atLeastOnce()).sendNewNotice(any(NoticeDto.class));
+        
+        // Upbit은 새로운 공지사항이 없으므로 처리 없음
+        verify(upbitScrapComponent, never()).setNewNotice(anyList());
     }
 
     @Test
-    @DisplayName("스크랩 서비스 테스트 - 새로운 공지사항이 없을 때")
+    @DisplayName("스크랩 서비스 테스트 - 새로운 공지사항이 없을 때 (DB 기반)")
     void shouldScrapNoticeDataWhenNoNewNoticeExists() throws IOException {
         // Given
         doReturn(upbitNoticeParsedDataList).when(upbitScrapComponent).parseNoticeData();
         doReturn(coinoneNoticeParsedDataList).when(coinoneScrapComponent).parseNoticeData();
-
-        doReturn("old-hash").when(upbitScrapComponent).getNoticeFromRedis();
-        doReturn(false).when(upbitScrapComponent).isUpdatedNotice(anyString(), anyList());
-
-        doReturn("old-hash").when(coinoneScrapComponent).getNoticeFromRedis();
-        doReturn(false).when(coinoneScrapComponent).isUpdatedNotice(anyString(), anyList());
+        
+        doReturn(MarketType.UPBIT).when(upbitScrapComponent).getMarketType();
+        doReturn(MarketType.COINONE).when(coinoneScrapComponent).getMarketType();
+        
+        // DB에서 최신 날짜 조회 - 두 거래소 모두 새로운 공지사항 없도록 설정
+        LocalDateTime futureDate = LocalDateTime.now().plusHours(1);
+        when(noticeService.getLatestNoticeDate(MarketType.UPBIT)).thenReturn(futureDate);
+        when(noticeService.getLatestNoticeDate(MarketType.COINONE)).thenReturn(futureDate);
 
         // When
         scrapService.scrapNoticeData();
 
-        // Then
+        // Then - DB 기반 로직 검증
         verify(upbitScrapComponent, times(1)).parseNoticeData();
         verify(coinoneScrapComponent, times(1)).parseNoticeData();
-        verify(upbitScrapComponent, times(1)).getNoticeFromRedis();
-        verify(upbitScrapComponent, times(1)).isUpdatedNotice(anyString(), anyList());
-        verify(upbitScrapComponent, never()).getNewNotice(anyList());
-        verify(upbitScrapComponent, never()).setNoticeToRedis(anyList());
-
-        verify(coinoneScrapComponent, times(1)).getNoticeFromRedis();
-        verify(coinoneScrapComponent, times(1)).isUpdatedNotice(anyString(), anyList());
-        verify(coinoneScrapComponent, never()).getNewNotice(anyList());
-        verify(coinoneScrapComponent, never()).setNoticeToRedis(anyList());
-
+        
+        // DB 날짜 조회 검증
+        verify(noticeService, times(1)).getLatestNoticeDate(MarketType.UPBIT);
+        verify(noticeService, times(1)).getLatestNoticeDate(MarketType.COINONE);
+        
+        // 둘 다 새로운 공지사항이 없으므로 새로운 공지사항 처리 안 함
+        verify(upbitScrapComponent, never()).setNewNotice(anyList());
+        verify(coinoneScrapComponent, never()).setNewNotice(anyList());
+        
         verify(exchangeNoticePacadeService, never()).createNoticesBulk(any(MarketType.class), anyList());
         verify(noticeService, never()).getNoticeByLink(anyString());
         verify(marketInfoHandler, never()).sendNewNotice(any(NoticeDto.class));
