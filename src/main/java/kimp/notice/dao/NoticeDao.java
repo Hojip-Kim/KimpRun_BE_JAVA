@@ -5,6 +5,7 @@ import kimp.market.Enum.MarketType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface NoticeDao {
@@ -30,4 +31,19 @@ public interface NoticeDao {
      * @return 공지사항 링크 목록
      */
     public List<String> getRecentNoticeLinks(MarketType marketType, int limit);
+
+    /**
+     * 특정 거래소의 가장 최근 공지사항 날짜를 가져옴
+     * @param marketType 거래소 타입
+     * @return 가장 최근 공지사항 날짜 (없으면 null)
+     */
+    public LocalDateTime getLatestNoticeDate(MarketType marketType);
+
+    /**
+     * 특정 거래소의 지정된 날짜 이후 새로운 공지사항들의 링크를 가져옴
+     * @param marketType 거래소 타입
+     * @param afterDate 기준 날짜 (이 날짜보다 최신인 공지사항들을 가져옴)
+     * @return 새로운 공지사항 링크 목록
+     */
+    public List<String> getNoticeLinksAfterDate(MarketType marketType, LocalDateTime afterDate);
 }

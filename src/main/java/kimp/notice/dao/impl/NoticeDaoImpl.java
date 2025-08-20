@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -75,5 +76,15 @@ public class NoticeDaoImpl implements NoticeDao {
     public List<String> getRecentNoticeLinks(MarketType marketType, int limit) {
         Pageable pageable = PageRequest.of(0, limit);
         return this.noticeRepository.findRecentNoticeLinksByMarketType(marketType, pageable);
+    }
+
+    @Override
+    public LocalDateTime getLatestNoticeDate(MarketType marketType) {
+        return this.noticeRepository.findLatestNoticeDateByMarketType(marketType);
+    }
+
+    @Override
+    public List<String> getNoticeLinksAfterDate(MarketType marketType, LocalDateTime afterDate) {
+        return this.noticeRepository.findNoticeLinksAfterDate(marketType, afterDate);
     }
 }
