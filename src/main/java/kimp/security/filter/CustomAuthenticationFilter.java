@@ -1,4 +1,4 @@
-package kimp.security.user;
+package kimp.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kimp.exception.response.ApiResponse;
+import kimp.security.user.CustomUserDetails;
 import kimp.security.user.dto.LoginResponseDto;
 import kimp.user.entity.Member;
 import kimp.user.service.MemberService;
@@ -43,12 +44,12 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
         try {
             ObjectMapper mapper = new ObjectMapper();
             Map<String, String> credentials = mapper.readValue(request.getInputStream(), Map.class);
-            String membername = credentials.get("email");
+            String memberName = credentials.get("email");
             String password = credentials.get("password");
 
-            log.info("로그인 시도 - membername: {}", membername);
+            log.info("로그인 시도 - membername: {}", memberName);
 
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(membername, password);
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(memberName, password);
 
             return this.getAuthenticationManager().authenticate(authToken);
         } catch (IOException e) {
@@ -73,8 +74,6 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
                                             FilterChain chain, Authentication authResult)
             throws IOException {
-
-
         CustomUserDetails customUserDetails = (CustomUserDetails) authResult.getPrincipal();
 
         ObjectMapper mapper = new ObjectMapper();

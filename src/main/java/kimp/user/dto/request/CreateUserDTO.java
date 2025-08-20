@@ -14,6 +14,9 @@ public class CreateUserDTO {
     private String providerId = null;
     private String accessToken = null;
     private String refreshToken = null;
+    private String tokenType = null;
+    private Long expiresIn = null;
+    private String scope = null;
 
     public CreateUserDTO() {}
 
