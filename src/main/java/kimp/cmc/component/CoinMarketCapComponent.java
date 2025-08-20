@@ -19,7 +19,7 @@ import java.util.List;
 @Qualifier("cmc")
 public class CoinMarketCapComponent {
 
-    private final RestClient restClient;
+    private final RestClient coinMarketCapClient;
     private final CmcApiRateLimiter rateLimiter;
     @Value("${cmc.api.key}")
     private String cmcApiKey;
@@ -35,8 +35,8 @@ public class CoinMarketCapComponent {
     @Value("${cmc.api.exchange_info_url}")
     private String cmcExchangeInfoUrl;
 
-    public CoinMarketCapComponent(RestClient restClient, CmcApiRateLimiter rateLimiter) {
-        this.restClient = restClient;
+    public CoinMarketCapComponent(RestClient coinMarketCapClient, CmcApiRateLimiter rateLimiter) {
+        this.coinMarketCapClient = coinMarketCapClient;
         this.rateLimiter = rateLimiter;
     }
 
@@ -60,7 +60,7 @@ public class CoinMarketCapComponent {
         }
         
         String url = String.format(cmcCoinMapUrl, start, limit);
-        CmcApiResponseDto<CmcExchangeApiStatusDto, List<CmcCoinMapDataDto>> cmcResponse = restClient.get()
+        CmcApiResponseDto<CmcExchangeApiStatusDto, List<CmcCoinMapDataDto>> cmcResponse = coinMarketCapClient.get()
                 .uri(url)
                 .headers(headers -> headers.addAll(getCMCHeaders()))
                 .retrieve()
@@ -82,7 +82,7 @@ public class CoinMarketCapComponent {
         }
         
         String url = String.format(cmcLatestUrl, start, limit);
-        CmcApiResponseDto<CmcCoinApiStatusDto, List<CmcApiDataDto>> cmcResponse = restClient.get()
+        CmcApiResponseDto<CmcCoinApiStatusDto, List<CmcApiDataDto>> cmcResponse = coinMarketCapClient.get()
                 .uri(url)
                 .headers(headers -> headers.addAll(getCMCHeaders()))
                 .retrieve()
@@ -103,7 +103,7 @@ public class CoinMarketCapComponent {
         String sequenceMainnetCmcIds = cmcCoinIds.stream().map(String::valueOf).reduce((a, b) -> a + "," + b).orElse("");
         String url = String.format(cmcCoinInfoUrl, sequenceMainnetCmcIds);
 
-        CmcApiResponseDto<CmcExchangeApiStatusDto, CmcCoinInfoDataMapDto> cmcResponse = restClient.get()
+        CmcApiResponseDto<CmcExchangeApiStatusDto, CmcCoinInfoDataMapDto> cmcResponse = coinMarketCapClient.get()
                 .uri(url)
                 .headers(headers -> headers.addAll(getCMCHeaders()))
                 .retrieve()
@@ -124,7 +124,7 @@ public class CoinMarketCapComponent {
         }
         
         String url = String.format(cmcExchangeMapUrl, start, limit);
-        CmcApiResponseDto<CmcExchangeApiStatusDto, List<CmcExchangeDto>> cmcResponse = restClient.get()
+        CmcApiResponseDto<CmcExchangeApiStatusDto, List<CmcExchangeDto>> cmcResponse = coinMarketCapClient.get()
                 .uri(url)
                 .headers(headers -> headers.addAll(getCMCHeaders()))
                 .retrieve()
@@ -143,7 +143,7 @@ public class CoinMarketCapComponent {
         
         String sequenceExchangeIds = exchangeIds.stream().map(String::valueOf).reduce((a, b) -> a + "," + b).orElse("");
         String url = String.format(cmcExchangeInfoUrl, sequenceExchangeIds);
-        CmcApiResponseDto<CmcExchangeApiStatusDto, CmcExchangeDetailMapDto> cmcResponse = restClient.get()
+        CmcApiResponseDto<CmcExchangeApiStatusDto, CmcExchangeDetailMapDto> cmcResponse = coinMarketCapClient.get()
                 .uri(url)
                 .headers(headers -> headers.addAll(getCMCHeaders()))
                 .retrieve()

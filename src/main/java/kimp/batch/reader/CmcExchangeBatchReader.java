@@ -1,7 +1,7 @@
 package kimp.batch.reader;
 
 import kimp.cmc.component.CoinMarketCapComponent;
-import kimp.cmc.dao.jdbc.CmcBatchDao;
+import kimp.cmc.dao.CmcBatchDao;
 import kimp.cmc.dto.common.exchange.CmcExchangeDetailDto;
 import kimp.cmc.dto.common.exchange.CmcExchangeDetailMapDto;
 import kimp.cmc.dto.common.exchange.CmcExchangeDto;
@@ -33,6 +33,13 @@ public class CmcExchangeBatchReader {
     @StepScope
     public ItemReader<CmcExchangeDto> getExchangeMapReader() {
         log.info("거래소 맵 데이터 Reader 시작");
+        
+        // 거래소 동기화 필요 여부 체크
+        if (!cmcBatchDao.shouldRunExchangeSync()) {
+            log.info("거래소 맵 데이터가 최신 상태입니다. API 호출을 건너뜁니다.");
+            return new ListItemReader<>(new ArrayList<>());
+        }
+        
         List<CmcExchangeDto> allExchangeMapData = new ArrayList<>();
         
         // 최대 5,000개 거래소 데이터를 가져옴
@@ -50,6 +57,11 @@ public class CmcExchangeBatchReader {
         
         // 데이터베이스에서 기존 거래소 ID들을 가져옴
         List<Integer> exchangeIds = cmcBatchDao.getCmcExchangeIds(1000); // 최대 1000개
+        
+        if (exchangeIds.isEmpty()) {
+            log.info("조회할 CMC 거래소 ID가 없습니다. 상세 정보 수집을 건너뜁니다.");
+            return new ListItemReader<>(new ArrayList<>());
+        }
         
         List<List<CmcExchangeDetailDto>> allExchangeInfoBatches = new ArrayList<>();
         

@@ -1,7 +1,7 @@
 package kimp.batch.reader;
 
 import kimp.cmc.component.CoinMarketCapComponent;
-import kimp.cmc.dao.jdbc.CmcBatchDao;
+import kimp.cmc.dao.CmcBatchDao;
 import kimp.cmc.dto.common.coin.CmcApiDataDto;
 import kimp.cmc.dto.common.coin.CmcCoinInfoDataDto;
 import kimp.cmc.dto.common.coin.CmcCoinInfoDataMapDto;
@@ -34,6 +34,13 @@ public class CmcCoinBatchReader {
     @StepScope
     public ItemReader<CmcCoinMapDataDto> getCoinMapReader() {
         log.info("코인 맵 데이터 Reader 시작");
+        
+        // 동기화 필요 여부 체크
+        if (!cmcBatchDao.shouldRunCoinMapSync()) {
+            log.info("코인 맵 데이터가 최신 상태입니다. API 호출을 건너뜁니다.");
+            return new ListItemReader<>(new ArrayList<>());
+        }
+        
         List<CmcCoinMapDataDto> allCoinMapData = new ArrayList<>();
         
         // 최대 10,000개 코인 데이터를 가져옴 (2번 호출)
@@ -51,6 +58,13 @@ public class CmcCoinBatchReader {
     @StepScope
     public ItemReader<CmcApiDataDto> getLatestCoinInfoReader() {
         log.info("코인 최신 정보 Reader 시작");
+        
+        // 코인 맵이 없으면 최신 정보도 가져올 필요 없음
+        if (cmcBatchDao.getCmcCoinCount() == 0) {
+            log.info("CMC 코인 데이터가 없습니다. 최신 정보 수집을 건너뜁니다.");
+            return new ListItemReader<>(new ArrayList<>());
+        }
+        
         List<CmcApiDataDto> allLatestData = new ArrayList<>();
         
         // 최대 10,000개 코인의 최신 데이터를 가져옴 (2번 호출)
@@ -69,8 +83,19 @@ public class CmcCoinBatchReader {
     public ItemReader<List<CmcCoinInfoDataDto>> getCmcCoinInfoReader() {
         log.info("코인 상세 정보 Reader 시작");
         
+        // 상세 정보 동기화 필요 여부 체크
+        if (!cmcBatchDao.shouldRunCoinInfoSync()) {
+            log.info("코인 상세 정보 동기화가 필요하지 않습니다. API 호출을 건너뜁니다.");
+            return new ListItemReader<>(new ArrayList<>());
+        }
+        
         // 데이터베이스에서 기존 코인 ID들을 가져옴
         List<Long> cmcCoinIds = cmcBatchDao.getCmcCoinIds(1000); // 최대 1000개
+        
+        if (cmcCoinIds.isEmpty()) {
+            log.info("조회할 CMC 코인 ID가 없습니다. 상세 정보 수집을 건너뜁니다.");
+            return new ListItemReader<>(new ArrayList<>());
+        }
         
         List<List<CmcCoinInfoDataDto>> allCoinInfoBatches = new ArrayList<>();
         

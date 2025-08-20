@@ -6,7 +6,7 @@ import kimp.batch.reader.CmcCoinBatchReader;
 import kimp.batch.reader.CmcExchangeBatchReader;
 import kimp.batch.writer.CmcCoinBatchWriter;
 import kimp.batch.writer.CmcExchangeBatchWriter;
-import kimp.cmc.dao.jdbc.CmcBatchDao;
+import kimp.cmc.dao.CmcBatchDao;
 import kimp.cmc.dto.common.coin.CmcApiDataDto;
 import kimp.cmc.dto.common.coin.CmcCoinInfoDataDto;
 import kimp.cmc.dto.common.coin.CmcCoinInfoDataMapDto;
@@ -19,7 +19,6 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.core.step.tasklet.Tasklet;
-import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -259,7 +258,8 @@ public class CmcBatchStep {
             } finally {
                 executor.shutdown();
                 try {
-                    if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+                    if (!executor.awaitTermination(300, TimeUnit.SECONDS)) { // 5분으로 증가
+                        log.warn("일부 작업이 완료되지 않아 강제 종료합니다.");
                         executor.shutdownNow();
                     }
                 } catch (InterruptedException e) {
@@ -268,29 +268,72 @@ public class CmcBatchStep {
                 }
             }
             
-            log.info("CmcCoinInfo 일괄 처리 작업 완료 - 처리: {} 건, 오류: {} 건", 
-                processedCount.get(), errorCount.get());
+            long totalExpected = allCmcCoinIds.size();
+            long actualProcessed = processedCount.get();
+            
+            log.info("CmcCoinInfo 일괄 처리 작업 완료 - 처리: {} 건 / 예상: {} 건, 오류: {} 건", 
+                actualProcessed, totalExpected, errorCount.get());
+            
+            // 처리되지 않은 코인이 많으면 경고
+            if (actualProcessed < totalExpected * 0.8) { // 80% 미만이면 경고
+                log.warn("예상보다 적은 코인이 처리되었습니다. 처리율: {:.1f}%", 
+                    (double) actualProcessed / totalExpected * 100);
+            }
+            
             return RepeatStatus.FINISHED;
         };
     }
 
     /**
-     * CmcCoinMeta 데이터 처리
+     * CmcCoinMeta 데이터 처리 (별도 스텝)
      */
     @Bean
     public Step coinMetaStep() {
         return new StepBuilder("coinMetaStep", jobRepository)
-                .<CmcApiDataDto, CmcApiDataDto>chunk(1000, batchTransactionManager)
-                .reader(cmcCoinBatchReader.getLatestCoinInfoReader())
-                .writer(coinMetaWriter())
+                .tasklet(coinMetaTasklet(), batchTransactionManager)
                 .build();
     }
 
     @Bean
-    public ItemWriter<CmcApiDataDto> coinMetaWriter() {
-        return items -> {
-            List<CmcApiDataDto> itemList = new ArrayList<>(items.getItems());
-            cmcBatchDao.upsertCmcCoinMeta(itemList);
+    public Tasklet coinMetaTasklet() {
+        return (contribution, chunkContext) -> {
+            log.info("CmcCoinMeta 데이터 처리 시작");
+            
+            try {
+                List<CmcApiDataDto> allLatestData = new ArrayList<>();
+                int batchSize = 5000;
+                
+                // 코인 개수 확인
+                long totalCoins = cmcBatchDao.getCmcCoinCount();
+                int totalBatches = (int) Math.ceil((double) totalCoins / batchSize);
+                log.info("총 {} 개의 코인, {} 개의 배치로 처리", totalCoins, totalBatches);
+                
+                // 여러 배치로 나누어서 모든 코인의 메타 데이터 수집
+                for (int i = 0; i < totalBatches; i++) {
+                    int start = (i * batchSize) + 1;
+                    log.info("CmcCoinMeta {} 번째 배치 처리 시작 (start: {}, limit: {})", i + 1, start, batchSize);
+                    
+                    var batchData = cmcCoinBatchReader.getCmcCoinInfoComponent().getLatestCoinInfoFromCMC(start, batchSize);
+                    if (batchData != null && !batchData.isEmpty()) {
+                        allLatestData.addAll(batchData);
+                        log.info("CmcCoinMeta {} 번째 배치 수집 완료: {} 건", i + 1, batchData.size());
+                    }
+                }
+                
+                if (!allLatestData.isEmpty()) {
+                    // 모든 CmcCoinMeta 데이터 저장 및 매핑
+                    cmcBatchDao.upsertCmcCoinMeta(allLatestData);
+                    log.info("CmcCoinMeta 전체 데이터 {} 건 처리 완료", allLatestData.size());
+                } else {
+                    log.warn("CmcCoinMeta 처리할 데이터가 없습니다.");
+                }
+            } catch (Exception e) {
+                log.error("CmcCoinMeta 데이터 처리 중 오류 발생", e);
+                throw e; // 오류 시 배치 실패 처리
+            }
+            
+            log.info("CmcCoinMeta 데이터 처리 완료");
+            return RepeatStatus.FINISHED;
         };
     }
 

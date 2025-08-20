@@ -1,6 +1,6 @@
 package kimp.batch.writer;
 
-import kimp.cmc.dao.jdbc.CmcBatchDao;
+import kimp.cmc.dao.CmcBatchDao;
 import kimp.cmc.dto.common.coin.CmcApiDataDto;
 import kimp.cmc.dto.common.coin.CmcCoinInfoDataDto;
 import kimp.cmc.dto.common.coin.CmcCoinMapDataDto;
@@ -36,7 +36,21 @@ public class CmcCoinBatchWriter {
                     // 안전한 타입 변환
                     @SuppressWarnings("unchecked")
                     List<CmcCoinMapDataDto> coinMapItems = (List<CmcCoinMapDataDto>) items;
+                    
+                    // 1. 코인 맵 데이터 저장
                     cmcBatchDao.upsertCmcCoinMap(coinMapItems);
+                    log.info("코인 맵 데이터 저장 완료: {} 건", items.size());
+                    
+                    // 2. 랭킹 데이터가 있는 코인들에 대해 cmc_rank 테이블 처리
+                    List<CmcCoinMapDataDto> rankedCoins = coinMapItems.stream()
+                        .filter(coin -> coin.getRank() != null && coin.getRank() > 0)
+                        .toList();
+                    
+                    if (!rankedCoins.isEmpty()) {
+                        cmcBatchDao.upsertCmcCoinMapRank(rankedCoins);
+                        log.info("코인 랭킹 데이터 저장 완료: {} 건", rankedCoins.size());
+                    }
+                    
                     log.info("코인 맵 데이터 Writer 완료: {} 건", items.size());
                 }
             }

@@ -1,4 +1,4 @@
-package kimp.cmc.dao.jdbc;
+package kimp.cmc.dao;
 
 import kimp.cmc.dto.common.coin.CmcApiDataDto;
 import kimp.cmc.dto.common.coin.CmcCoinInfoDataDto;
@@ -12,6 +12,7 @@ public interface CmcBatchDao {
     
     // 코인 관련 배치 메서드들
     void upsertCmcCoinMap(List<CmcCoinMapDataDto> coinMapList);
+    void upsertCmcCoinMapRank(List<CmcCoinMapDataDto> rankedCoins); // 코인 맵에서 랭킹 데이터 처리
     void updateCmcCoinLatestInfo(List<CmcApiDataDto> latestInfoList);
     void upsertCmcCoinInfo(List<CmcCoinInfoDataDto> coinInfoList);
     List<Long> getCmcCoinIds(int limit);
@@ -42,4 +43,13 @@ public interface CmcBatchDao {
     
     // CmcPlatform 데이터 처리 (getCmcCoinInfos에서 platform 정보 활용)
     void upsertCmcPlatform(List<CmcCoinInfoDataDto> coinInfoList);
+    
+    // 배치 실행 조건 검사 메서드들
+    boolean shouldRunCoinMapSync();
+    boolean shouldRunCoinInfoSync();
+    boolean shouldRunExchangeSync();
+    boolean shouldRunCoinRankSync();  // cmc_rank 테이블이 비어있거나 오래된 경우
+    boolean shouldRunCoinMetaSync();  // cmc_coin_meta 테이블이 비어있거나 오래된 경우
+    long getCmcCoinCount();
+    long getCmcExchangeCount();
 }
