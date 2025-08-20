@@ -1,7 +1,8 @@
 package unit.kimp.auth.controller;
 
 import kimp.auth.controller.AuthController;
-import kimp.auth.dto.CheckAuthResponseDto;
+import kimp.auth.dto.AuthResponseDto;
+import kimp.auth.dto.LoginMemberResponseDto;
 import kimp.auth.service.AuthService;
 import kimp.exception.response.ApiResponse;
 import kimp.security.user.CustomUserDetails;
@@ -44,11 +45,11 @@ public class AuthControllerTest {
         // Arrange
         CustomUserDetails authenticatedUser = mock(CustomUserDetails.class);
         UserWithIdNameEmailDto userWithIdNameEmailDto = new UserWithIdNameEmailDto("test@example.com", "testUser", "USER");
-        CheckAuthResponseDto mockResponseDto = new CheckAuthResponseDto(true, userWithIdNameEmailDto);
+        LoginMemberResponseDto mockResponseDto = new LoginMemberResponseDto(true, userWithIdNameEmailDto, "RandomUuid");
         when(authService.checkAuthStatus(authenticatedUser)).thenReturn(mockResponseDto);
 
         // Act
-        ApiResponse<CheckAuthResponseDto> apiResponse = authController.checkMemberStatus(authenticatedUser, request, response);
+        ApiResponse<AuthResponseDto> apiResponse = authController.checkMemberStatus(authenticatedUser, request, response);
 
         // Assert
         assertNotNull(apiResponse);
@@ -66,7 +67,7 @@ public class AuthControllerTest {
         UserDetails unauthenticatedUser = null;
 
         // Act
-        ApiResponse<CheckAuthResponseDto> apiResponse = authController.checkMemberStatus(unauthenticatedUser, request, response);
+        ApiResponse<AuthResponseDto> apiResponse = authController.checkMemberStatus(unauthenticatedUser, request, response);
 
         // Assert
         assertNotNull(apiResponse);

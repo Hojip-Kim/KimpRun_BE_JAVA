@@ -1,15 +1,19 @@
-package kimp.security;
+package kimp.security.config;
 
-import kimp.security.user.CustomAuthenticationFilter;
-import kimp.security.user.CustomLogoutSuccessHandler;
-import kimp.security.user.OAuth2AuthenticationSuccessHandler;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import kimp.exception.response.ApiResponse;
+import kimp.security.filter.AnonymousCookieGuardFilter;
+import kimp.security.filter.CustomAuthenticationFilter;
+import kimp.security.hanlder.CustomLogoutSuccessHandler;
+import kimp.security.hanlder.OAuth2AuthenticationSuccessHandler;
 import kimp.security.user.service.CustomOAuth2UserService;
 import kimp.security.user.service.CustomUserDetailService;
 import kimp.user.service.MemberService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -22,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.firewall.RequestRejectedHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -39,6 +44,8 @@ public class SecurityConfig {
     private final CustomOAuth2UserService oauth2memberService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final MemberService memberService;
+    @Value("${app.cookie.domain}")
+    public String cookieDomain;   // prod: "kimprun.com", dev/local: 빈 값
 
 
     public SecurityConfig(CustomUserDetailService customUserDetailservice, PasswordEncoder passwordEncoder, CustomOAuth2UserService customOAuth2memberService, OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandlerImpl, ClientRegistrationRepository clientRegistrationRepository, MemberService memberService) {
@@ -50,7 +57,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AnonymousCookieGuardFilter cookieGuardFilter) throws Exception {
         AuthenticationManager authenticationManager = authenticationManager(passwordEncoder);
 
         // CustomAuthenticationFilter 생성 및 설정
@@ -96,7 +103,8 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                 )
-                .addFilterAt(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterAt(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(cookieGuardFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -128,4 +136,41 @@ public class SecurityConfig {
         return new ProviderManager(authProvider);
     }
 
+    // cookie가 변조되어 문제가 발생하면 requestRejectedHanlder 발생. 이에따른 적절한 대처 후 response
+    @Bean
+    public RequestRejectedHandler requestRejectedHandler(ObjectMapper mapper) {
+        return (request, response, ex) -> {
+            if (response.isCommitted()) return;
+
+            // 문제 쿠키 제거
+            ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from("kimprun-token", "")
+                    .httpOnly(true)
+                    .sameSite("Lax")
+                    .path("/")
+                    .maxAge(0); // 즉시 삭제
+
+            // prod환경에서 cookie domain이 있음. 이 경우 secure true설정, dev에선 false설정
+            if (cookieDomain != null && !cookieDomain.isBlank()) {
+                cookieBuilder.domain(cookieDomain).secure(true);
+            } else {
+                cookieBuilder.secure(false); // http 로컬 개발
+            }
+
+            response.addHeader(HttpHeaders.SET_COOKIE, cookieBuilder.build().toString());
+
+            response.setStatus(HttpStatus.BAD_REQUEST.value());
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setCharacterEncoding("UTF-8");
+            response.setHeader("Cache-Control", "no-store");
+
+            ApiResponse body = ApiResponse.error(
+                    HttpStatus.BAD_REQUEST.value(),
+                    "INVALID_COOKIE",
+                    "Malformed or disallowed cookie was sent."
+            );
+
+            mapper.writeValue(response.getWriter(), body);
+            response.getWriter().flush();
+        };
+    }
 }
