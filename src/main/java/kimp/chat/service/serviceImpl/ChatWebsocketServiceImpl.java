@@ -1,18 +1,20 @@
 package kimp.chat.service.serviceImpl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kimp.chat.dao.ChatDao;
+import kimp.chat.dao.impl.ChatDaoImpl;
 import kimp.chat.dto.ChatDto;
 import kimp.chat.dto.request.ChatMessage;
 import kimp.chat.service.ChatWebsocketService;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
+import kimp.util.IpMaskUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,10 +22,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ChatWebsocketServiceImpl implements ChatWebsocketService {
     private Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
 
-    private final ChatDao chatDao;
+    private final ChatDaoImpl chatDao;
     private final ObjectMapper objectMapper;
 
-    public ChatWebsocketServiceImpl(ChatDao chatDao, ObjectMapper objectMapper) {
+    public ChatWebsocketServiceImpl(ChatDaoImpl chatDao, ObjectMapper objectMapper) {
         this.chatDao = chatDao;
         this.objectMapper = objectMapper;
     }
@@ -53,7 +55,7 @@ public class ChatWebsocketServiceImpl implements ChatWebsocketService {
 
     @Override
     public void broadcastChat(WebSocketSession webSocketSession, ChatMessage chatMessage) throws IOException {
-        ChatDto chatDto = new ChatDto(chatMessage.getChatID(), chatMessage.getContent(), chatMessage.getAuthenticated());
+        ChatDto chatDto = new ChatDto(chatMessage.getChatID(), chatMessage.getContent(), chatMessage.getAuthenticated(), IpMaskUtil.mask(chatMessage.getUserIp()), chatMessage.getUuid(), LocalDateTime.now());
 
         String chatDtoJson = objectMapper.writeValueAsString(chatDto);
 
@@ -72,9 +74,11 @@ public class ChatWebsocketServiceImpl implements ChatWebsocketService {
     // member session을 통해 find by name의형태로 찾아서 메시지 저장
     @Override
     public void saveMessage(ChatMessage chatMessage) {
-        if(chatMessage.getContent().length() == 0){
+        if(chatMessage.getContent().isEmpty()){
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Chat message content cannot be empty", HttpStatus.BAD_REQUEST, "ChatWebsocketServiceImpl.saveMessage");
         }
-        chatDao.insertChat(chatMessage.getChatID(), chatMessage.getContent(), chatMessage.getAuthenticated());
+        chatDao.insertChat(chatMessage.getChatID(), chatMessage.getContent(), chatMessage.getAuthenticated(),
+                              chatMessage.getUserIp(), chatMessage.getUuid());
+
     }
 }
