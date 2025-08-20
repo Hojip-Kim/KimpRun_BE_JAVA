@@ -1,4 +1,4 @@
-package kimp.config.webhook;
+package kimp.webhook;
 
 import com.slack.api.Slack;
 import org.springframework.context.annotation.Bean;
