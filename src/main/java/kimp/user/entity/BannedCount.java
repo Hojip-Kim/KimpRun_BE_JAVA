@@ -1,14 +1,13 @@
 package kimp.user.entity;
 
 import jakarta.persistence.*;
+import kimp.common.entity.TimeStamp;
 import lombok.Getter;
 
 @Entity
 @Table(name = "banned_count")
 @Getter
-public class BannedCount {
-
-
+public class BannedCount extends TimeStamp {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
