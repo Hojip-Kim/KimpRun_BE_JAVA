@@ -82,6 +82,9 @@ dependencies {
 
     // Spring Batch
     implementation 'org.springframework.boot:spring-boot-starter-batch'
+    
+    // MyBatis
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
 
     // QueryDSL
     implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
