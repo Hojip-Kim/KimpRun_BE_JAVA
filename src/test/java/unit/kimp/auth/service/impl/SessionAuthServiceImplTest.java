@@ -1,6 +1,6 @@
 package unit.kimp.auth.service.impl;
 
-import kimp.auth.dto.CheckAuthResponseDto;
+import kimp.auth.dto.LoginMemberResponseDto;
 import kimp.auth.service.serviceImpl.SessionAuthServiceImpl;
 import kimp.member.util.NicknameGeneratorUtils;
 import kimp.security.user.CustomUserDetails;
@@ -44,7 +44,7 @@ public class SessionAuthServiceImplTest {
         when(customUserDetails.getRole()).thenReturn(role);
 
         // Act
-        CheckAuthResponseDto result = sessionAuthService.checkAuthStatus(customUserDetails);
+        LoginMemberResponseDto result = sessionAuthService.checkAuthStatus(customUserDetails);
 
         // Assert
         assertTrue(result.isAuthenticated());
@@ -66,7 +66,7 @@ public class SessionAuthServiceImplTest {
         when(customUserDetails.getRole()).thenReturn(role);
 
         // Act
-        CheckAuthResponseDto result = sessionAuthService.checkAuthStatus(customUserDetails);
+        LoginMemberResponseDto result = sessionAuthService.checkAuthStatus(customUserDetails);
 
         // Assert
         assertTrue(result.isAuthenticated());
