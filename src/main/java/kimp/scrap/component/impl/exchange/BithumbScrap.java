@@ -64,7 +64,6 @@ public class BithumbScrap extends ExchangeScrapAbstract<BithumbNoticeDto> {
         if(newParsedData != null && !newParsedData.isEmpty()){
             this.parsedData.addAll(newParsedData);
         }
-        this.parsedData = newParsedData;
     }
 
     @Override
