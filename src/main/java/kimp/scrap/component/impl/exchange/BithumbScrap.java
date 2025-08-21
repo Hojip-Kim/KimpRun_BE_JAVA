@@ -53,12 +53,17 @@ public class BithumbScrap extends ExchangeScrapAbstract<BithumbNoticeDto> {
     @Override
     public void setNewNotice(List<NoticeParsedData> notice) {
         this.newNotices.clear();
-        this.newNotices = notice;
+        if(notice != null && !notice.isEmpty()){
+            this.newNotices.addAll(notice);
+        }
     }
 
     @Override
     public void setNewParsedData(List<NoticeParsedData> newParsedData) {
         this.parsedData.clear();
+        if(newParsedData != null && !newParsedData.isEmpty()){
+            this.parsedData.addAll(newParsedData);
+        }
         this.parsedData = newParsedData;
     }
 
