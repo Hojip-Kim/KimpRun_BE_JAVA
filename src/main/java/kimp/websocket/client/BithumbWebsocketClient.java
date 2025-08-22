@@ -3,7 +3,7 @@ package kimp.websocket.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.market.components.impl.market.Bithumb;
 import kimp.market.dto.coin.common.market.BithumbDto;
-import kimp.market.handler.MarketDataWebsocketHandler;
+import kimp.market.controller.MarketDataStompController;
 import kimp.websocket.dto.request.TicketMessage;
 import kimp.websocket.dto.request.TradeSubscribe;
 import kimp.websocket.dto.response.BithumbReceiveDto;
@@ -26,7 +26,7 @@ import java.util.concurrent.Future;
 public class BithumbWebsocketClient extends WebSocketClient {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final MarketDataWebsocketHandler marketDataWebsocketHandler;
+    private final MarketDataStompController marketDataStompController;
     private final Bithumb bithumb;
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -35,9 +35,9 @@ public class BithumbWebsocketClient extends WebSocketClient {
     private static volatile boolean isConnected = false;
     private static volatile boolean isReconnecting = false;
 
-    public BithumbWebsocketClient(String serverUri, MarketDataWebsocketHandler marketDataWebsocketHandler, Bithumb bithumb) throws URISyntaxException {
+    public BithumbWebsocketClient(String serverUri, MarketDataStompController marketDataStompController, Bithumb bithumb) throws URISyntaxException {
         super(new URI(serverUri));
-        this.marketDataWebsocketHandler = marketDataWebsocketHandler;
+        this.marketDataStompController = marketDataStompController;
         this.bithumb = bithumb;
     }
 
@@ -78,7 +78,7 @@ public class BithumbWebsocketClient extends WebSocketClient {
 
                 BithumbDto bithumbDto = new BithumbDto(bithumbReceiveDto.getCode().replace("KRW-", ""), bithumbReceiveDto.getTradeVolume(), bithumbReceiveDto.getSignedChangeRate(), bithumbReceiveDto.getHighest52WeekPrice(), bithumbReceiveDto.getLowest52WeekPrice(), bithumbReceiveDto.getOpeningPrice(), bithumbReceiveDto.getTradePrice(), bithumbReceiveDto.getChange(), bithumbReceiveDto.getAccTradePrice24h());
 
-                marketDataWebsocketHandler.inputDataToHashMap(bithumbDto);
+                marketDataStompController.inputDataToHashMap(bithumbDto);
 
             } catch (Exception e) {
                 log.error("[빗썸] 웹소켓 DTO 변환 실패", e);

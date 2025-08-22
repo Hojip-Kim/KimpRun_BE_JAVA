@@ -3,7 +3,7 @@ package kimp.websocket.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.market.components.impl.market.Binance;
 import kimp.market.dto.coin.common.market.BinanceDto;
-import kimp.market.handler.MarketDataWebsocketHandler;
+import kimp.market.controller.MarketDataStompController;
 import kimp.market.service.MarketInfoService;
 import kimp.websocket.dto.response.BinanceReceiveDto;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ import java.util.concurrent.*;
 @Slf4j
 public class BinanceWebSocketClient extends WebSocketClient {
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final MarketDataWebsocketHandler marketDataWebsocketHandler;
+    private final MarketDataStompController marketDataStompController;
     private final MarketInfoService marketInfoService;
     private final Binance binance;
 
@@ -29,9 +29,9 @@ public class BinanceWebSocketClient extends WebSocketClient {
     private static volatile boolean isConnected = false;
     private static volatile boolean isReconnecting = false;
 
-    public BinanceWebSocketClient(String serverUri, MarketDataWebsocketHandler marketDataWebsocketHandler, MarketInfoService marketInfoService, Binance binance) throws URISyntaxException {
+    public BinanceWebSocketClient(String serverUri, MarketDataStompController marketDataStompController, MarketInfoService marketInfoService, Binance binance) throws URISyntaxException {
         super(new URI(serverUri));
-        this.marketDataWebsocketHandler = marketDataWebsocketHandler;
+        this.marketDataStompController = marketDataStompController;
         this.marketInfoService = marketInfoService;
         this.binance = binance;
     }
@@ -66,7 +66,7 @@ public class BinanceWebSocketClient extends WebSocketClient {
                     foundBinanceDto.getRate_change(),
                     foundBinanceDto.getAcc_trade_price24()
             );
-            marketDataWebsocketHandler.inputDataToHashMap(binanceDto);
+            marketDataStompController.inputDataToHashMap(binanceDto);
         } catch (Exception e) {
             log.error("[바이낸스] 메시지 파싱 실패: {}", message, e);
         }

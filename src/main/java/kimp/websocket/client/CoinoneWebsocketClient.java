@@ -4,7 +4,7 @@ import jakarta.annotation.PostConstruct;
 import kimp.market.components.impl.market.Coinone;
 import kimp.market.dto.coin.common.market.CoinoneDto;
 import kimp.market.dto.market.response.MarketDataList;
-import kimp.market.handler.MarketDataWebsocketHandler;
+import kimp.market.controller.MarketDataStompController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -17,11 +17,11 @@ import java.util.List;
 @Slf4j
 @Component
 public class CoinoneWebsocketClient {
-    private final MarketDataWebsocketHandler marketDataWebsocketHandler;
+    private final MarketDataStompController marketDataStompController;
     private final Coinone coinone;
 
-    public CoinoneWebsocketClient(MarketDataWebsocketHandler marketDataWebsocketHandler, Coinone coinone) {
-        this.marketDataWebsocketHandler = marketDataWebsocketHandler;
+    public CoinoneWebsocketClient(MarketDataStompController marketDataStompController, Coinone coinone) {
+        this.marketDataStompController = marketDataStompController;
         this.coinone = coinone;
     }
 
@@ -36,7 +36,7 @@ public class CoinoneWebsocketClient {
         List<CoinoneDto> coinoneDtoList = coinoneMarketDataList.getMarketDataList();
 
         for(CoinoneDto coinoneDto : coinoneDtoList){
-            marketDataWebsocketHandler.inputDataToHashMap(coinoneDto);
+            marketDataStompController.inputDataToHashMap(coinoneDto);
         }
     }
 
