@@ -98,8 +98,8 @@ public class ChatServiceImplTest {
         
         // Check if messages are sorted by time (ascending)
         List<ChatLogResponseDto> content = result.getContent();
-        assertEquals("user1", content.get(0).getChatID());
-        assertEquals("user2", content.get(1).getChatID());
+        assertEquals("user1", content.get(0).getChatId());
+        assertEquals("user2", content.get(1).getChatId());
         
         verify(chatDao, times(1)).getAllChats(0, 10);
     }

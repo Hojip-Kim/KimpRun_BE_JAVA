@@ -1,5 +1,6 @@
 package kimp.chat.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -9,19 +10,22 @@ import java.time.LocalDateTime;
 @Getter
 public class ChatMessage {
 
+    @JsonProperty("ping")
     private Boolean ping;
+    @JsonProperty("chatId")
     private String chatID;
+    @JsonProperty("content")
     private String content;
+    @JsonProperty("authenticated")
     private Boolean authenticated;
+    @JsonProperty("userIp")
     private String userIp;
+    @JsonProperty("registedAt")
+    private LocalDateTime registedAt;
+    @JsonProperty("uuid")
     private String uuid;
-
-    public ChatMessage(boolean ping, String chatId, String content, Boolean authenticated) {
-        this.ping = ping;
-        this.chatID = chatId;
-        this.content = content;
-        this.authenticated = authenticated;
-    }
+    @JsonProperty("memberId")
+    private Long memberId;
 
     public ChatMessage(boolean ping, String chatId, String content, Boolean authenticated, String userIp, String uuid) {
         this.ping = ping;
