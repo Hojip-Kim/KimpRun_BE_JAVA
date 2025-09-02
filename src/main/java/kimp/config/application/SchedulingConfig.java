@@ -11,6 +11,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @Configuration
 public class SchedulingConfig {
 
+    // 마켓 스케줄러용 - stomp
     @Bean("marketDataTaskScheduler")
     public TaskScheduler marketDataTaskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
