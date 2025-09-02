@@ -47,4 +47,11 @@ public interface NoticeService {
      * @return 새로운 공지사항 링크 목록
      */
     public List<String> getNoticeLinksAfterDate(MarketType marketType, LocalDateTime afterDate);
+
+    /**
+     * 특정 거래소의 모든 공지사항을 가져옴 (새로운 로직용)
+     * @param marketType 거래소 타입
+     * @return 해당 거래소의 모든 공지사항 DTO 목록
+     */
+    public List<NoticeDto> getAllNoticesByMarketType(MarketType marketType);
 }
