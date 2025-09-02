@@ -9,7 +9,7 @@ import kimp.exchange.service.ExchangeService;
 import kimp.exchange.service.impl.ExchangeNoticePacadeService;
 import kimp.exchange.service.impl.ScrapServiceImpl;
 import kimp.market.Enum.MarketType;
-import kimp.market.handler.MarketInfoHandler;
+import kimp.market.controller.MarketInfoStompController;
 import kimp.notice.dto.notice.NoticeParsedData;
 import kimp.notice.dto.notice.NoticeDto;
 import kimp.notice.service.NoticeService;
@@ -50,7 +50,7 @@ public class ScrapServiceImplTest {
     private ExchangeService exchangeService;
 
     @Mock
-    private MarketInfoHandler marketInfoHandler;
+    private MarketInfoStompController marketInfoStompController;
 
     @Mock
     private ExchangeNoticePacadeService exchangeNoticePacadeService;
@@ -68,22 +68,23 @@ public class ScrapServiceImplTest {
 
     @BeforeEach
     void setup() {
-        // Setup test data
+        LocalDateTime fixedDate = LocalDateTime.now().minusDays(1); // 어제 날짜로 설정
+        
         upbitNoticeParsedDataList = new ArrayList<>();
-        upbitNoticeParsedDataList.add(new NoticeParsedData("Upbit Notice 1", "https://upbit.com/notice/1", LocalDateTime.now()));
-        upbitNoticeParsedDataList.add(new NoticeParsedData("Upbit Notice 2", "https://upbit.com/notice/2", LocalDateTime.now()));
+        upbitNoticeParsedDataList.add(new NoticeParsedData("Upbit Notice 1", "https://upbit.com/notice/1", fixedDate));
+        upbitNoticeParsedDataList.add(new NoticeParsedData("Upbit Notice 2", "https://upbit.com/notice/2", fixedDate));
 
         coinoneNoticeParsedDataList = new ArrayList<>();
-        coinoneNoticeParsedDataList.add(new NoticeParsedData("Coinone Notice 1", "https://coinone.co.kr/notice/1", LocalDateTime.now()));
-        coinoneNoticeParsedDataList.add(new NoticeParsedData("Coinone Notice 2", "https://coinone.co.kr/notice/2", LocalDateTime.now()));
+        coinoneNoticeParsedDataList.add(new NoticeParsedData("Coinone Notice 1", "https://coinone.co.kr/notice/1", fixedDate));
+        coinoneNoticeParsedDataList.add(new NoticeParsedData("Coinone Notice 2", "https://coinone.co.kr/notice/2", fixedDate));
 
         upbitNewNoticeList = new ArrayList<>();
-        upbitNewNoticeList.add(new NoticeParsedData("Upbit New Notice", "https://upbit.com/notice/new", LocalDateTime.now()));
+        upbitNewNoticeList.add(new NoticeParsedData("Upbit New Notice", "https://upbit.com/notice/new", fixedDate));
 
         coinoneNewNoticeList = new ArrayList<>();
-        coinoneNewNoticeList.add(new NoticeParsedData("Coinone New Notice", "https://coinone.co.kr/notice/new", LocalDateTime.now()));
+        coinoneNewNoticeList.add(new NoticeParsedData("Coinone New Notice", "https://coinone.co.kr/notice/new", fixedDate));
 
-        noticeDto = new NoticeDto(1L, MarketType.UPBIT, "Upbit New Notice", "https://upbit.com/notice/new", LocalDateTime.now());
+        noticeDto = new NoticeDto(1L, MarketType.UPBIT, "Upbit New Notice", "https://upbit.com/notice/new", fixedDate);
 
         // Create ScrapServiceImpl instance with mocked dependencies
         scrapService = new ScrapServiceImpl(
@@ -93,7 +94,7 @@ public class ScrapServiceImplTest {
             binanceScrapComponent,
             exchangeNoticePacadeService,
             noticeService,
-            marketInfoHandler
+            marketInfoStompController
         );
     }
 
@@ -107,13 +108,17 @@ public class ScrapServiceImplTest {
         doReturn(MarketType.UPBIT).when(upbitScrapComponent).getMarketType();
         doReturn(MarketType.COINONE).when(coinoneScrapComponent).getMarketType();
         
-        // DB에서 최신 날짜 조회 - Upbit는 새로운 공지사항이 있도록 설정
-        LocalDateTime yesterdayDate = LocalDateTime.now().minusDays(1);
-        when(noticeService.getLatestNoticeDate(MarketType.UPBIT)).thenReturn(yesterdayDate);
-        when(noticeService.getLatestNoticeDate(MarketType.COINONE)).thenReturn(LocalDateTime.now().plusHours(1)); // 새로운 공지사항 없음
+        // DB에서 모든 공지사항 조회 - 새로운 로직에 맞춰 설정
+        LocalDateTime fixedDate = LocalDateTime.now().minusDays(1);
+        List<NoticeDto> upbitDbNotices = List.of(); // 빈 리스트 = 모든 스크래핑 데이터가 새로운 것
+        NoticeDto coinoneExistingNotice1 = new NoticeDto(2L, MarketType.COINONE, "Coinone Notice 1", "https://coinone.co.kr/notice/1", fixedDate);
+        NoticeDto coinoneExistingNotice2 = new NoticeDto(3L, MarketType.COINONE, "Coinone Notice 2", "https://coinone.co.kr/notice/2", fixedDate);
+        List<NoticeDto> coinoneDbNotices = List.of(coinoneExistingNotice1, coinoneExistingNotice2); // 모든 URL이 일치하는 기존 공지사항
+        when(noticeService.getAllNoticesByMarketType(MarketType.UPBIT)).thenReturn(upbitDbNotices);
+        when(noticeService.getAllNoticesByMarketType(MarketType.COINONE)).thenReturn(coinoneDbNotices);
         
         when(noticeService.getNoticeByLink(anyString())).thenReturn(noticeDto);
-        doNothing().when(marketInfoHandler).sendNewNotice(any(NoticeDto.class));
+        doNothing().when(marketInfoStompController).sendNewNotice(any(NoticeDto.class));
         when(exchangeNoticePacadeService.createNoticesBulk(any(MarketType.class), anyList())).thenReturn(true);
 
         // When
@@ -123,18 +128,19 @@ public class ScrapServiceImplTest {
         verify(upbitScrapComponent, times(1)).parseNoticeData();
         verify(coinoneScrapComponent, times(1)).parseNoticeData();
         
-        // DB 날짜 조회 검증
-        verify(noticeService, times(1)).getLatestNoticeDate(MarketType.UPBIT);
-        verify(noticeService, times(1)).getLatestNoticeDate(MarketType.COINONE);
+        // DB 전체 공지사항 조회 검증 (새로운 로직)
+        verify(noticeService, times(1)).getAllNoticesByMarketType(MarketType.UPBIT);
+        verify(noticeService, times(1)).getAllNoticesByMarketType(MarketType.COINONE);
         
         // Upbit만 새로운 공지사항 처리
         verify(upbitScrapComponent, times(1)).setNewParsedData(anyList());
         verify(upbitScrapComponent, times(1)).setNewNotice(anyList());
         verify(exchangeNoticePacadeService, times(1)).createNoticesBulk(eq(MarketType.UPBIT), anyList());
         verify(noticeService, atLeastOnce()).getNoticeByLink(anyString());
-        verify(marketInfoHandler, atLeastOnce()).sendNewNotice(any(NoticeDto.class));
+        verify(marketInfoStompController, atLeastOnce()).sendNewNotice(any(NoticeDto.class));
         
-        // Coinone은 새로운 공지사항이 없으므로 처리 없음
+        // Coinone은 URL이 일치하므로 새로운 공지사항이 없음 - 변경사항 없음으로 처리
+        verify(coinoneScrapComponent, never()).setNewParsedData(anyList());
         verify(coinoneScrapComponent, never()).setNewNotice(anyList());
     }
 
@@ -148,14 +154,18 @@ public class ScrapServiceImplTest {
         doReturn(MarketType.UPBIT).when(upbitScrapComponent).getMarketType();
         doReturn(MarketType.COINONE).when(coinoneScrapComponent).getMarketType();
         
-        // DB에서 최신 날짜 조회 - Coinone만 새로운 공지사항이 있도록 설정
-        LocalDateTime yesterdayDate = LocalDateTime.now().minusDays(1);
-        when(noticeService.getLatestNoticeDate(MarketType.UPBIT)).thenReturn(LocalDateTime.now().plusHours(1)); // 새로운 공지사항 없음
-        when(noticeService.getLatestNoticeDate(MarketType.COINONE)).thenReturn(yesterdayDate); // 새로운 공지사항 있음
+        // DB에서 모든 공지사항 조회 - Coinone만 새로운 공지사항이 있도록 설정
+        LocalDateTime fixedDate = LocalDateTime.now().minusDays(1);
+        NoticeDto upbitExistingNotice1 = new NoticeDto(1L, MarketType.UPBIT, "Upbit Notice 1", "https://upbit.com/notice/1", fixedDate);
+        NoticeDto upbitExistingNotice2 = new NoticeDto(2L, MarketType.UPBIT, "Upbit Notice 2", "https://upbit.com/notice/2", fixedDate);  
+        List<NoticeDto> upbitDbNotices = List.of(upbitExistingNotice1, upbitExistingNotice2); // UPBIT는 모든 URL이 일치하는 기존 공지사항
+        List<NoticeDto> coinoneDbNotices = List.of(); // COINONE은 빈 리스트 = 모든 스크래핑 데이터가 새로운 것
+        when(noticeService.getAllNoticesByMarketType(MarketType.UPBIT)).thenReturn(upbitDbNotices);
+        when(noticeService.getAllNoticesByMarketType(MarketType.COINONE)).thenReturn(coinoneDbNotices);
         
         NoticeDto coinoneNoticeDto = new NoticeDto(2L, MarketType.COINONE, "Coinone New Notice", "https://coinone.co.kr/notice/new", LocalDateTime.now());
         when(noticeService.getNoticeByLink(anyString())).thenReturn(coinoneNoticeDto);
-        doNothing().when(marketInfoHandler).sendNewNotice(any(NoticeDto.class));
+        doNothing().when(marketInfoStompController).sendNewNotice(any(NoticeDto.class));
         when(exchangeNoticePacadeService.createNoticesBulk(any(MarketType.class), anyList())).thenReturn(true);
 
         // When
@@ -165,18 +175,19 @@ public class ScrapServiceImplTest {
         verify(upbitScrapComponent, times(1)).parseNoticeData();
         verify(coinoneScrapComponent, times(1)).parseNoticeData();
         
-        // DB 날짜 조회 검증
-        verify(noticeService, times(1)).getLatestNoticeDate(MarketType.UPBIT);
-        verify(noticeService, times(1)).getLatestNoticeDate(MarketType.COINONE);
+        // DB 전체 공지사항 조회 검증 (새로운 로직)
+        verify(noticeService, times(1)).getAllNoticesByMarketType(MarketType.UPBIT);
+        verify(noticeService, times(1)).getAllNoticesByMarketType(MarketType.COINONE);
         
         // Coinone만 새로운 공지사항 처리
         verify(coinoneScrapComponent, times(1)).setNewParsedData(anyList());
         verify(coinoneScrapComponent, times(1)).setNewNotice(anyList());
         verify(exchangeNoticePacadeService, times(1)).createNoticesBulk(eq(MarketType.COINONE), anyList());
         verify(noticeService, atLeastOnce()).getNoticeByLink(anyString());
-        verify(marketInfoHandler, atLeastOnce()).sendNewNotice(any(NoticeDto.class));
+        verify(marketInfoStompController, atLeastOnce()).sendNewNotice(any(NoticeDto.class));
         
-        // Upbit은 새로운 공지사항이 없으므로 처리 없음
+        // Upbit은 URL이 일치하므로 새로운 공지사항이 없음 - 변경사항 없음으로 처리
+        verify(upbitScrapComponent, never()).setNewParsedData(anyList());
         verify(upbitScrapComponent, never()).setNewNotice(anyList());
     }
 
@@ -190,10 +201,16 @@ public class ScrapServiceImplTest {
         doReturn(MarketType.UPBIT).when(upbitScrapComponent).getMarketType();
         doReturn(MarketType.COINONE).when(coinoneScrapComponent).getMarketType();
         
-        // DB에서 최신 날짜 조회 - 두 거래소 모두 새로운 공지사항 없도록 설정
-        LocalDateTime futureDate = LocalDateTime.now().plusHours(1);
-        when(noticeService.getLatestNoticeDate(MarketType.UPBIT)).thenReturn(futureDate);
-        when(noticeService.getLatestNoticeDate(MarketType.COINONE)).thenReturn(futureDate);
+        // DB에서 모든 공지사항 조회 - 두 거래소 모두 기존 공지사항이 있어서 새로운 공지사항 없도록 설정
+        LocalDateTime fixedDate = LocalDateTime.now().minusDays(1);
+        NoticeDto upbitExistingNotice1 = new NoticeDto(1L, MarketType.UPBIT, "Upbit Notice 1", "https://upbit.com/notice/1", fixedDate);
+        NoticeDto upbitExistingNotice2 = new NoticeDto(2L, MarketType.UPBIT, "Upbit Notice 2", "https://upbit.com/notice/2", fixedDate);
+        NoticeDto coinoneExistingNotice1 = new NoticeDto(3L, MarketType.COINONE, "Coinone Notice 1", "https://coinone.co.kr/notice/1", fixedDate);
+        NoticeDto coinoneExistingNotice2 = new NoticeDto(4L, MarketType.COINONE, "Coinone Notice 2", "https://coinone.co.kr/notice/2", fixedDate);
+        List<NoticeDto> upbitDbNotices = List.of(upbitExistingNotice1, upbitExistingNotice2); // 모든 URL이 일치하는 기존 공지사항
+        List<NoticeDto> coinoneDbNotices = List.of(coinoneExistingNotice1, coinoneExistingNotice2); // 모든 URL이 일치하는 기존 공지사항
+        when(noticeService.getAllNoticesByMarketType(MarketType.UPBIT)).thenReturn(upbitDbNotices);
+        when(noticeService.getAllNoticesByMarketType(MarketType.COINONE)).thenReturn(coinoneDbNotices);
 
         // When
         scrapService.scrapNoticeData();
@@ -202,16 +219,18 @@ public class ScrapServiceImplTest {
         verify(upbitScrapComponent, times(1)).parseNoticeData();
         verify(coinoneScrapComponent, times(1)).parseNoticeData();
         
-        // DB 날짜 조회 검증
-        verify(noticeService, times(1)).getLatestNoticeDate(MarketType.UPBIT);
-        verify(noticeService, times(1)).getLatestNoticeDate(MarketType.COINONE);
+        // DB 전체 공지사항 조회 검증 (새로운 로직)
+        verify(noticeService, times(1)).getAllNoticesByMarketType(MarketType.UPBIT);
+        verify(noticeService, times(1)).getAllNoticesByMarketType(MarketType.COINONE);
         
-        // 둘 다 새로운 공지사항이 없으므로 새로운 공지사항 처리 안 함
+        // 둘 다 URL이 일치하므로 새로운 공지사항 없음 - 변경사항 없음으로 처리
+        verify(upbitScrapComponent, never()).setNewParsedData(anyList());
+        verify(coinoneScrapComponent, never()).setNewParsedData(anyList());
         verify(upbitScrapComponent, never()).setNewNotice(anyList());
         verify(coinoneScrapComponent, never()).setNewNotice(anyList());
         
         verify(exchangeNoticePacadeService, never()).createNoticesBulk(any(MarketType.class), anyList());
         verify(noticeService, never()).getNoticeByLink(anyString());
-        verify(marketInfoHandler, never()).sendNewNotice(any(NoticeDto.class));
+        verify(marketInfoStompController, never()).sendNewNotice(any(NoticeDto.class));
     }
 }

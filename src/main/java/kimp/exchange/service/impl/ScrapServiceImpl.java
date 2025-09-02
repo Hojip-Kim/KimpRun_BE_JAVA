@@ -9,7 +9,7 @@ import kimp.scrap.dto.coinone.CoinoneNoticeDto;
 import kimp.scrap.dto.upbit.UpbitNoticeDto;
 import kimp.notice.service.NoticeService;
 import kimp.exchange.service.ScrapService;
-import kimp.market.handler.MarketInfoHandler;
+import kimp.market.controller.MarketInfoStompController;
 import kimp.market.Enum.MarketType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,7 +30,7 @@ public class ScrapServiceImpl implements ScrapService {
     private final ExchangeScrap<BinanceNoticeDto> binanceScrapComponent;
     private final ExchangeNoticePacadeService exchangeNoticePacadeService;
     private final NoticeService noticeService;
-    private final MarketInfoHandler marketInfoHandler;
+    private final MarketInfoStompController marketInfoStompController;
 
     public ScrapServiceImpl(
             ExchangeScrap<UpbitNoticeDto> upbitScrapComponent,
@@ -38,21 +39,21 @@ public class ScrapServiceImpl implements ScrapService {
             ExchangeScrap<BinanceNoticeDto> binanceScrapComponent,
             ExchangeNoticePacadeService exchangeNoticePacadeService, 
             NoticeService noticeService,
-            MarketInfoHandler marketInfoHandler) {
+            MarketInfoStompController marketInfoStompController) {
         this.upbitScrapComponent = upbitScrapComponent;
         this.bithumbScrapComponent = bithumbScrapComponent;
         this.coinoneScrapComponent = coinoneScrapComponent;
         this.binanceScrapComponent = binanceScrapComponent;
         this.exchangeNoticePacadeService = exchangeNoticePacadeService;
         this.noticeService = noticeService;
-        this.marketInfoHandler = marketInfoHandler;
+        this.marketInfoStompController = marketInfoStompController;
     }
 
     /**
      * Python 서비스를 통한 거래소별 공지사항 스크래핑
      * Redis 종속성 제거 - DB 기반 날짜 비교로 효율적인 새로운 공지사항 감지
      */
-    @Scheduled(fixedRate = 30000) // 30초에서
+    @Scheduled(fixedRate = 30000) // 30초
     public void scrapNoticeData() throws IOException {
         log.info("공지사항 스케줄링 실행 시작");
         
@@ -80,12 +81,14 @@ public class ScrapServiceImpl implements ScrapService {
                 return;
             }
             
-            // 1-1. 현재 공지사항들을 최신순으로 정렬 (날짜 기준 내림차순)
+            // 1-1. 현재 공지사항들을 최신순으로 정렬하고 최근 30일 데이터만 필터링
+            LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
             currentNotices = currentNotices.stream()
-                .sorted((a, b) -> a.getDate().compareTo(b.getDate()))
+                .filter(notice -> notice.getDate().isAfter(thirtyDaysAgo)) // 최근 30일 데이터만
+                .sorted((a, b) -> b.getDate().compareTo(a.getDate())) // 최신순 정렬
                 .toList();
             
-            log.debug("{} 거래소에서 {} 개의 공지사항을 가져왔습니다 (최신순 정렬 완료)", exchangeName, currentNotices.size());
+            log.info("{} 거래소에서 {} 개의 공지사항을 가져왔습니다 (최근 30일, 최신순 정렬)", exchangeName, currentNotices.size());
             
             // 2. DB 기반 새로운 공지사항 감지 (Redis 해시 비교 제거)
             List<NoticeParsedData> newNotices = findNewNoticesFromDB(scrapComponent.getMarketType(), currentNotices);
@@ -154,38 +157,51 @@ public class ScrapServiceImpl implements ScrapService {
     }
     
     /**
-     * DB 기반 효율적 새로운 공지사항 감지 로직
-     * Redis 대신 DB의 최신 공지사항 날짜를 기준으로 새로운 공지사항 필터링
+     * 새로운 DB 기반 공지사항 감지 로직
+     * 모든 DB 데이터를 가져와서 link 기반으로 비교하고 date도 체크하여 업데이트 처리
      */
     private List<NoticeParsedData> findNewNoticesFromDB(MarketType marketType, List<NoticeParsedData> currentNotices) {
         try {
-            // 1. DB에서 해당 거래소의 가장 최근 공지사항 날짜 가져오기
-            LocalDateTime latestDbDate = noticeService.getLatestNoticeDate(marketType);
+            // 1. DB에서 해당 거래소의 모든 공지사항을 가져오기 (기존 최신 20개 방식에서 변경)
+            List<NoticeDto> allDbNotices = noticeService.getAllNoticesByMarketType(marketType);
+            log.info("DB에서 {} 거래소의 모든 공지사항 {} 개를 가져왔습니다", marketType, allDbNotices.size());
             
-            if (latestDbDate == null) {
-                // DB에 해당 거래소 공지사항이 없는 경우 - 모든 현재 공지사항을 새로운 것으로 간주
-                log.info("DB에 {} 거래소 공지사항이 없음 - 모든 현재 공지사항({} 개)을 새로운 것으로 처리", 
-                        marketType, currentNotices.size());
-                return currentNotices.stream()
-                    .sorted((a, b) -> b.getDate().compareTo(a.getDate()))
-                    .toList();
+            List<NoticeParsedData> newOrUpdatedNotices = new ArrayList<>();
+            
+            for (NoticeParsedData currentNotice : currentNotices) {
+                // 2. link로 기존 공지사항 찾기
+                NoticeDto existingNotice = allDbNotices.stream()
+                    .filter(dbNotice -> dbNotice.getUrl().equals(currentNotice.getAlink()))
+                    .findFirst()
+                    .orElse(null);
+                
+                if (existingNotice != null) {
+                    // 3. 있으면 date와 대조해서 달라진게있으면 업데이트 (분 단위까지만 비교)
+                    LocalDateTime dbDate = existingNotice.getCreatedAt().withSecond(0).withNano(0);
+                    LocalDateTime scrapDate = currentNotice.getDate().withSecond(0).withNano(0);
+
+                    if (!dbDate.equals(scrapDate)) {
+                        log.info("공지사항 날짜 업데이트 감지: {} - 기존: {}, 새로운: {}", 
+                                currentNotice.getTitle(), dbDate, scrapDate);
+                        
+                        // 날짜 업데이트
+                        noticeService.updateNoticeDate(existingNotice.getId(), currentNotice.getDate());
+                        newOrUpdatedNotices.add(currentNotice); // 업데이트된 공지사항도 웹소켓 송신 대상
+                    }
+                } else {
+                    // 4. 없으면 아예 새로운 공지사항
+                    log.info("새로운 공지사항 발견: {} - URL: {} - 날짜: {}", 
+                            currentNotice.getTitle(), currentNotice.getAlink(), currentNotice.getDate());
+                    newOrUpdatedNotices.add(currentNotice);
+                }
             }
             
-            // 2. 현재 공지사항 중에서 DB 최신 날짜보다 최신인 것들만 필터링
-            List<NoticeParsedData> newNotices = currentNotices.stream()
-                .filter(notice -> notice.getDate().isAfter(latestDbDate))
+            log.info("전체 {} 개 중 새로운/업데이트된 공지사항 {} 개 발견", 
+                    currentNotices.size(), newOrUpdatedNotices.size());
+            
+            return newOrUpdatedNotices.stream()
                 .sorted((a, b) -> b.getDate().compareTo(a.getDate())) // 최신순 정렬
                 .toList();
-            
-            log.info("DB 날짜 기반 비교 결과: DB 최신 날짜 [{}], 전체 {} 개 중 새로운 공지사항 {} 개 발견", 
-                    latestDbDate, currentNotices.size(), newNotices.size());
-            
-            if (!newNotices.isEmpty()) {
-                NoticeParsedData latestNew = newNotices.get(0);
-                log.info("가장 최신 공지사항: {} - {}", latestNew.getTitle(), latestNew.getDate());
-            }
-            
-            return newNotices;
                 
         } catch (Exception e) {
             log.error("DB 기반 새로운 공지사항 감지 실패: {} - {}", marketType, e.getMessage());
@@ -233,7 +249,7 @@ public class ScrapServiceImpl implements ScrapService {
                 // 링크를 통해 DB에서 저장된 공지사항 조회
                 NoticeDto noticeDto = noticeService.getNoticeByLink(noticeData.getAlink());
                 if (noticeDto != null) {
-                    marketInfoHandler.sendNewNotice(noticeDto);
+                    marketInfoStompController.sendNewNotice(noticeDto);
                     log.info("✅ WebSocket 전송 완료 [{}]: {} - {} ({})", 
                             i + 1, exchangeName, noticeData.getTitle(), noticeData.getDate());
                 } else {
