@@ -5,13 +5,11 @@ import kimp.exception.response.ApiResponse;
 import kimp.user.dto.request.CreateRoleRequestDto;
 import kimp.user.dto.request.UpdateRoleRequestDto;
 import kimp.user.dto.response.MemberRoleResponseDto;
-import kimp.user.entity.MemberRole;
 import kimp.user.service.MemberRoleService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/role")
@@ -27,34 +25,28 @@ public class MemberRoleController {
     @PreAuthorize("hasAuthority('OPERATOR')")
     @PostMapping
     public ApiResponse<MemberRoleResponseDto> createRole(@RequestBody CreateRoleRequestDto request) {
-        MemberRole memberRole = memberRoleService.createRole(request.getRoleKey(), request.getRoleName());
-        MemberRoleResponseDto response = new MemberRoleResponseDto(memberRole);
+        MemberRoleResponseDto response = memberRoleService.createRoleDto(request.getRoleKey(), request.getRoleName());
         return ApiResponse.success(response);
     }
     
     @PreAuthorize("hasAnyAuthority('MANAGER', 'OPERATOR')")
     @GetMapping("/{id}")
     public ApiResponse<MemberRoleResponseDto> getRoleById(@PathVariable Long id) {
-        MemberRole memberRole = memberRoleService.getRoleById(id);
-        MemberRoleResponseDto response = new MemberRoleResponseDto(memberRole);
+        MemberRoleResponseDto response = memberRoleService.getRoleByIdDto(id);
         return ApiResponse.success(response);
     }
     
     @PreAuthorize("hasAnyAuthority('MANAGER', 'OPERATOR')")
     @GetMapping("/key/{roleKey}")
     public ApiResponse<MemberRoleResponseDto> getRoleByKey(@PathVariable String roleKey) {
-        MemberRole memberRole = memberRoleService.getRoleByKey(roleKey);
-        MemberRoleResponseDto response = new MemberRoleResponseDto(memberRole);
+        MemberRoleResponseDto response = memberRoleService.getRoleByKeyDto(roleKey);
         return ApiResponse.success(response);
     }
     
     @PreAuthorize("hasAnyAuthority('MANAGER', 'OPERATOR')")
     @GetMapping
     public ApiResponse<List<MemberRoleResponseDto>> getAllRoles() {
-        List<MemberRole> memberRoles = memberRoleService.getAllRoles();
-        List<MemberRoleResponseDto> response = memberRoles.stream()
-            .map(MemberRoleResponseDto::new)
-            .collect(Collectors.toList());
+        List<MemberRoleResponseDto> response = memberRoleService.getAllRolesDto();
         return ApiResponse.success(response);
     }
     
@@ -62,8 +54,7 @@ public class MemberRoleController {
     @PutMapping("/{id}")
     public ApiResponse<MemberRoleResponseDto> updateRole(@PathVariable Long id, 
                                                         @RequestBody UpdateRoleRequestDto request) {
-        MemberRole memberRole = memberRoleService.updateRole(id, request.getRoleName());
-        MemberRoleResponseDto response = new MemberRoleResponseDto(memberRole);
+        MemberRoleResponseDto response = memberRoleService.updateRoleDto(id, request.getRoleName());
         return ApiResponse.success(response);
     }
     

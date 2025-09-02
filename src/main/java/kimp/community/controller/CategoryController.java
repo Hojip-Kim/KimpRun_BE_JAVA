@@ -4,14 +4,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import kimp.community.dto.category.CategoryDto;
 import kimp.community.dto.category.request.CreateCategoryRequestDto;
 import kimp.community.dto.category.request.UpdateCategoryRequestDto;
-import kimp.community.entity.Category;
 import kimp.community.service.CategoryPacadeService;
 import kimp.community.service.CategoryService;
 import kimp.exception.response.ApiResponse;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import kimp.security.user.CustomUserDetails;
@@ -35,8 +33,7 @@ public class CategoryController {
     @GetMapping
     public ApiResponse<List<CategoryDto>> getAllCategories(HttpServletRequest request){
 
-        List<Category> category = categoryService.getAllCategories();
-        List<CategoryDto> result = categoryService.convertCategoryListToDto(category);
+        List<CategoryDto> result = categoryService.getAllCategoriesDto();
         return ApiResponse.success(result);
     }
 
@@ -46,8 +43,7 @@ public class CategoryController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, "Category ID must be greater than or equal to 0", HttpStatus.BAD_REQUEST, "CategoryController.getCategory");
         }
 
-        Category category = categoryService.getCategoryByID(id);
-        CategoryDto result = new CategoryDto(category.getId(), category.getCategoryName());
+        CategoryDto result = categoryService.getCategoryByIdDto(id);
         return ApiResponse.success(result);
     }
 
@@ -57,8 +53,7 @@ public class CategoryController {
 
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
-        Category category = categoryPacadeService.createCategory(customUserDetails.getId(),createCategoryRequestDto);
-        CategoryDto result = categoryService.convertCategoryToDto(category);
+        CategoryDto result = categoryPacadeService.createCategoryDto(customUserDetails.getId(), createCategoryRequestDto);
         return ApiResponse.success(result);
     }
 
@@ -66,8 +61,7 @@ public class CategoryController {
     @PatchMapping
     public ApiResponse<CategoryDto> patchCategory(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody UpdateCategoryRequestDto updateCategoryRequestDto){
 
-        Category category = categoryService.updatedCategory(updateCategoryRequestDto);
-        CategoryDto result = new CategoryDto(category.getId(), category.getCategoryName());
+        CategoryDto result = categoryService.updatedCategoryDto(updateCategoryRequestDto);
         return ApiResponse.success(result);
     }
 

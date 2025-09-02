@@ -1,18 +1,16 @@
 package unit.kimp.community.controller;
 
 import kimp.community.controller.BoardController;
-import kimp.community.dto.board.request.BoardInsertDto;
+import kimp.community.dto.board.request.BoardLikeRequest;
 import kimp.community.dto.board.request.CreateBoardRequestDto;
 import kimp.community.dto.board.request.RequestBoardPin;
 import kimp.community.dto.board.request.UpdateBoardRequestDto;
-import kimp.community.dto.board.response.AllBoardResponseDto;
 import kimp.community.dto.board.response.BoardResponseDto;
 import kimp.community.dto.board.response.BoardWithCommentResponseDto;
-import kimp.community.dto.board.response.BoardWithCountResponseDto;
 import kimp.community.entity.Board;
-import kimp.community.service.BoardPerformanceService;
 import kimp.community.service.BoardService;
 import kimp.community.service.BoardPacadeService;
+import kimp.common.dto.PageRequestDto;
 import kimp.exception.KimprunException;
 import kimp.exception.response.ApiResponse;
 import kimp.security.user.CustomUserDetails;
@@ -23,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
@@ -49,8 +48,6 @@ public class BoardControllerTest {
     @Mock
     private BoardPacadeService boardPacadeService;
 
-    @Mock
-    private BoardPerformanceService boardPerformanceService;
 
     @Mock
     private CustomUserDetails customUserDetails;
@@ -58,8 +55,6 @@ public class BoardControllerTest {
     private Board mockBoard;
     private BoardResponseDto mockBoardResponseDto;
     private BoardWithCommentResponseDto mockBoardWithCommentResponseDto;
-    private AllBoardResponseDto mockAllBoardResponseDto;
-    private BoardWithCountResponseDto mockBoardWithCountResponseDto;
 
     @BeforeEach
     void setUp() {
@@ -67,10 +62,8 @@ public class BoardControllerTest {
         mockBoardResponseDto = new BoardResponseDto();
         mockBoardWithCommentResponseDto = new BoardWithCommentResponseDto(
             1L, 1L, 1L, "Test Category", "Test User", "Test Title", "Test Content",
-            0, 0, LocalDateTime.now(), LocalDateTime.now(), new ArrayList<>(), 0
+            0, 0, LocalDateTime.now(), LocalDateTime.now(), new ArrayList<>(), 0, false
         );
-        mockAllBoardResponseDto = new AllBoardResponseDto();
-        mockBoardWithCountResponseDto = new BoardWithCountResponseDto(new ArrayList<>(), 0);
 
         lenient().when(customUserDetails.getId()).thenReturn(1L);
     }
@@ -117,69 +110,74 @@ public class BoardControllerTest {
         assertEquals("Board ID must be non-negative", exception.getMessage());
     }
 
+
     @Test
-    @DisplayName("모든 카테고리 게시글 페이지 조회 성공")
+    @DisplayName("전체 카테고리 게시글 페이지 조회 성공")
     void shouldReturnAllCategoryBoardsPage() {
         // Arrange
-        when(boardService.getBoardsByPage(anyInt())).thenReturn(new PageImpl<>(Arrays.asList(mockBoard), Pageable.ofSize(10), 1));
-        when(boardService.getBoardsCount()).thenReturn(1L);
-        when(boardService.convertBoardPagesToAllBoardResponseDtos(any(), anyLong())).thenReturn(mockAllBoardResponseDto);
+        PageRequestDto pageRequestDto = new PageRequestDto();
+        pageRequestDto.setPage(1);
+        pageRequestDto.setSize(10);
+        
+        Page<BoardResponseDto> mockPage = new PageImpl<>(Arrays.asList(mockBoardResponseDto), Pageable.ofSize(10), 1);
+        when(boardPacadeService.getAllBoardDtoPage(any(PageRequestDto.class))).thenReturn(mockPage);
 
         // Act
-        ApiResponse<AllBoardResponseDto> response = boardController.getAllCategoryBoards(1);
-
-        // Assert
-        assertNotNull(response);
-        assertTrue(response.isSuccess());
-        assertEquals(200, response.getStatus());
-        assertEquals(mockAllBoardResponseDto, response.getData());
-        verify(boardService, times(1)).getBoardsByPage(0);
-        verify(boardService, times(1)).getBoardsCount();
-        verify(boardService, times(1)).convertBoardPagesToAllBoardResponseDtos(any(), anyLong());
-    }
-
-    @Test
-    @DisplayName("모든 카테고리 게시글 페이지 조회 실패: 유효하지 않은 페이지 번호")
-    void shouldThrowExceptionWhenGetAllCategoryBoardsWithInvalidPage() {
-        // Act & Assert
-        KimprunException exception = assertThrows(KimprunException.class, () -> boardController.getAllCategoryBoards(0));
-        assertEquals("Page number must be greater than 0", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("카테고리별 게시글 페이지 조회 성공")
-    void shouldReturnBoardsPageWithCategoryId() {
-        // Arrange
-        when(boardPacadeService.getBoardPageWithCategoryId(anyLong(), anyInt())).thenReturn(new PageImpl<>(Arrays.asList(mockBoard), Pageable.ofSize(10), 1));
-        when(boardPacadeService.convertBoardsToBoardResponseDtos(any())).thenReturn(new ArrayList<>());
-        when(boardPacadeService.getBoardCountByCategoryId(anyLong())).thenReturn(1);
-
-        // Act
-        ApiResponse<BoardWithCountResponseDto> response = boardController.getBoardsPageWithPage(1L, 1);
+        ApiResponse<Page<BoardResponseDto>> response = boardController.getBoardsPageWithPage(1L, pageRequestDto);
 
         // Assert
         assertNotNull(response);
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertNotNull(response.getData());
-        verify(boardPacadeService, times(1)).getBoardPageWithCategoryId(1L, 0);
-        verify(boardPacadeService, times(1)).convertBoardsToBoardResponseDtos(any());
-        verify(boardPacadeService, times(1)).getBoardCountByCategoryId(1L);
+        assertEquals(mockPage, response.getData());
+        verify(boardPacadeService, times(1)).getAllBoardDtoPage(pageRequestDto);
+    }
+
+    @Test
+    @DisplayName("카테고리별 게시글 페이지 조회 성공")
+    void shouldReturnBoardsPageWithCategoryId() {
+        // Arrange
+        PageRequestDto pageRequestDto = new PageRequestDto();
+        pageRequestDto.setPage(1);
+        pageRequestDto.setSize(10);
+        
+        Page<BoardResponseDto> mockPage = new PageImpl<>(Arrays.asList(mockBoardResponseDto), Pageable.ofSize(10), 1);
+        when(boardPacadeService.getBoardDtoPageWithCategoryId(anyLong(), any(PageRequestDto.class))).thenReturn(mockPage);
+
+        // Act
+        ApiResponse<Page<BoardResponseDto>> response = boardController.getBoardsPageWithPage(2L, pageRequestDto);
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.isSuccess());
+        assertEquals(200, response.getStatus());
+        assertNotNull(response.getData());
+        assertEquals(mockPage, response.getData());
+        verify(boardPacadeService, times(1)).getBoardDtoPageWithCategoryId(2L, pageRequestDto);
     }
 
     @Test
     @DisplayName("카테고리별 게시글 페이지 조회 실패: 유효하지 않은 카테고리 ID")
     void shouldThrowExceptionWhenGetBoardsPageWithInvalidCategoryId() {
+        // Arrange
+        PageRequestDto pageRequestDto = new PageRequestDto();
+        pageRequestDto.setPage(1);
+        
         // Act & Assert
-        KimprunException exception = assertThrows(KimprunException.class, () -> boardController.getBoardsPageWithPage(-1L, 1));
+        KimprunException exception = assertThrows(KimprunException.class, () -> boardController.getBoardsPageWithPage(-1L, pageRequestDto));
         assertEquals("Category ID must be greater than or equal to 0", exception.getMessage());
     }
 
     @Test
     @DisplayName("카테고리별 게시글 페이지 조회 실패: 유효하지 않은 페이지 번호")
     void shouldThrowExceptionWhenGetBoardsPageWithInvalidPage() {
+        // Arrange
+        PageRequestDto pageRequestDto = new PageRequestDto();
+        pageRequestDto.setPage(0); // Invalid page number
+        
         // Act & Assert
-        KimprunException exception = assertThrows(KimprunException.class, () -> boardController.getBoardsPageWithPage(1L, 0));
+        KimprunException exception = assertThrows(KimprunException.class, () -> boardController.getBoardsPageWithPage(1L, pageRequestDto));
         assertEquals("Page number must be greater than 0", exception.getMessage());
     }
 
@@ -188,16 +186,17 @@ public class BoardControllerTest {
     void shouldCreateBoardSuccessfully() {
         // Arrange
         CreateBoardRequestDto createBoardRequestDto = new CreateBoardRequestDto("Test Title", "Test Content", "test_image.png");
+        when(boardPacadeService.createBoardDto(anyLong(), anyLong(), any(CreateBoardRequestDto.class))).thenReturn(mockBoardResponseDto);
 
         // Act
-        ApiResponse<Void> response = boardController.createBoard(customUserDetails, 1L, createBoardRequestDto);
+        ApiResponse<BoardResponseDto> response = boardController.createBoard(customUserDetails, 1L, createBoardRequestDto);
 
         // Assert
         assertNotNull(response);
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
-        assertNull(response.getData());
-        verify(boardPerformanceService, times(1)).enqueueBoardQueue(any(BoardInsertDto.class));
+        assertEquals(mockBoardResponseDto, response.getData());
+        verify(boardPacadeService, times(1)).createBoardDto(1L, 1L, createBoardRequestDto);
     }
 
     @Test
@@ -224,8 +223,7 @@ public class BoardControllerTest {
     void shouldUpdateBoardSuccessfully() {
         // Arrange
         UpdateBoardRequestDto updateBoardRequestDto = new UpdateBoardRequestDto("Updated Title", "Updated Content");
-        when(boardPacadeService.updateBoard(anyLong(), anyLong(), any(UpdateBoardRequestDto.class))).thenReturn(mockBoard);
-        when(boardPacadeService.convertBoardToBoardResponseDto(any(Board.class))).thenReturn(mockBoardResponseDto);
+        when(boardPacadeService.updateBoardDto(anyLong(), anyLong(), any(UpdateBoardRequestDto.class))).thenReturn(mockBoardResponseDto);
 
         // Act
         ApiResponse<BoardResponseDto> response = boardController.updateBoard(customUserDetails, 1L, updateBoardRequestDto);
@@ -235,8 +233,7 @@ public class BoardControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(mockBoardResponseDto, response.getData());
-        verify(boardPacadeService, times(1)).updateBoard(1L, 1L, updateBoardRequestDto);
-        verify(boardPacadeService, times(1)).convertBoardToBoardResponseDto(mockBoard);
+        verify(boardPacadeService, times(1)).updateBoardDto(1L, 1L, updateBoardRequestDto);
     }
 
     @Test
@@ -318,7 +315,7 @@ public class BoardControllerTest {
         when(boardPacadeService.likeBoardById(anyLong(), anyLong())).thenReturn(true);
 
         // Act
-        ApiResponse<Boolean> response = boardController.likeBoard(customUserDetails, 1L);
+        ApiResponse<Boolean> response = boardController.likeBoard(customUserDetails, new BoardLikeRequest(1L));
 
         // Assert
         assertNotNull(response);

@@ -3,7 +3,7 @@ package kimp.websocket.config;
 import kimp.market.components.impl.market.Binance;
 import kimp.market.components.impl.market.Bithumb;
 import kimp.market.components.impl.market.Upbit;
-import kimp.market.handler.MarketDataWebsocketHandler;
+import kimp.market.controller.MarketDataStompController;
 import kimp.market.service.MarketInfoService;
 import kimp.market.service.MarketService;
 import kimp.websocket.client.BinanceWebSocketClient;
@@ -34,17 +34,17 @@ public class WebsocketDefinition {
     private final Binance binance;
     private final Bithumb bithumb;
     private final MarketInfoService marketInfoService;
-    private final MarketDataWebsocketHandler marketDataWebsocketHandler;
+    private final MarketDataStompController marketDataStompController;
 
     private final MarketService marketService;
 
-    public WebsocketDefinition(Upbit upbit, Binance binance, Bithumb bithumb, MarketService marketService, MarketInfoService marketInfoService, MarketDataWebsocketHandler marketDataWebsocketHandler) {
+    public WebsocketDefinition(Upbit upbit, Binance binance, Bithumb bithumb, MarketService marketService, MarketInfoService marketInfoService, MarketDataStompController marketDataStompController) {
         this.upbit = upbit;
         this.binance = binance;
         this.bithumb = bithumb;
         this.marketService = marketService;
         this.marketInfoService = marketInfoService;
-        this.marketDataWebsocketHandler = marketDataWebsocketHandler;
+        this.marketDataStompController = marketDataStompController;
     }
 
     @Bean
@@ -58,7 +58,7 @@ public class WebsocketDefinition {
 
         String wsUrl = String.format(binanceWebsocketUrl, streamNames);
 
-        BinanceWebSocketClient client = new BinanceWebSocketClient(wsUrl, marketDataWebsocketHandler, marketInfoService, binance);
+        BinanceWebSocketClient client = new BinanceWebSocketClient(wsUrl, marketDataStompController, marketInfoService, binance);
         client.connectBlocking();
 
         return client;
@@ -68,7 +68,7 @@ public class WebsocketDefinition {
     @Bean
     public UpbitWebsocketClient upbitWebsocketClient() throws URISyntaxException, InterruptedException {
 
-        UpbitWebsocketClient client = new UpbitWebsocketClient(upbitWebsocketUrl, marketDataWebsocketHandler, upbit);
+        UpbitWebsocketClient client = new UpbitWebsocketClient(upbitWebsocketUrl, marketDataStompController, upbit);
 
         client.connectBlocking();
 
@@ -77,7 +77,7 @@ public class WebsocketDefinition {
 
     @Bean
     public BithumbWebsocketClient bithumbWebsocketClient() throws URISyntaxException, InterruptedException {
-        BithumbWebsocketClient client = new BithumbWebsocketClient(bithumbWebsocketUrl, marketDataWebsocketHandler, bithumb);
+        BithumbWebsocketClient client = new BithumbWebsocketClient(bithumbWebsocketUrl, marketDataStompController, bithumb);
 
         client.connectBlocking();
 

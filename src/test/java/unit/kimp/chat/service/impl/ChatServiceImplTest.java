@@ -3,6 +3,8 @@ package unit.kimp.chat.service.impl;
 import kimp.chat.dao.impl.ChatDaoImpl;
 import kimp.chat.dto.response.ChatLogResponseDto;
 import kimp.chat.entity.Chat;
+import kimp.chat.repository.ChatRepository;
+import kimp.chat.service.ChatTrackingService;
 import kimp.chat.service.serviceImpl.ChatServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.PageImpl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -27,6 +30,12 @@ public class ChatServiceImplTest {
 
     @Mock
     private ChatDaoImpl chatDao;
+    
+    @Mock
+    private ChatRepository chatRepository;
+    
+    @Mock
+    private ChatTrackingService chatTrackingService;
 
     @InjectMocks
     private ChatServiceImpl chatService;
@@ -41,6 +50,7 @@ public class ChatServiceImplTest {
         chat1 = new Chat("user1", "Hello, world!", true);
         setPrivateField(chat1, "userIp", "192.168.1.1");
         setPrivateField(chat1, "cookiePayload", "cookie1");
+        setPrivateField(chat1, "userId", 1L);
         setPrivateField(chat1, "registedAt", java.time.LocalDateTime.now().minusMinutes(10));
         
         chat2 = new Chat("user2", "Hi there!", false);
@@ -62,6 +72,8 @@ public class ChatServiceImplTest {
     void shouldReturnChatMessages() {
         // Arrange
         when(chatDao.getAllChats(anyInt(), anyInt())).thenReturn(chatList);
+        when(chatTrackingService.getNicknamesByMemberIds(any())).thenReturn(Map.of(1L, "user1"));
+        when(chatTrackingService.getNicknamesByUuids(any())).thenReturn(Map.of("cookie2", "user2"));
 
         // Act
         Page<ChatLogResponseDto> result = chatService.getChatMessages(0, 10);
@@ -88,6 +100,8 @@ public class ChatServiceImplTest {
     void shouldReturnChatMessagesInAscendingOrder() {
         // Arrange
         when(chatDao.getAllChats(anyInt(), anyInt())).thenReturn(chatList);
+        when(chatTrackingService.getNicknamesByMemberIds(any())).thenReturn(Map.of(1L, "user1"));
+        when(chatTrackingService.getNicknamesByUuids(any())).thenReturn(Map.of("cookie2", "user2"));
 
         // Act
         Page<ChatLogResponseDto> result = chatService.getChatMessages(0, 10);
@@ -98,8 +112,8 @@ public class ChatServiceImplTest {
         
         // Check if messages are sorted by time (ascending)
         List<ChatLogResponseDto> content = result.getContent();
-        assertEquals("user1", content.get(0).getChatID());
-        assertEquals("user2", content.get(1).getChatID());
+        assertEquals("user1", content.get(0).getChatId());
+        assertEquals("user2", content.get(1).getChatId());
         
         verify(chatDao, times(1)).getAllChats(0, 10);
     }

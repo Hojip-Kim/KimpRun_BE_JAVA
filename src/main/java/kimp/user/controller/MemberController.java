@@ -11,7 +11,6 @@ import kimp.user.dto.request.*;
 import kimp.user.dto.response.AdminResponse;
 import kimp.user.dto.response.EmailVerifyCodeResponseDTO;
 import kimp.user.dto.response.EmailVerifyResponseDTO;
-import kimp.user.entity.Member;
 import kimp.user.service.MemberService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,8 +47,7 @@ public class MemberController {
         
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
-        Member member = memberService.getmemberById(customUserDetails.getId());
-        UserDto result = memberService.convertUserToUserDto(member);
+        UserDto result = memberService.getMemberDtoById(customUserDetails.getId());
         return ApiResponse.success(result);
     }
 
@@ -59,8 +57,7 @@ public class MemberController {
     public ApiResponse<UserDto> findMemberById(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("id") long id ) throws IOException {
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
-        Member member = memberService.getmemberById(customUserDetails.getId());
-        UserDto result = memberService.convertUserToUserDto(member);
+        UserDto result = memberService.getMemberDtoById(id);
         return ApiResponse.success(result);
     }
 
@@ -80,11 +77,11 @@ public class MemberController {
 
     @PostMapping("/email")
     public ApiResponse<EmailVerifyResponseDTO> sendEmailVerificationCode(@RequestBody EmailVerifyRequestDTO requestDTO) {
-        Member member = memberService.getmemberByEmail(requestDTO.getEmail());
+        boolean memberExists = memberService.getmemberByEmail(requestDTO.getEmail()) != null;
 
         EmailVerifyResponseDTO responseDTO = new EmailVerifyResponseDTO();
 
-        if(member != null){
+        if(memberExists){
             responseDTO.setIsExisted(true);
             return ApiResponse.success(responseDTO);
         }
@@ -102,8 +99,7 @@ public class MemberController {
     @PostMapping("/sign-up")
     public ApiResponse<UserDto> createMember(@RequestBody CreateUserDTO request){
 
-        Member member = memberService.createMember(request);
-        UserDto result = memberService.convertUserToUserDto(member);
+        UserDto result = memberService.createMemberDto(request);
         return ApiResponse.success(result);
     }
 
@@ -112,11 +108,11 @@ public class MemberController {
     @PatchMapping("/update/role")
     public ApiResponse<UserDto> updateUserRole(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody UpdateUserRoleDTO updateUserRoleDTO){
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
-        Member member = memberService.grantRole(updateUserRoleDTO.getUserId(), updateUserRoleDTO.getRole());
-        UserDto result = memberService.convertUserToUserDto(member);
+        UserDto result = memberService.grantRoleDto(updateUserRoleDTO.getUserId(), updateUserRoleDTO.getRole());
         return ApiResponse.success(result);
     }
 
+    // 로그인 한 유저가 비밀번호 업데이트하는 로직
     @PatchMapping("/update")
     public ApiResponse<UserDto> updateMember(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody UpdateUserPasswordDTO UpdateUserPasswordDTO){
         if(UpdateUserPasswordDTO == null) {
@@ -125,10 +121,20 @@ public class MemberController {
 
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
-        Member member = memberService.updateMember(customUserDetails.getId(), UpdateUserPasswordDTO);
-        UserDto result = memberService.convertUserToUserDto(member);
+        UserDto result = memberService.updateMemberDto(customUserDetails.getId(), UpdateUserPasswordDTO);
         return ApiResponse.success(result);
 
+    }
+
+    // 로그인 안한 유저가 비밀번호 리셋하는 로직
+    @PatchMapping("/password")
+    public ApiResponse<Boolean> updateMemberPassword(@RequestBody UpdateUserPasswordRequest request) {
+        if(request == null) {
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "UpdateUserPasswordDTO cannot be null", HttpStatus.BAD_REQUEST, "MemberController.updateMemberPassword");
+        }
+        boolean isSuccess = memberService.updatePassword(request);
+
+        return ApiResponse.success(isSuccess);
     }
 
     @PatchMapping("/update/nickname")
@@ -137,8 +143,7 @@ public class MemberController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "UpdateUserNicknameDTO cannot be null", HttpStatus.BAD_REQUEST, "MemberController.updateMemberNickname");
         }
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
-        Member member = memberService.updateNickname(customUserDetails.getId(), UpdateUserNicknameDTO);
-        UserWithIdNameEmailDto result = new UserWithIdNameEmailDto(member.getEmail(), member.getNickname(), member.getRole().getRoleName().name());
+        UserWithIdNameEmailDto result = memberService.updateNicknameDto(customUserDetails.getId(), UpdateUserNicknameDTO);
         return ApiResponse.success(result);
     }
 
@@ -170,7 +175,6 @@ public class MemberController {
     @GetMapping("/admin")
     public ApiResponse<AdminResponse> redirectAdmin(@AuthenticationPrincipal UserDetails UserDetails, HttpServletResponse response) throws IOException {
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
-        Member member = memberService.getmemberById(customUserDetails.getId());
         AdminResponse result = new AdminResponse(adminUrl);
         return ApiResponse.success(result);
     }

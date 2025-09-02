@@ -3,6 +3,7 @@ package unit.kimp.user.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.user.controller.MemberRoleController;
 import kimp.user.dto.request.CreateRoleRequestDto;
+import kimp.user.dto.response.MemberRoleResponseDto;
 import kimp.user.entity.MemberRole;
 import kimp.user.enums.UserRole;
 import kimp.user.service.MemberRoleService;
@@ -51,7 +52,8 @@ public class MemberRoleControllerTest {
     @DisplayName("역할 생성")
     void shouldCreateRole() throws Exception {
         CreateRoleRequestDto request = new CreateRoleRequestDto("test-role-key", UserRole.USER);
-        when(memberRoleService.createRole(anyString(), any(UserRole.class))).thenReturn(memberRole);
+        MemberRoleResponseDto responseDto = new MemberRoleResponseDto(memberRole);
+        when(memberRoleService.createRoleDto(anyString(), any(UserRole.class))).thenReturn(responseDto);
 
         mockMvc.perform(post("/role")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -64,7 +66,8 @@ public class MemberRoleControllerTest {
     @Test
     @DisplayName("역할 조회")
     void shouldGetRoleById() throws Exception {
-        when(memberRoleService.getRoleById(1L)).thenReturn(memberRole);
+        MemberRoleResponseDto responseDto = new MemberRoleResponseDto(memberRole);
+        when(memberRoleService.getRoleByIdDto(1L)).thenReturn(responseDto);
 
         mockMvc.perform(get("/role/1"))
                 .andExpect(status().isOk())
@@ -75,7 +78,8 @@ public class MemberRoleControllerTest {
     @DisplayName("모든 역할 조회")
     void shouldGetAllRoles() throws Exception {
         List<MemberRole> roles = Arrays.asList(memberRole);
-        when(memberRoleService.getAllRoles()).thenReturn(roles);
+        List<MemberRoleResponseDto> responseDtos = Arrays.asList(new MemberRoleResponseDto(memberRole));
+        when(memberRoleService.getAllRolesDto()).thenReturn(responseDtos);
 
         mockMvc.perform(get("/role"))
                 .andExpect(status().isOk())

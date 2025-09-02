@@ -69,7 +69,7 @@ public class NoticeDaoImpl implements NoticeDao {
 
     @Override
     public Page<Notice> findAllByOrderByRegistedAtAsc(Pageable pageable) {
-        return this.noticeRepository.findByOrderByDateDesc(pageable);
+        return this.noticeRepository.findAllByOrderByDateDescWithFetch(pageable);
     }
 
     @Override
@@ -86,5 +86,10 @@ public class NoticeDaoImpl implements NoticeDao {
     @Override
     public List<String> getNoticeLinksAfterDate(MarketType marketType, LocalDateTime afterDate) {
         return this.noticeRepository.findNoticeLinksAfterDate(marketType, afterDate);
+    }
+
+    @Override
+    public List<Notice> findAllNoticesByMarketType(MarketType marketType) {
+        return this.noticeRepository.findAllNoticesByMarketTypeWithFetch(marketType);
     }
 }

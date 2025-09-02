@@ -68,8 +68,7 @@ public class CategoryControllerTest {
         // Arrange
         List<Category> categories = Arrays.asList(mockCategory, new Category("Another Category"));
         List<CategoryDto> categoryDtos = Arrays.asList(mockCategoryDto, new CategoryDto(2L, "Another Category"));
-        when(categoryService.getAllCategories()).thenReturn(categories);
-        when(categoryService.convertCategoryListToDto(categories)).thenReturn(categoryDtos);
+        when(categoryService.getAllCategoriesDto()).thenReturn(categoryDtos);
 
         // Act
         ApiResponse<List<CategoryDto>> response = categoryController.getAllCategories(request);
@@ -79,15 +78,14 @@ public class CategoryControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(categoryDtos, response.getData());
-        verify(categoryService, times(1)).getAllCategories();
-        verify(categoryService, times(1)).convertCategoryListToDto(categories);
+        verify(categoryService, times(1)).getAllCategoriesDto();
     }
 
     @Test
     @DisplayName("ID로 카테고리 조회 성공")
     void shouldReturnCategoryByIdSuccessfully() {
         // Arrange
-        when(categoryService.getCategoryByID(anyLong())).thenReturn(mockCategory);
+        when(categoryService.getCategoryByIdDto(anyLong())).thenReturn(mockCategoryDto);
 
         // Act
         ApiResponse<CategoryDto> response = categoryController.getCategory(request, 1L);
@@ -98,7 +96,7 @@ public class CategoryControllerTest {
         assertEquals(200, response.getStatus());
         assertEquals(mockCategoryDto.getId(), response.getData().getId());
         assertEquals(mockCategoryDto.getCategoryName(), response.getData().getCategoryName());
-        verify(categoryService, times(1)).getCategoryByID(1L);
+        verify(categoryService, times(1)).getCategoryByIdDto(1L);
     }
 
     @Test
@@ -114,8 +112,7 @@ public class CategoryControllerTest {
     void shouldCreateCategorySuccessfully() {
         // Arrange
         CreateCategoryRequestDto createRequest = new CreateCategoryRequestDto("New Category");
-        when(categoryPacadeService.createCategory(anyLong(), any(CreateCategoryRequestDto.class))).thenReturn(mockCategory);
-        when(categoryService.convertCategoryToDto(any(Category.class))).thenReturn(mockCategoryDto);
+        when(categoryPacadeService.createCategoryDto(anyLong(), any(CreateCategoryRequestDto.class))).thenReturn(mockCategoryDto);
 
         // Act
         ApiResponse<CategoryDto> response = categoryController.createCategory(customUserDetails, createRequest);
@@ -125,8 +122,7 @@ public class CategoryControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(mockCategoryDto, response.getData());
-        verify(categoryPacadeService, times(1)).createCategory(1L, createRequest);
-        verify(categoryService, times(1)).convertCategoryToDto(mockCategory);
+        verify(categoryPacadeService, times(1)).createCategoryDto(1L, createRequest);
     }
 
     @Test
@@ -134,7 +130,7 @@ public class CategoryControllerTest {
     void shouldUpdateCategorySuccessfully() {
         // Arrange
         UpdateCategoryRequestDto updateRequest = new UpdateCategoryRequestDto(1L, "Updated Category");
-        when(categoryService.updatedCategory(any(UpdateCategoryRequestDto.class))).thenReturn(mockCategory);
+        when(categoryService.updatedCategoryDto(any(UpdateCategoryRequestDto.class))).thenReturn(mockCategoryDto);
 
         // Act
         ApiResponse<CategoryDto> response = categoryController.patchCategory(customUserDetails, updateRequest);
@@ -145,7 +141,7 @@ public class CategoryControllerTest {
         assertEquals(200, response.getStatus());
         assertEquals(mockCategoryDto.getId(), response.getData().getId());
         assertEquals(mockCategoryDto.getCategoryName(), response.getData().getCategoryName());
-        verify(categoryService, times(1)).updatedCategory(updateRequest);
+        verify(categoryService, times(1)).updatedCategoryDto(updateRequest);
     }
 
     @Test

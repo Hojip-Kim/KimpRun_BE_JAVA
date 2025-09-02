@@ -3,6 +3,7 @@ package kimp.security.user.service;
 import kimp.auth.dto.OauthProcessDTO;
 import kimp.auth.service.OAuth2Service;
 import kimp.security.user.CustomUserDetails;
+import kimp.user.dao.MemberDao;
 import kimp.user.dto.UserCopyDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -25,10 +26,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final OAuth2Service oAuth2Service;
     private final OAuth2AuthorizedClientService authorizedClientService;
+    private final MemberDao memberDao;
 
-    public CustomOAuth2UserService(OAuth2Service oAuth2Service, OAuth2AuthorizedClientService authorizedClientService) {
+    public CustomOAuth2UserService(OAuth2Service oAuth2Service, OAuth2AuthorizedClientService authorizedClientService, MemberDao memberDao) {
         this.oAuth2Service = oAuth2Service;
         this.authorizedClientService = authorizedClientService;
+        this.memberDao = memberDao;
     }
 
     @Override
@@ -84,6 +87,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
-        return new CustomUserDetails(userCopyDto, attributes);
+        return new CustomUserDetails(userCopyDto, attributes, memberDao);
     }
 }

@@ -11,6 +11,7 @@ import kimp.community.entity.Category;
 import kimp.community.service.CategoryService;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryDao categoryDao;
@@ -42,6 +44,12 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category getCategoryByID(Long id){
         Category category = categoryDao.getCategoryById(id);
+
+        return category;
+    }
+    
+    public Category getCategoryByIDWithBoardCount(Long id){
+        Category category = categoryDao.getCategoryByIdWithBoardCount(id);
 
         return category;
     }
@@ -92,5 +100,53 @@ public class CategoryServiceImpl implements CategoryService {
                 .collect(Collectors.toList());
 
         return categoryDtoList;
+    }
+
+    // DTO 반환 메소드들 (Controller용)
+    @Override
+    public List<CategoryDto> getAllCategoriesDto() {
+        List<Category> categories = getAllCategories();
+        return convertCategoryListToDto(categories);
+    }
+    
+    @Override
+    public CategoryDto getCategoryByIdDto(Long id) {
+        Category category = getCategoryByID(id);
+        return convertCategoryToDto(category);
+    }
+    
+    @Override
+    public CategoryDto updatedCategoryDto(UpdateCategoryRequestDto updateCategoryRequestDto) {
+        Category category = updatedCategory(updateCategoryRequestDto);
+        return convertCategoryToDto(category);
+    }
+    
+    @Override
+    @Transactional
+    public void initializeCategories(List<String> categoryNames) {
+        log.info("Category 배치 초기화 시작 - {} 개 카테고리", categoryNames.size());
+        
+        // 1. 기존 모든 Category를 한 번에 조회
+        List<Category> existingCategories = categoryDao.getAllCategory();
+        List<String> existingNames = existingCategories.stream()
+            .map(Category::getCategoryName)
+            .toList();
+        
+        // 2. 새로 생성해야 할 카테고리들 필터링
+        List<String> newCategoryNames = categoryNames.stream()
+            .filter(name -> !existingNames.contains(name))
+            .toList();
+            
+        // 3. 배치로 새로운 Category 생성
+        if (!newCategoryNames.isEmpty()) {
+            for (String name : newCategoryNames) {
+                CreateCategoryRequestDto createDto = new CreateCategoryRequestDto(name);
+                createCategory(createDto);
+            }
+            
+            log.info("Category {} 개 배치 생성 완료", newCategoryNames.size());
+        } else {
+            log.info("모든 Category가 이미 존재함");
+        }
     }
 }

@@ -1,11 +1,7 @@
 package kimp.community.entity;
 
 import jakarta.persistence.*;
-import kimp.user.entity.Member;
 import lombok.Getter;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "board_like_cnt")
@@ -23,10 +19,6 @@ public class BoardLikeCount{
     @Column(nullable = false)
     private Integer likes = 0;
 
-    @OneToMany
-    @JoinColumn(name = "board_like")
-    private List<Member> members = new ArrayList<>();
-
     public BoardLikeCount() {
     }
 
@@ -34,14 +26,13 @@ public class BoardLikeCount{
         this.board = board;
     }
 
-    public BoardLikeCount addLikes(Member member){
-        if(!members.contains(member)) {
-            this.likes++;
-            this.members.add(member);
-        }else{
-            throw new IllegalArgumentException("member already like board");
-        }
+    public void incrementLike() {
+        this.likes++;
+    }
 
-        return this;
+    public void decrementLike() {
+        if (this.likes > 0) {
+            this.likes--;
+        }
     }
 }

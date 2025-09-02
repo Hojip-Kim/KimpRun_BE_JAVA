@@ -16,5 +16,14 @@ public interface CommentDao {
     public Page<Comment> getComments(Board board, Pageable pageable);
 
     public boolean deleteComment(long commentId);
+    
+    // 특정 멤버의 댓글 조회
+    public Page<Comment> getCommentsByMember(Member member, Pageable pageable);
+    
+    // 멤버별 댓글 조회 (N+1 문제 해결)
+    public Page<Comment> getCommentsByMemberIdWithAllFetch(Long memberId, Pageable pageable);
+    
+    // save comment
+    public Comment saveComment(Comment comment);
 
 }

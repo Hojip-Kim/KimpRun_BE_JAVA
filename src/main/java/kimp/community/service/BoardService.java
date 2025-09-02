@@ -1,5 +1,6 @@
 package kimp.community.service;
 
+import kimp.common.dto.PageRequestDto;
 import kimp.community.dto.board.request.CreateBoardRequestDto;
 import kimp.community.dto.board.request.UpdateBoardRequestDto;
 import kimp.community.dto.board.response.AllBoardResponseDto;
@@ -14,7 +15,7 @@ import java.util.List;
 public interface BoardService {
 
     // 전체 카테고리에서의 게시글 페이지
-    public Page<Board> getBoardsByPage(int page);
+    public Page<Board> getBoardsByPage(PageRequestDto pageRequestDto);
 
     // 특정 카테고리에서의 게시글 페이지
     public Page<Board> getBoardsPageByCategory(Category category, Pageable pageable);

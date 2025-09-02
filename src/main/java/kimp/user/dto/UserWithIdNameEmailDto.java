@@ -7,6 +7,7 @@ public class UserWithIdNameEmailDto {
     public String email;
     public String name;
     public String role;
+    public Long memberId;
 
     public UserWithIdNameEmailDto(String name) {
         this.role = null;
@@ -14,7 +15,7 @@ public class UserWithIdNameEmailDto {
         this.name = name;
     }
 
-    public UserWithIdNameEmailDto(String email, String name, String role) {
+    public UserWithIdNameEmailDto(String email, String name, String role, Long memberId) {
         if(email == null || email.isEmpty()){
             this.email = "";
         }else{
@@ -22,6 +23,7 @@ public class UserWithIdNameEmailDto {
         }
         this.name = name;
         this.role = role;
+        this.memberId = memberId;
     }
 
 }

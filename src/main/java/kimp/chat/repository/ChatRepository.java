@@ -1,6 +1,5 @@
 package kimp.chat.repository;
 
-import kimp.chat.dto.response.ChatLogResponseDto;
 import kimp.chat.entity.Chat;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,10 +13,15 @@ import java.util.Optional;
 @Repository
 public interface ChatRepository extends MongoRepository<Chat, String> {
 
+    Page<Chat> findAllByIsDeletedFalseOrderByRegistedAtDesc(Pageable pageable);
 
-    @Query(value="{}", fields = "{chat_id: 1, content: 1, authenticated: 1, cookie_payload:  1, user_ip: 1, registed_at: 1 }")
-    Page<Chat> findAllByOrderByRegistedAtDesc(Pageable pageable);
-
-    @Query(value="{}", fields = "{chat_id: 1, content: 1, authenticated: 1, cookie_payload:  1, user_ip: 1, registed_at: 1 }")
-    Page<Chat> findAllByOrderByRegistedAtAsc(Pageable pageable);
+    Optional<Chat> findOneByInherenceId(String inherienceId);
+    
+    @Query("{ 'isDeleted': false, $and: [ " +
+           "{ $or: [ " +
+           "  { 'authenticated': true, 'userId': { $nin: ?0 } }, " +
+           "  { 'authenticated': false, 'cookiePayload': { $nin: ?1 } } " +
+           "] } " +
+           "] }")
+    Page<Chat> findAllByIsDeletedFalseAndNotBlockedOrderByRegistedAtDesc(List<Long> blockedMemberIds, List<String> blockedGuestUuids, Pageable pageable);
 }

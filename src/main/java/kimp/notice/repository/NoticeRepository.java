@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface NoticeRepository extends JpaRepository<Notice, Long> {
+public interface NoticeRepository extends JpaRepository<Notice, Long>, NoticeRepositoryCustom {
 
     public Page<Notice> findByExchangeIdOrderByDateDesc(long exchangeId, Pageable pageable);
 
@@ -38,4 +38,10 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
      */
     @Query("SELECT n.link FROM Notice n WHERE n.exchange.market = :marketType AND n.date > :afterDate ORDER BY n.date ASC")
     public List<String> findNoticeLinksAfterDate(@Param("marketType") MarketType marketType, @Param("afterDate") LocalDateTime afterDate);
+
+    /**
+     * 특정 거래소의 모든 공지사항을 가져옴 (새로운 로직용)
+     */
+    @Query("SELECT n FROM Notice n WHERE n.exchange.market = :marketType ORDER BY n.date DESC")
+    public List<Notice> findAllNoticesByMarketType(@Param("marketType") MarketType marketType);
 }

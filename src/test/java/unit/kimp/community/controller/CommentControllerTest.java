@@ -64,8 +64,7 @@ public class CommentControllerTest {
         // Arrange
         List<Comment> comments = Arrays.asList(mockComment);
         List<ResponseCommentDto> responseDtos = Arrays.asList(mockResponseCommentDto);
-        when(boardPacadeService.getComments(anyLong(), anyInt())).thenReturn(new PageImpl<>(comments, Pageable.unpaged(), 1));
-        when(commentService.converCommentsToResponseDtoList(anyList())).thenReturn(responseDtos);
+        when(boardPacadeService.getCommentsDto(anyLong(), anyInt())).thenReturn(new PageImpl<>(responseDtos, Pageable.unpaged(), 1));
 
         // Act
         ApiResponse<List<ResponseCommentDto>> response = commentController.getComment(1L, 0);
@@ -75,8 +74,7 @@ public class CommentControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(responseDtos, response.getData());
-        verify(boardPacadeService, times(1)).getComments(1L, 0);
-        verify(commentService, times(1)).converCommentsToResponseDtoList(comments);
+        verify(boardPacadeService, times(1)).getCommentsDto(1L, 0);
     }
 
     @Test
@@ -84,8 +82,7 @@ public class CommentControllerTest {
     void shouldCreateCommentSuccessfully() {
         // Arrange
         RequestCreateCommentDto createCommentDto = new RequestCreateCommentDto();
-        when(boardPacadeService.createComment(anyLong(), anyLong(), any(RequestCreateCommentDto.class))).thenReturn(mockComment);
-        when(commentService.convertCommentToResponseDto(any(Comment.class))).thenReturn(mockResponseCommentDto);
+        when(boardPacadeService.createCommentDto(anyLong(), anyLong(), any(RequestCreateCommentDto.class))).thenReturn(mockResponseCommentDto);
 
         // Act
         ApiResponse<ResponseCommentDto> response = commentController.createComment(customUserDetails, 1L, createCommentDto);
@@ -95,8 +92,7 @@ public class CommentControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(mockResponseCommentDto, response.getData());
-        verify(boardPacadeService, times(1)).createComment(1L, 1L, createCommentDto);
-        verify(commentService, times(1)).convertCommentToResponseDto(mockComment);
+        verify(boardPacadeService, times(1)).createCommentDto(1L, 1L, createCommentDto);
     }
 
     @Test
@@ -104,8 +100,7 @@ public class CommentControllerTest {
     void shouldUpdateCommentSuccessfully() {
         // Arrange
         RequestUpdateCommentDto updateCommentDto = new RequestUpdateCommentDto();
-        when(commentService.updateComment(anyLong(), any(RequestUpdateCommentDto.class))).thenReturn(mockComment);
-        when(commentService.convertCommentToResponseDto(any(Comment.class))).thenReturn(mockResponseCommentDto);
+        when(commentService.updateCommentDto(anyLong(), any(RequestUpdateCommentDto.class))).thenReturn(mockResponseCommentDto);
 
         // Act
         ApiResponse<ResponseCommentDto> response = commentController.updateComment(customUserDetails, updateCommentDto);
@@ -115,8 +110,7 @@ public class CommentControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(mockResponseCommentDto, response.getData());
-        verify(commentService, times(1)).updateComment(1L, updateCommentDto);
-        verify(commentService, times(1)).convertCommentToResponseDto(mockComment);
+        verify(commentService, times(1)).updateCommentDto(1L, updateCommentDto);
     }
 
     @Test

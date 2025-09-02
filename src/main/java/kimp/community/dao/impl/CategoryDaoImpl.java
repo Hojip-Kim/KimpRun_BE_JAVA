@@ -46,6 +46,17 @@ public class CategoryDaoImpl implements CategoryDao {
     }
 
     @Override
+    public Category getCategoryByIdWithBoardCount(Long id){
+        Optional<Category> optionalCategory = this.categoryRepository.findByIdWithBoardCount(id);
+
+        if(optionalCategory.isEmpty()){
+            throw new KimprunException(KimprunExceptionEnum.INTERNAL_SERVER_ERROR, "Not have category Id : " + id, HttpStatus.ACCEPTED, "trace");
+        }
+
+        return optionalCategory.get();
+    }
+
+    @Override
     public Category createCategory(CreateCategoryRequestDto createCategoryRequestDto){
         Optional<Category> optionalCategory = this.categoryRepository.findByCategoryName(createCategoryRequestDto.getCategoryName());
 

@@ -30,7 +30,13 @@ public class Member extends TimeStamp {
     @Column(nullable = false)
     private String password;
 
+    // 유저 이름
+    // oauth를통해 받아온 유저는 name이 이곳으로 들어감.
     @Column(nullable = true)
+    private String name;
+
+    // nickname은 중복 불가 (고유성)
+    @Column(nullable = false, unique=true)
     private String nickname;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -57,6 +63,12 @@ public class Member extends TimeStamp {
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Comment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Follow> following = new ArrayList<>();
+
+    @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Follow> followers = new ArrayList<>();
 
     public Member(String email, String nickname, String password, MemberRole role) {
         this.email = email;
@@ -110,4 +122,12 @@ public class Member extends TimeStamp {
         this.isActive = false;
     }
 
+    public void reActivate(){
+        this.isActive = true;
+    }
+
+    public Member setName(String name) {
+        this.name = name;
+        return this;
+    }
 }

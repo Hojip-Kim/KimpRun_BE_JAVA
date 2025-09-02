@@ -1,5 +1,6 @@
 package kimp.community.service;
 
+import kimp.community.dto.category.CategoryDto;
 import kimp.community.dto.category.request.CreateCategoryRequestDto;
 import kimp.community.entity.Category;
 import kimp.user.entity.Member;
@@ -22,6 +23,13 @@ public class CategoryPacadeService {
         Category category = categoryService.createCategory(categoryDto);
         Member member = memberService.getmemberById(memberId);
         return category.setMember(member);
+    }
+
+    // DTO 반환 메소드들 (Controller용)
+    @Transactional
+    public CategoryDto createCategoryDto(long memberId, CreateCategoryRequestDto categoryDto) {
+        Category category = createCategory(memberId, categoryDto);
+        return categoryService.convertCategoryToDto(category);
     }
 
 }

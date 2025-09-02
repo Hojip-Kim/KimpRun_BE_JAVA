@@ -45,7 +45,7 @@ public class CommentDaoImpl implements CommentDao {
 
     @Override
     public Page<Comment> getComments(Board board, Pageable pageable) {
-        return this.commentRepository.findByBoard(board, pageable);
+        return this.commentRepository.findByBoardAndIsDeletedFalse(board, pageable);
     }
 
     @Override
@@ -54,6 +54,21 @@ public class CommentDaoImpl implements CommentDao {
         commentRepository.delete(comment);
 
         return !entityManager.contains(comment);
+    }
+
+    @Override
+    public Page<Comment> getCommentsByMember(Member member, Pageable pageable) {
+        return commentRepository.findByMemberAndIsDeletedFalseOrderByRegistedAtDesc(member, pageable);
+    }
+    
+    @Override
+    public Page<Comment> getCommentsByMemberIdWithAllFetch(Long memberId, Pageable pageable) {
+        return commentRepository.findByMemberIdWithAllFetchOrderByRegistedAtDesc(memberId, pageable);
+    }
+
+    @Override
+    public Comment saveComment(Comment comment) {
+        return commentRepository.save(comment);
     }
 
 }

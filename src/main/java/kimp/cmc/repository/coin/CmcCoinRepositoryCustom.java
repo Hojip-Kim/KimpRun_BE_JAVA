@@ -1,8 +1,11 @@
 package kimp.cmc.repository.coin;
 
+import kimp.cmc.dto.response.CmcCoinInfoResponseDto;
 import kimp.cmc.entity.coin.CmcCoin;
 import kimp.cmc.entity.coin.CmcMainnet;
 import kimp.cmc.entity.coin.CmcPlatform;
+import kimp.common.dto.PageRequestDto;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,4 +30,28 @@ public interface CmcCoinRepositoryCustom {
      * 
      */
     List<CmcPlatform> findPlatformsByCmcCoinId(Long cmcCoinId);
+    
+    /**
+     * 여러 cmcCoinId들로 CmcMainnet 목록을 batch 조회 (N+1 방지)
+     * 
+     */
+    List<CmcMainnet> findMainnetsByCmcCoinIds(List<Long> cmcCoinIds);
+    
+    /**
+     * 여러 cmcCoinId들로 CmcPlatform 목록을 batch 조회 (N+1 방지)
+     * 
+     */
+    List<CmcPlatform> findPlatformsByCmcCoinIds(List<Long> cmcCoinIds);
+    
+    /**
+     * Rank 순으로 정렬된 CmcCoin 페이지 조회 (N+1 방지용 fetch join)
+     * CmcRank, CmcCoinInfo, CmcCoinMeta를 모두 fetch join으로 한번에 조회
+     */
+    Page<CmcCoin> findAllOrderByRankWithFetchJoin(PageRequestDto pageRequestDto);
+    
+    /**
+     * CmcCoinInfoResponseDto 직접 조회 (완전한 N+1 방지)
+     * Rank 순으로 정렬된 CmcCoinInfo 페이지 조회
+     */
+    Page<CmcCoinInfoResponseDto> findAllCoinInfoDtosOrderByRank(PageRequestDto pageRequestDto);
 }

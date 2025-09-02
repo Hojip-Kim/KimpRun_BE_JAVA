@@ -3,9 +3,16 @@ package kimp.chat.dao;
 import kimp.chat.entity.Chat;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
+
 public interface ChatDao {
 
-    public Chat insertChat(String nickname, String content, Boolean authenticated, String userIp, String cookiePayload);
+    public Chat insertChat(String nickname, String content, Boolean authenticated, String userIp, String cookiePayload, String inherenceId, Boolean isDeleted, Long memberId);
+
+    public Chat findByInherenceId(String inherenceId);
 
     public Page<Chat> getAllChats(int page, int size);
+    
+    public Page<Chat> getAllChatsWithBlocked(int page, int size, List<Long> blockedMemberIds, List<String> blockedGuestUuids);
+
 }

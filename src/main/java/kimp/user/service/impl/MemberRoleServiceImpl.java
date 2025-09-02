@@ -3,17 +3,21 @@ package kimp.user.service.impl;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import kimp.user.dao.MemberRoleDao;
+import kimp.user.dto.response.MemberRoleResponseDto;
 import kimp.user.entity.MemberRole;
 import kimp.user.enums.UserRole;
 import kimp.user.service.MemberRoleService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @Transactional(readOnly = true)
 public class MemberRoleServiceImpl implements MemberRoleService {
     
@@ -96,5 +100,69 @@ public class MemberRoleServiceImpl implements MemberRoleService {
                 MemberRole defaultRole = new MemberRole(defaultRoleKey, UserRole.USER);
                 return memberRoleDao.save(defaultRole);
             });
+    }
+
+    // DTO 반환 메소드들 (Controller용)
+    @Override
+    @Transactional
+    public MemberRoleResponseDto createRoleDto(String roleKey, UserRole roleName) {
+        MemberRole memberRole = createRole(roleKey, roleName);
+        return new MemberRoleResponseDto(memberRole);
+    }
+    
+    @Override
+    public MemberRoleResponseDto getRoleByIdDto(Long id) {
+        MemberRole memberRole = getRoleById(id);
+        return new MemberRoleResponseDto(memberRole);
+    }
+    
+    @Override
+    public MemberRoleResponseDto getRoleByKeyDto(String roleKey) {
+        MemberRole memberRole = getRoleByKey(roleKey);
+        return new MemberRoleResponseDto(memberRole);
+    }
+    
+    @Override
+    public List<MemberRoleResponseDto> getAllRolesDto() {
+        List<MemberRole> memberRoles = getAllRoles();
+        return memberRoles.stream()
+            .map(MemberRoleResponseDto::new)
+            .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional
+    public MemberRoleResponseDto updateRoleDto(Long id, UserRole roleName) {
+        MemberRole memberRole = updateRole(id, roleName);
+        return new MemberRoleResponseDto(memberRole);
+    }
+    
+    @Override
+    @Transactional
+    public void initializeUserRoles(List<UserRole> userRoles) {
+        log.info("UserRole 배치 초기화 시작 - {} 개 역할", userRoles.size());
+        
+        // 1. 기존 모든 MemberRole을 한 번에 조회
+        List<MemberRole> existingRoles = memberRoleDao.findAll();
+        List<UserRole> existingRoleNames = existingRoles.stream()
+            .map(MemberRole::getRoleName)
+            .toList();
+        
+        // 2. 새로 생성해야 할 역할들 필터링
+        List<UserRole> newRoles = userRoles.stream()
+            .filter(role -> !existingRoleNames.contains(role))
+            .toList();
+            
+        // 3. 배치로 새로운 MemberRole 생성
+        if (!newRoles.isEmpty()) {
+            for (UserRole role : newRoles) {
+                String randomUuid = UUID.randomUUID().toString();
+                memberRoleDao.save(new MemberRole(randomUuid, role));
+            }
+            
+            log.info("UserRole {} 개 배치 생성 완료", newRoles.size());
+        } else {
+            log.info("모든 UserRole이 이미 존재함");
+        }
     }
 }

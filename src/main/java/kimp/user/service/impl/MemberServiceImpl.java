@@ -2,7 +2,8 @@ package kimp.user.service.impl;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import kimp.member.util.NicknameGeneratorUtils;
+import kimp.chat.service.ChatTrackingService;
+import kimp.user.util.NicknameGeneratorUtils;
 import kimp.user.dao.BannedCountDao;
 import kimp.user.dao.MemberDao;
 import kimp.user.dao.MemberWithDrawDao;
@@ -11,6 +12,7 @@ import kimp.user.dao.UserAgentDao;
 import kimp.user.service.MemberRoleService;
 import kimp.user.dto.UserCopyDto;
 import kimp.user.dto.UserDto;
+import kimp.user.dto.UserWithIdNameEmailDto;
 import kimp.user.dto.request.*;
 import kimp.user.entity.*;
 import kimp.user.enums.UserRole;
@@ -44,9 +46,10 @@ public class MemberServiceImpl implements MemberService {
     private final NicknameGeneratorUtils nicknameGeneratorUtils;
     private final JavaMailSender mailSender;
     private final StringRedisTemplate redisTemplate;
+    private final ChatTrackingService chatTrackingService;
 
 
-    public MemberServiceImpl(MemberDao memberDao, UserAgentDao userAgentDao, BannedCountDao bannedCountDao, MemberWithDrawDao memberWithDrawDao, ProfileDao profileDao, MemberRoleService memberRoleService, PasswordEncoder passwordEncoder, NicknameGeneratorUtils nicknameGeneratorUtils, JavaMailSender mailSender, StringRedisTemplate stringRedisTemplate){
+    public MemberServiceImpl(MemberDao memberDao, UserAgentDao userAgentDao, BannedCountDao bannedCountDao, MemberWithDrawDao memberWithDrawDao, ProfileDao profileDao, MemberRoleService memberRoleService, PasswordEncoder passwordEncoder, NicknameGeneratorUtils nicknameGeneratorUtils, JavaMailSender mailSender, StringRedisTemplate stringRedisTemplate, ChatTrackingService chatTrackingService){
         this.memberDao = memberDao;
         this.userAgentDao = userAgentDao;
         this.bannedCountDao = bannedCountDao;
@@ -57,6 +60,7 @@ public class MemberServiceImpl implements MemberService {
         this.nicknameGeneratorUtils = nicknameGeneratorUtils;
         this.mailSender = mailSender;
         this.redisTemplate = stringRedisTemplate;
+        this.chatTrackingService = chatTrackingService;
     }
 
     @Override
@@ -102,12 +106,22 @@ public class MemberServiceImpl implements MemberService {
         try {
             log.info("유저 생성 시작 - Email: {}, Nickname: {}", request.getEmail(), request.getNickname());
 
-            // 기존 이메일로 가입된 사용자가 있는지 확인
+            // 기존 이메일로 가입된 사용자가 있는지 확인 (비활성화된 회원 포함)
             Member existingMember = memberDao.findMemberByEmail(request.getEmail());
             
             if (existingMember != null) {
+                // 기존 사용자가 비활성화된 경우 재활성화
+                if (!existingMember.isActive()) {
+                    log.info("비활성화된 기존 회원 재활성화 - Email: {}", request.getEmail());
+                    existingMember.reActivate();
+                    if (request.getNickname() != null && !request.getNickname().trim().isEmpty()) {
+                        existingMember.updateNickname(request.getNickname());
+                    }
+                    chatTrackingService.createOrUpdateChatTracking(null, existingMember.getNickname(), existingMember.getId());
+                    return existingMember;
+                }
                 // 기존 사용자가 OAuth만 가입한 경우 (비밀번호가 없거나 OAuth 정보가 있는 경우)
-                if (existingMember.getOauth() != null && request.getOauth() == null) {
+                else if (existingMember.getOauth() != null && request.getOauth() == null) {
                     log.info("기존 OAuth 사용자에게 비밀번호 추가 - Email: {}", request.getEmail());
                     return addPasswordToExistingOAuthMember(existingMember, request);
                 } else {
@@ -118,6 +132,7 @@ public class MemberServiceImpl implements MemberService {
             }
 
             Member member = null;
+
             String nickname;
 
             if (request.getNickname() == null || request.getNickname().trim().isEmpty()) {
@@ -165,6 +180,8 @@ public class MemberServiceImpl implements MemberService {
             Profile profile = profileDao.createDefaultProfile(member);
 
             userAgent.setBannedCount(bannedCount);
+            
+            chatTrackingService.createOrUpdateChatTracking(null, member.getNickname(), member.getId());
 
             log.info("유저 생성 완료: {}", member);
             return member;
@@ -198,9 +215,16 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public Member updateNickname(Long id, UpdateUserNicknameDTO UpdateUserNicknameDTO){
-        Member member = memberDao.findMemberById(id);
+        Member member = memberDao.findActiveMemberByIdWithProfile(id);
 
-        return member.updateNickname(UpdateUserNicknameDTO.getNickname());
+        try {
+            member.updateNickname(UpdateUserNicknameDTO.getNickname());
+            chatTrackingService.updateNicknameByMemberId(id, UpdateUserNicknameDTO.getNickname());
+        }catch(Exception e) {
+            throw new KimprunException(KimprunExceptionEnum.INVALID_REQUEST_EXCEPTION, "이미 있는 닉네임입니다.", HttpStatus.BAD_REQUEST, "MemberServiceImpl.updateNickname");
+        }
+
+        return member;
     }
 
     @Override
@@ -220,14 +244,14 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public Member getmemberByEmail(String email) {
 
-        Member member = memberDao.findMemberByEmail(email);
+        Member member = memberDao.findActiveMemberByEmail(email);
 
         return member;
     }
 
     @Override
     public Member getMemberByOAuthProviderId(String provider, String providerId) {
-        return memberDao.findMemberByOAuthProviderId(provider, providerId);
+        return memberDao.findActiveMemberByOAuthProviderId(provider, providerId);
     }
 
     // 외부 서비스에서 호출하는 메소드
@@ -235,7 +259,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public UserCopyDto createCopyUserDtoByEmail(String email) {
-        Member member = memberDao.findMemberByEmail(email);
+        Member member = memberDao.findActiveMemberByEmail(email);
         if(member != null) {
             return new UserCopyDto(member.getId(), member.getEmail(), member.getPassword(), member.getNickname(), member.getRole().getRoleName());
         }else{
@@ -245,7 +269,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public Member getmemberById(Long id) {
-        Member member = memberDao.findMemberById(id);
+        Member member = memberDao.findActiveMemberById(id);
         return member;
     }
 
@@ -386,11 +410,55 @@ public class MemberServiceImpl implements MemberService {
         }
     }
 
+    @Override
+    @Transactional
+    public Boolean updatePassword(UpdateUserPasswordRequest request) {
+        String email = request.getEmail();
+        String password = request.getPassword();
+
+        Member member = memberDao.findActiveMemberByEmail(email);
+        if(member != null){
+            member.updatePassword(passwordEncoder.encode(password));
+            return true;
+        }
+        return false;
+    }
+
     private String generateVerificationCode(){
         Random random = new Random();
 
         int code = 100000 + random.nextInt(900000);
         return String.valueOf(code);
+    }
+
+    @Override
+    public UserDto createMemberDto(CreateUserDTO request) {
+        Member member = createMember(request);
+        return convertUserToUserDto(member);
+    }
+
+    @Override
+    public UserDto getMemberDtoById(Long id) {
+        Member member = getmemberById(id);
+        return convertUserToUserDto(member);
+    }
+
+    @Override
+    public UserDto updateMemberDto(Long id, UpdateUserPasswordDTO updateUserPasswordDTO) {
+        Member member = updateMember(id, updateUserPasswordDTO);
+        return convertUserToUserDto(member);
+    }
+
+    @Override
+    public UserWithIdNameEmailDto updateNicknameDto(Long id, UpdateUserNicknameDTO updateUserNicknameDTO) {
+        Member member = updateNickname(id, updateUserNicknameDTO);
+        return new UserWithIdNameEmailDto(member.getEmail(), member.getNickname(), member.getRole().getRoleName().name(), member.getId());
+    }
+
+    @Override
+    public UserDto grantRoleDto(Long memberId, UserRole grantRole) {
+        Member member = grantRole(memberId, grantRole);
+        return convertUserToUserDto(member);
     }
 
 }

@@ -17,4 +17,8 @@ public interface CmcCoinDao {
     public List<CmcMainnet> findMainnetsByCmcCoinId(Long cmcCoinId);
     
     public List<CmcPlatform> findPlatformsByCmcCoinId(Long cmcCoinId);
+    
+    public List<CmcMainnet> findMainnetsByCmcCoinIds(List<Long> cmcCoinIds);
+    
+    public List<CmcPlatform> findPlatformsByCmcCoinIds(List<Long> cmcCoinIds);
 }

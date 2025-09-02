@@ -9,6 +9,7 @@ import kimp.community.entity.CommentCount;
 import kimp.community.entity.CommentLikeCount;
 import kimp.user.entity.Member;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -32,5 +33,17 @@ public interface CommentService {
     public ResponseCommentDto convertCommentToResponseDto(Comment comment);
 
     public List<ResponseCommentDto> converCommentsToResponseDtoList(List<Comment> comments);
+    
+    // 특정 멤버의 댓글 조회
+    public Page<Comment> getCommentsByMember(Member member, Pageable pageable);
+    
+    // 최적화된 멤버별 댓글 조회 (N+1 문제 해결)
+    public Page<Comment> getCommentsByMemberIdWithAllFetch(Long memberId, Pageable pageable);
+    
+    // soft delete
+    public void softDeleteComment(long memberId, long commentId);
+
+    // DTO 반환 메소드들 (Controller용)
+    public ResponseCommentDto updateCommentDto(long memberId, RequestUpdateCommentDto updateCommentDto);
 
 }

@@ -31,6 +31,17 @@ public class Chat {
     @Field("cookie_payload")
     private String cookiePayload;
 
+    @Field("inherence_id")
+    private String inherenceId;
+
+    @Field("is_deleted")
+    private Boolean isDeleted;
+
+    // user mapping
+    // 만약 auth가 아니면 user는 null인 상태임.
+    @Field("user_id")
+    private Long userId;
+
     @CreatedDate
     @Indexed
     @Field("registed_at")
@@ -48,12 +59,24 @@ public class Chat {
         this.authenticated = authenticated;
     };
 
-    public Chat(String chatID, String content, Boolean authenticated, String userIp, String cookiePayload){
+    public Chat(String chatID, String content, Boolean authenticated, String userIp, String cookiePayload, String inherenceId, Boolean isDeleted){
         this.chatID = chatID;
         this.content = content;
         this.authenticated = authenticated;
         this.userIp = userIp;
         this.cookiePayload = cookiePayload;
+        this.inherenceId = inherenceId;
+        this.isDeleted = isDeleted;
     };
+
+    public Chat softDeleteChat() {
+        this.isDeleted = true;
+        return this;
+    }
+
+    public Chat setUser(Long userId) {
+        this.userId = userId;
+        return this;
+    }
 
 }

@@ -1,6 +1,9 @@
 package kimp.config.database;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -17,6 +20,9 @@ import javax.sql.DataSource;
 public class DatabaseConfig {
 
     private final EntityManagerFactory entityManagerFactory;
+    
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public DatabaseConfig(EntityManagerFactory entityManagerFactory) {
         this.entityManagerFactory = entityManagerFactory;
@@ -31,5 +37,10 @@ public class DatabaseConfig {
     @Bean("batchTransactionManager")
     public PlatformTransactionManager batchTransactionManager(DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
+    }
+    
+    @Bean
+    public JPAQueryFactory jpaQueryFactory() {
+        return new JPAQueryFactory(entityManager);
     }
 }

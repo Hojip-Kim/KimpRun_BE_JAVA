@@ -26,6 +26,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.firewall.RequestRejectedHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -66,15 +68,22 @@ public class SecurityConfig {
 
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(createCsrfTokenRepository())
+                        // WebSocket 연결 자체는 CSRF에서 제외하지만, STOMP 메시지는 CsrfChannelInterceptor에서 검증
+                        .ignoringRequestMatchers("/ws/**")
+                )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST,"/login", "/user/sign-up", "/user/email", "/user/email/verify", "/batch/cmc/sync", "/logout").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/csrf/token").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/login", "/user/sign-up", "/user/email", "/user/email/verify", "/batch/cmc/sync", "/logout", "/declaration").permitAll()
                         .requestMatchers(HttpMethod.POST, "/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/anonymous/member/nickname").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/**").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/chat/anon").permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/**").authenticated()
                         .anyRequest().permitAll()
                 )
@@ -107,6 +116,22 @@ public class SecurityConfig {
                 .addFilterBefore(cookieGuardFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    /**
+     * CSRF 토큰 리포지토리 생성 (쿠키 경로를 /로 설정하여 JavaScript 접근 허용)
+     */
+    private CsrfTokenRepository createCsrfTokenRepository() {
+        CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        repository.setCookiePath("/"); // JavaScript에서 접근 가능하도록 루트 경로로 변경
+        repository.setCookieName("XSRF-TOKEN");
+        repository.setHeaderName("X-XSRF-TOKEN");
+        repository.setParameterName("_csrf");
+        repository.setCookieMaxAge(-1); // 세션 쿠키
+        repository.setSecure(false); // HTTPS가 아닌 환경에서도 작동
+
+        log.info("🔧 CSRF 토큰 리포지토리 설정: cookiePath=/, httpOnly=false, secure=false");
+        return repository;
     }
 
     @Bean

@@ -3,12 +3,14 @@ package kimp.community.controller;
 import kimp.community.dto.comment.request.RequestCreateCommentDto;
 import kimp.community.dto.comment.request.RequestUpdateCommentDto;
 import kimp.community.dto.comment.response.ResponseCommentDto;
-import kimp.community.entity.Comment;
 import kimp.community.service.BoardPacadeService;
 import kimp.community.service.CommentPacadeService;
 import kimp.community.service.CommentService;
 import kimp.exception.response.ApiResponse;
+import kimp.exception.KimprunException;
+import kimp.exception.KimprunExceptionEnum;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import kimp.security.user.CustomUserDetails;
@@ -33,8 +35,8 @@ public class CommentController {
 
     @GetMapping
     public ApiResponse<List<ResponseCommentDto>> getComment(@RequestParam("boardId") Long boardId, @RequestParam("page") int page) {
-        Page<Comment> comments = boardPacadeService.getComments(boardId, page);
-        List<ResponseCommentDto> result = commentService.converCommentsToResponseDtoList(comments.getContent());
+        Page<ResponseCommentDto> commentDtoPage = boardPacadeService.getCommentsDto(boardId, page);
+        List<ResponseCommentDto> result = commentDtoPage.getContent();
         return ApiResponse.success(result);
     }
 
@@ -44,8 +46,7 @@ public class CommentController {
 
         long memberId = customUserDetails.getId();
 
-        Comment comment = boardPacadeService.createComment(memberId, boardId, requestCreateCommentDto);
-        ResponseCommentDto result = commentService.convertCommentToResponseDto(comment);
+        ResponseCommentDto result = boardPacadeService.createCommentDto(memberId, boardId, requestCreateCommentDto);
         return ApiResponse.success(result);
     }
 
@@ -53,8 +54,7 @@ public class CommentController {
     public ApiResponse<ResponseCommentDto> updateComment(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody RequestUpdateCommentDto requestUpdateCommentDto){
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
         long memberId = customUserDetails.getId();
-        Comment comment = commentService.updateComment(memberId, requestUpdateCommentDto);
-        ResponseCommentDto result = commentService.convertCommentToResponseDto(comment);
+        ResponseCommentDto result = commentService.updateCommentDto(memberId, requestUpdateCommentDto);
         return ApiResponse.success(result);
     }
 
@@ -75,6 +75,16 @@ public class CommentController {
         return ApiResponse.success(isCompleted);
     }
 
-
+    @DeleteMapping("/{commentId}/soft")
+    public ApiResponse<Void> softDeleteComment(@AuthenticationPrincipal UserDetails userDetails, @PathVariable long commentId) {
+        if (commentId < 0) {
+            throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, 
+                "Comment ID must be greater than or equal to 0", HttpStatus.BAD_REQUEST, "CommentController.softDeleteComment");
+        }
+        
+        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
+        commentService.softDeleteComment(customUserDetails.getId(), commentId);
+        return ApiResponse.success(null);
+    }
 
 }

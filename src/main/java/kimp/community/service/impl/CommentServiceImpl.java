@@ -16,6 +16,7 @@ import kimp.exception.KimprunExceptionEnum;
 import kimp.user.entity.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -108,9 +109,10 @@ public class CommentServiceImpl implements CommentService {
         int depth = comment.getDepth();
         String memberEmail = comment.getMember().getEmail();
         String memberNickName = comment.getMember().getNickname();
+        Long memberId = comment.getMember().getId();
         LocalDateTime createdAt = comment.getRegistedAt();
         LocalDateTime updatedAt = comment.getUpdatedAt();
-        return new ResponseCommentDto(commentId, parentCommentId, content, depth, memberEmail, memberNickName, createdAt, updatedAt);
+        return new ResponseCommentDto(commentId, parentCommentId, content, depth, memberEmail, memberNickName, memberId, createdAt, updatedAt);
     }
 
     @Override
@@ -118,5 +120,34 @@ public class CommentServiceImpl implements CommentService {
         return comments.stream().map(comment->convertCommentToResponseDto(comment)).collect(Collectors.toList());
     }
 
+    @Override
+    public Page<Comment> getCommentsByMember(Member member, Pageable pageable) {
+        return commentDao.getCommentsByMember(member, pageable);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Comment> getCommentsByMemberIdWithAllFetch(Long memberId, Pageable pageable) {
+        return commentDao.getCommentsByMemberIdWithAllFetch(memberId, pageable);
+    }
+
+    @Override
+    @Transactional
+    public void softDeleteComment(long memberId, long commentId) {
+        Comment comment = getCommentById(commentId);
+        if (!comment.getMember().getId().equals(memberId)) {
+            throw new KimprunException(KimprunExceptionEnum.AUTHENTICATION_REQUIRED_EXCEPTION, 
+                "User not authorized to delete this comment: " + commentId, HttpStatus.UNAUTHORIZED, "CommentServiceImpl.softDeleteComment");
+        }
+        
+        comment.softDelete();
+        commentDao.saveComment(comment);
+    }
+
+    @Override
+    public ResponseCommentDto updateCommentDto(long memberId, RequestUpdateCommentDto updateCommentDto) {
+        Comment comment = updateComment(memberId, updateCommentDto);
+        return convertCommentToResponseDto(comment);
+    }
 
 }

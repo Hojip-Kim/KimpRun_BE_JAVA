@@ -166,7 +166,7 @@ public class NoticeDaoImplTest {
         Pageable pageable = PageRequest.of(0, 10);
         List<Notice> notices = Arrays.asList(notice);
         Page<Notice> noticePage = new PageImpl<>(notices, pageable, notices.size());
-        when(noticeRepository.findByOrderByDateDesc(any(Pageable.class)))
+        when(noticeRepository.findAllByOrderByDateDescWithFetch(any(Pageable.class)))
                 .thenReturn(noticePage);
 
         // When
@@ -175,6 +175,6 @@ public class NoticeDaoImplTest {
         // Then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0)).isEqualTo(notice);
-        verify(noticeRepository, times(1)).findByOrderByDateDesc(pageable);
+        verify(noticeRepository, times(1)).findAllByOrderByDateDescWithFetch(pageable);
     }
 }

@@ -92,6 +92,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
             memberService.setMemberIP(member, ip);
             loginResponseDto.setResult("success");
             loginResponseDto.setMessage("로그인에 성공하였습니다.");
+            loginResponseDto.setMemberId(member.getId());
 
             apiResponse = ApiResponse.success(loginResponseDto);
 
@@ -102,10 +103,12 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
                 loginResponseDto.setResult("check");
                 loginResponseDto.setMessage("IP 확인 필요");
                 loginResponseDto.setData(beforeIp);
+                loginResponseDto.setMemberId(member.getId());
 
             }else{
                 loginResponseDto.setResult("success");
                 loginResponseDto.setMessage("로그인에 성공하였습니다.");
+                loginResponseDto.setMemberId(member.getId());
             }
             apiResponse = ApiResponse.success(loginResponseDto);
         }

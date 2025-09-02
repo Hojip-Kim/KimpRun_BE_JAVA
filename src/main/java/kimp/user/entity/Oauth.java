@@ -26,10 +26,10 @@ public class Oauth extends TimeStamp {
     @Column(name = "provider_id")
     private String providerId;
 
-    @Column(name = "access_token")
+    @Column(name = "access_token", length = 1000)
     private String accessToken;
 
-    @Column(name= "refresh_token")
+    @Column(name= "refresh_token", length = 1000)
     @JsonIgnore
     private String refreshToken;
 
@@ -39,7 +39,7 @@ public class Oauth extends TimeStamp {
     @Column(name = "expires_in")
     private Long expiresIn;
 
-    @Column(name = "scope")
+    @Column(name = "scope", length = 500)
     private String scope;
 
     @Column(name = "expires_at")
