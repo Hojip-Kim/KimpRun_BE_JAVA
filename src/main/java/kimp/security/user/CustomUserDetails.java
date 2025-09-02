@@ -1,6 +1,8 @@
 package kimp.security.user;
 
+import kimp.user.dao.MemberDao;
 import kimp.user.dto.UserCopyDto;
+import kimp.user.entity.Member;
 import kimp.user.enums.UserRole;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,14 +18,17 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
 
     private final UserCopyDto memberCopyDto;
     private Map<String, Object> attributes;
+    private final MemberDao memberDao;
 
-    public CustomUserDetails(UserCopyDto memberCopyDto) {
+    public CustomUserDetails(UserCopyDto memberCopyDto, MemberDao memberDao) {
         this.memberCopyDto = memberCopyDto;
-
+        this.memberDao = memberDao;
     }
-    public CustomUserDetails(UserCopyDto memberCopyDto, Map<String, Object> attributes) {
+    
+    public CustomUserDetails(UserCopyDto memberCopyDto, Map<String, Object> attributes, MemberDao memberDao) {
         this.memberCopyDto = memberCopyDto;
         this.attributes = attributes;
+        this.memberDao = memberDao;
     }
     @Override
     public Map<String, Object> getAttributes() {
@@ -66,6 +71,12 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
 
     @Override
     public String getUsername() {
+        if (memberDao != null) {
+            Member currentMember = memberDao.findMemberById(memberCopyDto.getId());
+            if (currentMember != null && currentMember.getNickname() != null) {
+                return currentMember.getNickname();
+            }
+        }
         return memberCopyDto.getNickname();
     }
 
@@ -91,6 +102,12 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
 
     @Override
     public String getName() {
+        if (memberDao != null) {
+            Member currentMember = memberDao.findMemberById(memberCopyDto.getId());
+            if (currentMember != null && currentMember.getNickname() != null) {
+                return currentMember.getNickname();
+            }
+        }
         return memberCopyDto.getNickname();
     }
 }

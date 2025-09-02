@@ -1,6 +1,7 @@
 package kimp.security.user.service;
 
 import kimp.security.user.CustomUserDetails;
+import kimp.user.dao.MemberDao;
 import kimp.user.dto.UserCopyDto;
 import kimp.user.service.MemberService;
 import lombok.extern.slf4j.Slf4j;
@@ -15,9 +16,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class CustomUserDetailService implements UserDetailsService {
     private final MemberService memberService;
+    private final MemberDao memberDao;
 
-    public CustomUserDetailService(MemberService memberService) {
+    public CustomUserDetailService(MemberService memberService, MemberDao memberDao) {
         this.memberService = memberService;
+        this.memberDao = memberDao;
     }
 
     @Override
@@ -25,7 +28,7 @@ public class CustomUserDetailService implements UserDetailsService {
         UserCopyDto UserDto = memberService.createCopyUserDtoByEmail(email);
 
         if(UserDto != null) {
-            return new CustomUserDetails(UserDto);
+            return new CustomUserDetails(UserDto, memberDao);
         }else{
             throw new UsernameNotFoundException(email);
         }
