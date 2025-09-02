@@ -82,13 +82,13 @@ public class BoardDaoImpl implements BoardDao {
     @Override
     @Transactional
     public Page<Board> findByCategoryWithPage(Category category, Pageable pageable){
-        return this.boardRepository.findByCategoryOrderByRegistedAtDesc(category, pageable);
+        return this.boardRepository.findByCategoryWithFetchJoinOrderByRegistedAtDesc(category, pageable);
     }
 
     @Override
     @Transactional
     public Page<Board> findAllWithPage(Pageable pageable){
-        return this.boardRepository.findAllByOrderByRegistedAtDesc(pageable);
+        return this.boardRepository.findAllWithFetchJoinOrderByRegistedAtDesc(pageable);
     }
 
     @Override

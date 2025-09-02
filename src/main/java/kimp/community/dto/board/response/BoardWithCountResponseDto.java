@@ -11,5 +11,5 @@ import java.util.List;
 @NoArgsConstructor
 public class BoardWithCountResponseDto {
     List<BoardResponseDto> boardResponseDtos;
-    Integer count;
+    Long count;
 }

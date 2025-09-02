@@ -6,7 +6,7 @@ import kimp.community.dto.board.request.RequestBoardPin;
 import kimp.community.dto.board.request.UpdateBoardRequestDto;
 import kimp.community.dto.board.response.BoardResponseDto;
 import kimp.community.dto.board.response.BoardWithCommentResponseDto;
-import kimp.community.entity.Board;
+import kimp.community.dto.comment.response.ResponseCommentDto;
 import kimp.community.service.BoardService;
 import kimp.community.service.BoardPacadeService;
 import kimp.exception.response.ApiResponse;
@@ -102,8 +102,7 @@ public class BoardController {
 
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
-        Board board = this.boardPacadeService.createBoard(customUserDetails.getId(), categoryId, createBoardRequestDto);
-        BoardResponseDto result = this.boardPacadeService.convertBoardToBoardResponseDto(board);
+        BoardResponseDto result = this.boardPacadeService.createBoardDto(customUserDetails.getId(), categoryId, createBoardRequestDto);
         
         return ApiResponse.success(result);
     }
@@ -133,8 +132,7 @@ public class BoardController {
         }
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
-        Board board = this.boardPacadeService.updateBoard(customUserDetails.getId(), boardId, updateBoardRequestDto);
-        BoardResponseDto result = this.boardPacadeService.convertBoardToBoardResponseDto(board);
+        BoardResponseDto result = this.boardPacadeService.updateBoardDto(customUserDetails.getId(), boardId, updateBoardRequestDto);
         return ApiResponse.success(result);
     }
 
@@ -172,6 +170,57 @@ public class BoardController {
 
         Boolean isCompleted = boardPacadeService.likeBoardById(boardId, customUserDetails.getId());
         return ApiResponse.success(isCompleted);
+    }
+
+    @GetMapping("/member/{memberId}")
+    public ApiResponse<Page<BoardResponseDto>> getBoardsByMember(
+            @PathVariable Long memberId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "15") int size) {
+        if (memberId < 0) {
+            throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, 
+                "Member ID must be greater than or equal to 0", HttpStatus.BAD_REQUEST, "BoardController.getBoardsByMember");
+        }
+        if (page < 1) {
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PAGE_PARAMETER_EXCEPTION, 
+                "Page number must be greater than 0", HttpStatus.BAD_REQUEST, "BoardController.getBoardsByMember");
+        }
+
+        PageRequestDto pageRequestDto = new PageRequestDto(page, size);
+        Page<BoardResponseDto> boardDtoPage = boardPacadeService.getBoardsByMember(memberId, pageRequestDto);
+        return ApiResponse.success(boardDtoPage);
+    }
+
+    @GetMapping("/member/{memberId}/comments")
+    public ApiResponse<Page<ResponseCommentDto>> getCommentsByMember(
+            @PathVariable Long memberId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "15") int size) {
+        if (memberId < 0) {
+            throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, 
+                "Member ID must be greater than or equal to 0", HttpStatus.BAD_REQUEST, "BoardController.getCommentsByMember");
+        }
+        if (page < 1) {
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PAGE_PARAMETER_EXCEPTION, 
+                "Page number must be greater than 0", HttpStatus.BAD_REQUEST, "BoardController.getCommentsByMember");
+        }
+
+        PageRequestDto pageRequestDto = new PageRequestDto(page, size);
+        Page<ResponseCommentDto> commentDtoPage = boardPacadeService.getCommentsByMember(memberId, pageRequestDto);
+        return ApiResponse.success(commentDtoPage);
+    }
+
+    @PreAuthorize("hasAnyAuthority('MANAGER','OPERATOR', 'INFLUENCER', 'USER')")
+    @DeleteMapping("/{boardId}/soft")
+    public ApiResponse<Void> softDeleteBoard(@AuthenticationPrincipal UserDetails userDetails, @PathVariable long boardId) {
+        if (boardId < 0) {
+            throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, 
+                "Board ID must be greater than or equal to 0", HttpStatus.BAD_REQUEST, "BoardController.softDeleteBoard");
+        }
+        
+        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
+        boardPacadeService.softDeleteBoard(customUserDetails.getId(), boardId);
+        return ApiResponse.success(null);
     }
 
 }

@@ -1,14 +1,19 @@
 package kimp.community.service;
 
 import kimp.community.dto.comment.request.RequestCreateCommentDto;
+import kimp.community.dto.comment.response.ResponseCommentDto;
 import kimp.community.entity.Board;
 import kimp.community.entity.Comment;
 import kimp.community.entity.CommentLikeCount;
 import kimp.user.entity.Member;
 import kimp.user.service.MemberService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 
 @Service
@@ -57,6 +62,20 @@ public class CommentPacadeService {
             return true;
         }
         return false;
+    }
+
+    // DTO 반환 메소드들 (Controller용)
+    public Page<ResponseCommentDto> getCommentsDto(long boardId, int page) {
+        Page<Comment> comments = getComments(boardId, page);
+        List<ResponseCommentDto> commentDtos = commentService.converCommentsToResponseDtoList(comments.getContent());
+        PageRequest pageRequest = PageRequest.of(page - 1, 15); // 기본 페이지 사이즈 15
+        return new PageImpl<>(commentDtos, pageRequest, comments.getTotalElements());
+    }
+
+    @Transactional
+    public ResponseCommentDto createCommentDto(long memberId, long boardId, RequestCreateCommentDto requestCreateCommentDto) {
+        Comment comment = createComment(memberId, boardId, requestCreateCommentDto);
+        return commentService.convertCommentToResponseDto(comment);
     }
 
 }

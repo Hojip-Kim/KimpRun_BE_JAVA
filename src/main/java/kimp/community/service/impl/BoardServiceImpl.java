@@ -1,5 +1,6 @@
 package kimp.community.service.impl;
 
+import kimp.common.dto.PageRequestDto;
 import kimp.community.dao.BoardDao;
 import kimp.community.dao.BoardLikeCountDao;
 import kimp.community.dao.BoardViewDao;
@@ -92,8 +93,8 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public Page<Board> getBoardsByPage(int page){
-        PageRequest pageRequest = PageRequest.of(page, 15);
+    public Page<Board> getBoardsByPage(PageRequestDto pageRequestDto){
+        PageRequest pageRequest = PageRequest.of(pageRequestDto.getPage()-1, pageRequestDto.getSize());
         Page<Board> boardPages = boardDao.findAllWithPage(pageRequest);
         return boardPages;
     }
@@ -132,7 +133,7 @@ public class BoardServiceImpl implements BoardService {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Board object cannot be null", HttpStatus.BAD_REQUEST, "BoardServiceImpl.convertBoardToBoardResponseDto");
         }
 
-        return new BoardResponseDto(board.getId(), board.getMember().getId(), board.getCategory().getId(),board.getCategory().getCategoryName(), board.getMember().getNickname(), board.getTitle(), board.getContent(), board.getViews().getViews(), board.getBoardLikeCount().getLikes(),board.getRegistedAt(), board.getUpdatedAt(), board.getCommentCount().getCounts());
+        return new BoardResponseDto(board.getId(), board.getMember().getId(), board.getCategory().getId(),board.getCategory().getCategoryName(), board.getMember().getNickname(), board.getTitle(), board.getContent(), board.getViews().getViews(), board.getBoardLikeCount().getLikes(),board.getRegistedAt(), board.getUpdatedAt(), board.getCommentCount().getCounts(), board.isPin());
     }
 
     @Override

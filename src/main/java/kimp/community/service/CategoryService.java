@@ -25,4 +25,14 @@ public interface CategoryService {
     public CategoryDto convertCategoryToDto(Category category);
 
     public List<CategoryDto> convertCategoryListToDto(List<Category> categories);
+
+    // DTO 반환 메소드들 (Controller용)
+    public List<CategoryDto> getAllCategoriesDto();
+    
+    public CategoryDto getCategoryByIdDto(Long id);
+    
+    public CategoryDto updatedCategoryDto(UpdateCategoryRequestDto updateCategoryRequestDto);
+    
+    // Batch methods for initialization
+    void initializeCategories(List<String> categoryNames);
 }

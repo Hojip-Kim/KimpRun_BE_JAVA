@@ -24,5 +24,6 @@ public class BoardResponseDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Integer commentsCount;
+    private Boolean isPin;
 
 }

@@ -47,6 +47,9 @@ public class Board extends TimeStamp {
     @Column
     private boolean isPin = false;
 
+    @Column(nullable = false)
+    private boolean isDeleted = false;
+
     public Board() {
 
     }
@@ -106,5 +109,13 @@ public class Board extends TimeStamp {
 
     public void deactivePin(){
         this.isPin = false;
+    }
+
+    public void softDelete(){
+        this.isDeleted = true;
+    }
+
+    public void restore(){
+        this.isDeleted = false;
     }
 }

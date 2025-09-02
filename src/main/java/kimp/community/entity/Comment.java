@@ -35,6 +35,9 @@ public class Comment extends TimeStamp {
     @OneToOne(fetch = FetchType.LAZY)
     public CommentLikeCount likeCount;
 
+    @Column(nullable = false)
+    private boolean isDeleted = false;
+
     public Comment() {
     }
 
@@ -54,5 +57,13 @@ public class Comment extends TimeStamp {
     public Comment updateCommentContent(String content){
         this.content = content;
         return this;
+    }
+
+    public void softDelete(){
+        this.isDeleted = true;
+    }
+
+    public void restore(){
+        this.isDeleted = false;
     }
 }
