@@ -1,9 +1,7 @@
 package kimp.chat.service.serviceImpl;
 
 import kimp.chat.dao.ChatDao;
-import kimp.chat.dto.vo.DeleteAnonChatMessage;
 import kimp.chat.dto.vo.SaveChatMessage;
-import kimp.chat.entity.Chat;
 import kimp.chat.service.ChatStompService;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
@@ -143,7 +141,7 @@ public class ChatStompServiceImpl implements ChatStompService {
             }
 
             // 비동기 DB 저장
-            chatDao.insertChat(saveChatMessage.getChatID(), saveChatMessage.getContent(), 
+            chatDao.insertChat(saveChatMessage.getChatID(), saveChatMessage.getContent(),
                 saveChatMessage.getAuthenticated(), saveChatMessage.getUserIp(), 
                 saveChatMessage.getUuid(), // cookiePayload (uuid 필드에 저장됨)
                 saveChatMessage.getInherienceId(), // randomUUID (inherienceId 필드에 저장됨)

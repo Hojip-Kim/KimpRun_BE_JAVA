@@ -11,6 +11,8 @@ import java.util.List;
 public interface ChatService {
 
     public Page<ChatLogResponseDto> getChatMessages(int page, int size);
+    
+    public Page<ChatLogResponseDto> getChatMessagesWithBlocked(int page, int size, List<String> blockedMembers, List<String> blockedGuests);
 
     public void softDeleteAnonMessage(String kimprunToken, DeleteAnonChatMessage deleteChatMessage);
 

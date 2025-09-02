@@ -12,6 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -55,6 +56,23 @@ public class ChatDaoImpl implements ChatDao {
         Pageable pageable = PageRequest.of(page, size, Sort.by("registed_at").descending());
         // isDeleted가 false인것만 가져옴 (softDelete)
         Page<Chat> chatMessages = chatRepository.findAllByIsDeletedFalseOrderByRegistedAtDesc(pageable);
+        if(chatMessages == null || chatMessages.isEmpty()){
+            throw new IllegalArgumentException("Not found any chats");
+        }
+
+        return chatMessages;
+    }
+
+    @Override
+    public Page<Chat> getAllChatsWithBlocked(int page, int size, List<Long> blockedMemberIds, List<String> blockedGuestUuids) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("registed_at").descending());
+        
+        Page<Chat> chatMessages = chatRepository.findAllByIsDeletedFalseAndNotBlockedOrderByRegistedAtDesc(
+            blockedMemberIds != null ? blockedMemberIds : List.of(),
+            blockedGuestUuids != null ? blockedGuestUuids : List.of(),
+            pageable
+        );
+        
         if(chatMessages == null || chatMessages.isEmpty()){
             throw new IllegalArgumentException("Not found any chats");
         }

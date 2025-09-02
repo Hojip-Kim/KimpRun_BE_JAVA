@@ -28,9 +28,11 @@ public class ChatLogResponseDto {
     // 삭제된 채팅메시지는 아예 가질않으니 isDeleted는 없어도 됨.
     @JsonProperty("memberId")
     private Long memberId;
+    @JsonProperty("nickname")
+    private String nickname;
 
 
-    public ChatLogResponseDto(String id,String chatId, String content, Boolean authenticated, String uuid, String userIp, LocalDateTime registedAt, String inherenceId, Long memberId ) {
+    public ChatLogResponseDto(String id,String chatId, String content, Boolean authenticated, String uuid, String userIp, LocalDateTime registedAt, String inherenceId, Long memberId, String nickname ) {
         this.id = id;
         this.chatId = chatId;
         this.content = content;
@@ -40,5 +42,6 @@ public class ChatLogResponseDto {
         this.registedAt = registedAt;
         this.inherenceId = inherenceId;
         this.memberId = memberId;
+        this.nickname = nickname;
     }
 }

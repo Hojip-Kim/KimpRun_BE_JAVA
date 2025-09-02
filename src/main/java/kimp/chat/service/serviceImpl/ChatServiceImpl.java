@@ -7,6 +7,7 @@ import kimp.chat.dto.vo.DeleteAnonChatMessage;
 import kimp.chat.entity.Chat;
 import kimp.chat.repository.ChatRepository;
 import kimp.chat.service.ChatService;
+import kimp.chat.service.ChatTrackingService;
 
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
@@ -19,16 +20,20 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ChatServiceImpl implements ChatService {
 
     private final ChatDao chatDao;
     private final ChatRepository chatRepository;
+    private final ChatTrackingService chatTrackingService;
 
-    public ChatServiceImpl(ChatDao chatDao, ChatRepository chatRepository){
+    public ChatServiceImpl(ChatDao chatDao, ChatRepository chatRepository, ChatTrackingService chatTrackingService){
         this.chatDao = chatDao;
         this.chatRepository = chatRepository;
+        this.chatTrackingService = chatTrackingService;
     }
 
     @Override
@@ -47,24 +52,123 @@ public class ChatServiceImpl implements ChatService {
         List<Chat> contentAsc = new ArrayList<>(chats.getContent());
         contentAsc.sort(Comparator.comparing(Chat::getRegistedAt)); // ASC
 
+        // N+1 문제 방지를 위한 닉네임 배치 조회
+        List<Long> memberIds = contentAsc.stream()
+                .filter(chat -> chat.getAuthenticated() && chat.getUserId() != null)
+                .map(Chat::getUserId)
+                .distinct()
+                .toList();
+                
+        List<String> uuids = contentAsc.stream()
+                .filter(chat -> !chat.getAuthenticated() && chat.getCookiePayload() != null)
+                .map(Chat::getCookiePayload)
+                .distinct()
+                .toList();
+                
+        Map<Long, String> memberNicknames = chatTrackingService.getNicknamesByMemberIds(memberIds);
+        Map<String, String> guestNicknames = chatTrackingService.getNicknamesByUuids(uuids);
+        
         // DTO 매핑
         List<ChatLogResponseDto> dtos = contentAsc.stream()
-                .map(chat -> new ChatLogResponseDto(
-                        chat.getId(),
-                        chat.getChatID(),
-                        chat.getContent(),
-                        chat.getAuthenticated(),
-                        chat.getCookiePayload(),
-                        IpMaskUtil.mask(chat.getUserIp()),
-                        chat.getRegistedAt(),
-                        chat.getInherenceId(),
-                        chat.getUserId()
-                ))
+                .map(chat -> {
+                    String nickname = null;
+                    if (chat.getAuthenticated() && chat.getUserId() != null) {
+                        nickname = memberNicknames.get(chat.getUserId());
+                    } else if (!chat.getAuthenticated() && chat.getCookiePayload() != null) {
+                        nickname = guestNicknames.get(chat.getCookiePayload());
+                    }
+                    
+                    return new ChatLogResponseDto(
+                            chat.getId(),
+                            chat.getChatID(),
+                            chat.getContent(),
+                            chat.getAuthenticated(),
+                            chat.getCookiePayload(),
+                            IpMaskUtil.mask(chat.getUserIp()),
+                            chat.getRegistedAt(),
+                            chat.getInherenceId(),
+                            chat.getUserId(),
+                            nickname
+                    );
+                })
                 .toList();
 
         return new PageImpl<>(dtos, chats.getPageable(), chats.getTotalElements());
     }
 
+    @Override
+    public Page<ChatLogResponseDto> getChatMessagesWithBlocked(int page, int size, List<String> blockedMembers, List<String> blockedGuests) {
+        List<Long> blockedMemberIds = null;
+        List<String> blockedGuestUuids = null;
+        
+        if (blockedMembers != null && !blockedMembers.isEmpty()) {
+            blockedMemberIds = blockedMembers.stream()
+                .filter(id -> id != null && !id.trim().isEmpty())
+                .map(Long::valueOf)
+                .collect(Collectors.toList());
+        }
+        
+        if (blockedGuests != null && !blockedGuests.isEmpty()) {
+            blockedGuestUuids = blockedGuests.stream()
+                .filter(uuid -> uuid != null && !uuid.trim().isEmpty())
+                .collect(Collectors.toList());
+        }
+        
+        Page<Chat> chats = chatDao.getAllChatsWithBlocked(page, size, blockedMemberIds, blockedGuestUuids);
+        if (chats == null || chats.isEmpty()) {
+            throw new KimprunException(
+                    KimprunExceptionEnum.INTERNAL_SERVER_ERROR,
+                    "message가 비어있습니다.",
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "ChatServiceImpl.getChatMessagesWithBlocked"
+            );
+        }
+
+        List<Chat> contentAsc = new ArrayList<>(chats.getContent());
+        contentAsc.sort(Comparator.comparing(Chat::getRegistedAt));
+
+        // N+1 문제 방지를 위한 닉네임 배치 조회
+        List<Long> memberIds = contentAsc.stream()
+                .filter(chat -> chat.getAuthenticated() && chat.getUserId() != null)
+                .map(Chat::getUserId)
+                .distinct()
+                .toList();
+                
+        List<String> uuids = contentAsc.stream()
+                .filter(chat -> !chat.getAuthenticated() && chat.getCookiePayload() != null)
+                .map(Chat::getCookiePayload)
+                .distinct()
+                .toList();
+                
+        Map<Long, String> memberNicknames = chatTrackingService.getNicknamesByMemberIds(memberIds);
+        Map<String, String> guestNicknames = chatTrackingService.getNicknamesByUuids(uuids);
+
+        List<ChatLogResponseDto> dtos = contentAsc.stream()
+                .map(chat -> {
+                    String nickname = null;
+                    if (chat.getAuthenticated() && chat.getUserId() != null) {
+                        nickname = memberNicknames.get(chat.getUserId());
+                    } else if (!chat.getAuthenticated() && chat.getCookiePayload() != null) {
+                        nickname = guestNicknames.get(chat.getCookiePayload());
+                    }
+                    
+                    return new ChatLogResponseDto(
+                            chat.getId(),
+                            chat.getChatID(),
+                            chat.getContent(),
+                            chat.getAuthenticated(),
+                            chat.getCookiePayload(),
+                            IpMaskUtil.mask(chat.getUserIp()),
+                            chat.getRegistedAt(),
+                            chat.getInherenceId(),
+                            chat.getUserId(),
+                            nickname
+                    );
+                })
+                .toList();
+
+        return new PageImpl<>(dtos, chats.getPageable(), chats.getTotalElements());
+    }
 
     @Override
     public void softDeleteAnonMessage(String kimprunToken, DeleteAnonChatMessage deleteChatMessage) {
