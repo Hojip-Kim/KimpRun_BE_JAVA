@@ -1,7 +1,9 @@
 package kimp.cmc.repository.coin.impl;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import kimp.cmc.dto.response.CmcCoinInfoResponseDto;
 import kimp.cmc.entity.coin.CmcCoin;
 import kimp.cmc.entity.coin.CmcMainnet;
 import kimp.cmc.entity.coin.CmcPlatform;
@@ -13,11 +15,18 @@ import kimp.cmc.entity.coin.QCmcPlatform;
 import kimp.cmc.entity.coin.QCmcRank;
 import kimp.market.entity.QCoin;
 import kimp.cmc.repository.coin.CmcCoinRepositoryCustom;
+import kimp.common.dto.PageRequestDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 public class CmcCoinRepositoryCustomImpl implements CmcCoinRepositoryCustom {
@@ -72,5 +81,152 @@ public class CmcCoinRepositoryCustomImpl implements CmcCoinRepositoryCustom {
                 .selectFrom(cmcPlatform)
                 .where(cmcPlatform.cmcCoin.cmcCoinId.eq(cmcCoinId))
                 .fetch();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CmcCoin> findAllOrderByRankWithFetchJoin(PageRequestDto pageRequestDto) {
+        // 페이지 정보 설정 (0-based 인덱스)
+        int page = (pageRequestDto.getPage() != null) ? Math.max(0, pageRequestDto.getPage() - 1) : 0;
+        int size = (pageRequestDto.getSize() != null) ? pageRequestDto.getSize() : 15;
+        Pageable pageable = PageRequest.of(page, size);
+
+        // Rank 순으로 정렬하여 CmcCoin 목록 조회 (N+1 방지를 위한 fetch join)
+        List<CmcCoin> results = queryFactory
+                .selectFrom(cmcCoin)
+                .leftJoin(cmcCoin.cmcRank, cmcRank).fetchJoin()
+                .leftJoin(cmcCoin.cmcCoinInfo, cmcCoinInfo).fetchJoin()
+                .leftJoin(cmcCoinInfo.cmcCoinMeta, cmcCoinMeta).fetchJoin()
+                .where(cmcCoin.cmcRank.isNotNull()) // rank가 있는 코인만 조회
+                .orderBy(cmcRank.rank.asc()) // rank 오름차순 정렬
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        // 전체 개수 조회 (카운트 쿼리)
+        Long totalCount = queryFactory
+                .select(cmcCoin.count())
+                .from(cmcCoin)
+                .where(cmcCoin.cmcRank.isNotNull())
+                .fetchOne();
+
+        return new PageImpl<>(results, pageable, totalCount != null ? totalCount : 0L);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CmcMainnet> findMainnetsByCmcCoinIds(List<Long> cmcCoinIds) {
+        return queryFactory
+                .selectFrom(cmcMainnet)
+                .leftJoin(cmcMainnet.cmcCoin, cmcCoin).fetchJoin() // CmcCoin fetch join으로 lazy loading 방지
+                .where(cmcMainnet.cmcCoin.cmcCoinId.in(cmcCoinIds))
+                .fetch();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CmcPlatform> findPlatformsByCmcCoinIds(List<Long> cmcCoinIds) {
+        return queryFactory
+                .selectFrom(cmcPlatform)
+                .leftJoin(cmcPlatform.cmcCoin, cmcCoin).fetchJoin() // CmcCoin fetch join으로 lazy loading 방지
+                .where(cmcPlatform.cmcCoin.cmcCoinId.in(cmcCoinIds))
+                .fetch();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CmcCoinInfoResponseDto> findAllCoinInfoDtosOrderByRank(PageRequestDto pageRequestDto) {
+        // 페이지 정보 설정 (0-based 인덱스)
+        int page = (pageRequestDto.getPage() != null) ? Math.max(0, pageRequestDto.getPage() - 1) : 0;
+        int size = (pageRequestDto.getSize() != null) ? pageRequestDto.getSize() : 15;
+        Pageable pageable = PageRequest.of(page, size);
+
+        // 1. CmcCoinInfoResponseDto 기본 필드 조회 (DTO 직접 조회로 N+1 방지)
+        List<CmcCoinInfoResponseDto> results = queryFactory
+                .select(Projections.constructor(CmcCoinInfoResponseDto.class,
+                        cmcCoin.symbol,
+                        cmcCoin.name,
+                        cmcCoin.slug,
+                        cmcCoin.logo,
+                        cmcRank.rank.stringValue(),
+                        cmcCoinInfo.description,
+                        cmcCoinMeta.marketCapDominance,
+                        cmcCoinMeta.maxSupply,
+                        cmcCoinMeta.totalSupply,
+                        cmcCoinMeta.circulatingSupply,
+                        cmcCoinMeta.marketCap,
+                        cmcCoinMeta.fullyDilutedMarketCap,
+                        cmcCoinMeta.selfReportedCirculatingSupply,
+                        cmcCoinMeta.selfReportedMarketCap,
+                        cmcCoinInfo.lastUpdated,
+                        cmcCoin.firstHistoricalData
+                ))
+                .from(cmcCoin)
+                .leftJoin(cmcCoin.cmcRank, cmcRank)
+                .leftJoin(cmcCoin.cmcCoinInfo, cmcCoinInfo)
+                .leftJoin(cmcCoinInfo.cmcCoinMeta, cmcCoinMeta)
+                .where(cmcCoin.cmcRank.isNotNull()) // rank가 있는 코인만 조회
+                .orderBy(cmcRank.rank.asc()) // rank 오름차순 정렬
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        // 2. 조회된 코인들의 ID를 추출하여 platform과 explorerUrl 일괄 조회
+        List<Long> cmcCoinIds = queryFactory
+                .select(cmcCoin.cmcCoinId)
+                .from(cmcCoin)
+                .leftJoin(cmcCoin.cmcRank, cmcRank)
+                .where(cmcCoin.cmcRank.isNotNull())
+                .orderBy(cmcRank.rank.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        // 3. Platform 정보를 batch 조회하여 그룹핑
+        Map<Long, List<String>> platformByCoinId = queryFactory
+                .select(cmcPlatform.cmcCoin.cmcCoinId, 
+                       cmcPlatform.name.concat(" (").concat(cmcPlatform.symbol).concat(")"))
+                .from(cmcPlatform)
+                .where(cmcPlatform.cmcCoin.cmcCoinId.in(cmcCoinIds))
+                .fetch()
+                .stream()
+                .collect(Collectors.groupingBy(
+                    tuple -> tuple.get(cmcPlatform.cmcCoin.cmcCoinId),
+                    Collectors.mapping(
+                        tuple -> tuple.get(cmcPlatform.name.concat(" (").concat(cmcPlatform.symbol).concat(")")), 
+                        Collectors.toList())
+                ));
+
+        // 4. Mainnet(ExplorerUrl) 정보를 batch 조회하여 그룹핑
+        Map<Long, List<String>> explorerUrlByCoinId = queryFactory
+                .select(cmcMainnet.cmcCoin.cmcCoinId, cmcMainnet.explorerUrl)
+                .from(cmcMainnet)
+                .where(cmcMainnet.cmcCoin.cmcCoinId.in(cmcCoinIds))
+                .fetch()
+                .stream()
+                .collect(Collectors.groupingBy(
+                    tuple -> tuple.get(cmcMainnet.cmcCoin.cmcCoinId),
+                    Collectors.mapping(
+                        tuple -> tuple.get(cmcMainnet.explorerUrl), 
+                        Collectors.toList())
+                ));
+
+        // 5. 각 DTO에 platform과 explorerUrl 설정
+        for (int i = 0; i < results.size() && i < cmcCoinIds.size(); i++) {
+            CmcCoinInfoResponseDto dto = results.get(i);
+            Long coinId = cmcCoinIds.get(i);
+            
+            dto.setPlatform(platformByCoinId.getOrDefault(coinId, List.of()));
+            dto.setExplorerUrl(explorerUrlByCoinId.getOrDefault(coinId, List.of()));
+        }
+
+        // 전체 개수 조회 (카운트 쿼리)
+        Long totalCount = queryFactory
+                .select(cmcCoin.count())
+                .from(cmcCoin)
+                .where(cmcCoin.cmcRank.isNotNull())
+                .fetchOne();
+
+        return new PageImpl<>(results, pageable, totalCount != null ? totalCount : 0L);
     }
 }

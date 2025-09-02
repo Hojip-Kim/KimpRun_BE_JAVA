@@ -103,13 +103,19 @@ public class CoinMarketCapComponent {
         String sequenceMainnetCmcIds = cmcCoinIds.stream().map(String::valueOf).reduce((a, b) -> a + "," + b).orElse("");
         String url = String.format(cmcCoinInfoUrl, sequenceMainnetCmcIds);
 
-        CmcApiResponseDto<CmcExchangeApiStatusDto, CmcCoinInfoDataMapDto> cmcResponse = coinMarketCapClient.get()
-                .uri(url)
-                .headers(headers -> headers.addAll(getCMCHeaders()))
-                .retrieve()
-                .body(new ParameterizedTypeReference<CmcApiResponseDto<CmcExchangeApiStatusDto, CmcCoinInfoDataMapDto>>() {});
+        try {
+            CmcApiResponseDto<CmcExchangeApiStatusDto, CmcCoinInfoDataMapDto> cmcResponse = coinMarketCapClient.get()
+                    .uri(url)
+                    .headers(headers -> headers.addAll(getCMCHeaders()))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<CmcApiResponseDto<CmcExchangeApiStatusDto, CmcCoinInfoDataMapDto>>() {});
 
-        return cmcResponse.getData();
+            return cmcResponse.getData();
+        } catch (Exception e) {
+            log.error("CMC 코인 정보 조회 실패: {} - IDs: {}", e.getMessage(), sequenceMainnetCmcIds);
+            // 빈 응답 반환하여 애플리케이션 시작 중단 방지
+            return new CmcCoinInfoDataMapDto();
+        }
     }
 
     // 5000개 호출시 per credit : 1

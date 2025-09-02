@@ -49,4 +49,22 @@ public class CmcCoinDaoImpl implements CmcCoinDao {
     public List<CmcPlatform> findPlatformsByCmcCoinId(Long cmcCoinId){
         return this.cmcCoinRepository.findPlatformsByCmcCoinId(cmcCoinId);
     }
+    
+    @Transactional(readOnly = true)
+    public List<CmcMainnet> findMainnetsByCmcCoinIds(List<Long> cmcCoinIds){
+        if (cmcCoinIds == null || cmcCoinIds.isEmpty()) {
+            return List.of();
+        }
+        // QueryDSL로 IN 쿼리 사용하여 한 번에 조회
+        return this.cmcCoinRepository.findMainnetsByCmcCoinIds(cmcCoinIds);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<CmcPlatform> findPlatformsByCmcCoinIds(List<Long> cmcCoinIds){
+        if (cmcCoinIds == null || cmcCoinIds.isEmpty()) {
+            return List.of();
+        }
+        // QueryDSL로 IN 쿼리 사용하여 한 번에 조회
+        return this.cmcCoinRepository.findPlatformsByCmcCoinIds(cmcCoinIds);
+    }
 }
