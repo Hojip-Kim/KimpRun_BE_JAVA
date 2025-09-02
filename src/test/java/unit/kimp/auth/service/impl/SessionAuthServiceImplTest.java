@@ -2,7 +2,7 @@ package unit.kimp.auth.service.impl;
 
 import kimp.auth.dto.LoginMemberResponseDto;
 import kimp.auth.service.serviceImpl.SessionAuthServiceImpl;
-import kimp.member.util.NicknameGeneratorUtils;
+import kimp.user.util.NicknameGeneratorUtils;
 import kimp.security.user.CustomUserDetails;
 import kimp.user.enums.UserRole;
 import org.junit.jupiter.api.BeforeEach;
