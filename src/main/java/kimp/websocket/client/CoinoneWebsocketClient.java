@@ -30,7 +30,7 @@ public class CoinoneWebsocketClient {
         inputDataToHashMap();
     }
 
-    @Scheduled(fixedRate = 3000)
+    @Scheduled(fixedRate = 3000, scheduler = "marketDataTaskScheduler")
     public void inputDataToHashMap() {
         MarketDataList<CoinoneDto> coinoneMarketDataList = coinone.getMarketDataList();
         List<CoinoneDto> coinoneDtoList = coinoneMarketDataList.getMarketDataList();
