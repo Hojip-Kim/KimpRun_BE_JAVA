@@ -7,9 +7,9 @@ import kimp.market.dto.market.response.websocket.MarketWebsocketResponseDto;
 import kimp.market.dto.market.response.websocket.UserWebsocketResponseDto;
 import kimp.market.dto.marketInfo.common.MarketInfoWebsocketDto;
 import kimp.market.service.MarketInfoService;
+import kimp.websocket.service.WebSocketUserTracker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 
@@ -21,13 +21,13 @@ public class MarketInfoStompController {
 
     private final MarketInfoService marketInfoService;
     private final SimpMessagingTemplate messagingTemplate;
-    private final SimpUserRegistry userRegistry;
+    private final WebSocketUserTracker webSocketUserTracker;
     private final ObjectMapper objectMapper;
 
-    public MarketInfoStompController(MarketInfoService marketInfoService, SimpMessagingTemplate messagingTemplate, SimpUserRegistry userRegistry, ObjectMapper objectMapper) {
+    public MarketInfoStompController(MarketInfoService marketInfoService, SimpMessagingTemplate messagingTemplate, WebSocketUserTracker webSocketUserTracker, ObjectMapper objectMapper) {
         this.marketInfoService = marketInfoService;
         this.messagingTemplate = messagingTemplate;
-        this.userRegistry = userRegistry;
+        this.webSocketUserTracker = webSocketUserTracker;
         this.objectMapper = objectMapper;
     }
 
@@ -44,8 +44,8 @@ public class MarketInfoStompController {
             double dollarData = this.marketInfoService.getDollarKRW();
             double tetherData = this.marketInfoService.getTetherKRW();
 
-            // STOMP 연결된 사용자 수 계산
-            int userCount = userRegistry.getUserCount();
+            // WebSocket 연결된 사용자 수 계산
+            int userCount = webSocketUserTracker.getUserCount();
             
             MarketWebsocketResponseDto marketWebsocketResponseDto = new MarketWebsocketResponseDto(dollarData, tetherData);
             UserWebsocketResponseDto userWebsocketResponseDto = new UserWebsocketResponseDto(userCount);
