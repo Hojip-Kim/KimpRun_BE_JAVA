@@ -1,6 +1,7 @@
 package kimp.community.controller;
 
 import kimp.common.dto.PageRequestDto;
+import kimp.community.dto.board.request.BoardLikeRequest;
 import kimp.community.dto.board.request.CreateBoardRequestDto;
 import kimp.community.dto.board.request.RequestBoardPin;
 import kimp.community.dto.board.request.UpdateBoardRequestDto;
@@ -164,11 +165,11 @@ public class BoardController {
     }
 
     @PatchMapping("/like")
-    public ApiResponse<Boolean> likeBoard(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody long boardId){
+    public ApiResponse<Boolean> likeBoard(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody BoardLikeRequest boardLikeRequest){
 
         CustomUserDetails customUserDetails = (CustomUserDetails)UserDetails;
 
-        Boolean isCompleted = boardPacadeService.likeBoardById(boardId, customUserDetails.getId());
+        Boolean isCompleted = boardPacadeService.likeBoardById(boardLikeRequest.getBoardId(), customUserDetails.getId());
         return ApiResponse.success(isCompleted);
     }
 

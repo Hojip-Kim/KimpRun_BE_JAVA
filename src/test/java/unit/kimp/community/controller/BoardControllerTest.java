@@ -1,6 +1,7 @@
 package unit.kimp.community.controller;
 
 import kimp.community.controller.BoardController;
+import kimp.community.dto.board.request.BoardLikeRequest;
 import kimp.community.dto.board.request.CreateBoardRequestDto;
 import kimp.community.dto.board.request.RequestBoardPin;
 import kimp.community.dto.board.request.UpdateBoardRequestDto;
@@ -314,7 +315,7 @@ public class BoardControllerTest {
         when(boardPacadeService.likeBoardById(anyLong(), anyLong())).thenReturn(true);
 
         // Act
-        ApiResponse<Boolean> response = boardController.likeBoard(customUserDetails, 1L);
+        ApiResponse<Boolean> response = boardController.likeBoard(customUserDetails, new BoardLikeRequest(1L));
 
         // Assert
         assertNotNull(response);

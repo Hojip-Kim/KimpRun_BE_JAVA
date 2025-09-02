@@ -10,6 +10,7 @@ import kimp.community.dto.comment.response.ResponseCommentDto;
 import kimp.community.entity.*;
 import org.springframework.data.domain.PageImpl;
 import kimp.community.repository.BoardRepository;
+import kimp.community.repository.BoardLikeRepository;
 import kimp.community.service.impl.CategoryServiceImpl;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
@@ -34,14 +35,16 @@ public class BoardPacadeService {
     private final CommentPacadeService commentPacadeService;
 
     private final BoardRepository boardRepository;
+    private final BoardLikeRepository boardLikeRepository;
 
-    public BoardPacadeService(BoardService boardService, MemberService memberService, CategoryService categoryService, CommentService commentService, CommentPacadeService commentPacadeService, BoardRepository boardRepository) {
+    public BoardPacadeService(BoardService boardService, MemberService memberService, CategoryService categoryService, CommentService commentService, CommentPacadeService commentPacadeService, BoardRepository boardRepository, BoardLikeRepository boardLikeRepository) {
         this.boardService = boardService;
         this.memberService = memberService;
         this.categoryService = categoryService;
         this.commentService = commentService;
         this.commentPacadeService = commentPacadeService;
         this.boardRepository = boardRepository;
+        this.boardLikeRepository = boardLikeRepository;
     }
 
 
@@ -232,21 +235,12 @@ public class BoardPacadeService {
 
     @Transactional
     public Boolean likeBoardById(Long boardId, Long memberId) {
-        try {
-            Board board = boardService.getBoardById(boardId);
-            Member member = memberService.getmemberById(memberId);
-            BoardLikeCount boardLikeCount = board.getBoardLikeCount();
-            int beforeBoardLike = boardLikeCount.getLikes();
-            boardLikeCount.addLikes(member);
-            int prevBoardLike = boardLikeCount.getLikes();
-
-            if (beforeBoardLike + 1 == prevBoardLike) {
-                return true;
-            }
-        }catch(Exception e){
+        if (boardLikeRepository.existsByBoardIdAndMemberId(boardId, memberId)) {
             return false;
         }
-        return false;
+        
+        boardLikeRepository.addLikeIfNotExists(boardId, memberId);
+        return true;
     }
 
     public Page<BoardResponseDto> getBoardsByMember(Long memberId, PageRequestDto pageRequestDto) {
