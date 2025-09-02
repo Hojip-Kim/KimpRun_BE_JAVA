@@ -1,6 +1,7 @@
 package unit.kimp.auth.service.impl;
 
 import kimp.auth.dto.OauthProcessDTO;
+import kimp.auth.service.OAuth2TokenRefreshService;
 import kimp.auth.service.serviceImpl.OAuth2ServiceImpl;
 import kimp.user.dto.UserCopyDto;
 import kimp.user.dto.request.CreateUserDTO;
@@ -9,6 +10,7 @@ import kimp.user.enums.Oauth;
 import kimp.user.enums.UserRole;
 import kimp.user.entity.MemberRole;
 import kimp.user.service.MemberService;
+import kimp.user.util.NicknameGeneratorUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +34,12 @@ public class OAuth2ServiceImplTest {
 
     @Mock
     private MemberService memberService;
+    
+    @Mock
+    private NicknameGeneratorUtils nicknameGeneratorUtils;
+
+    @Mock
+    private OAuth2TokenRefreshService tokenRefreshService;
 
     @Mock
     private OAuth2User oauth2User;
@@ -40,7 +48,7 @@ public class OAuth2ServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        oauth2Service = new OAuth2ServiceImpl(memberService);
+        oauth2Service = new OAuth2ServiceImpl(memberService, nicknameGeneratorUtils, tokenRefreshService);
     }
 
     @Test
@@ -61,9 +69,11 @@ public class OAuth2ServiceImplTest {
         when(oauth2User.getAttributes()).thenReturn(attributes);
         when(memberService.getmemberByEmail(email)).thenReturn(null);
         when(memberService.getMemberByOAuthProviderId(anyString(), anyString())).thenReturn(null);
+        when(nicknameGeneratorUtils.createRandomNickname()).thenReturn("TestNickname");
 
         MemberRole userRole = new MemberRole("user-role-key", UserRole.USER);
-        Member newMember = new Member(email, name, "generated-password", userRole);
+        Member newMember = new Member(email, "TestNickname", "generated-password", userRole);
+        newMember.setName(name);
 
         when(memberService.createMember(any(CreateUserDTO.class))).thenReturn(newMember);
 
@@ -75,7 +85,7 @@ public class OAuth2ServiceImplTest {
         // Assert
         assertNotNull(result);
         assertEquals(email, result.getEmail());
-        assertEquals(name, result.getNickname());
+        assertEquals("TestNickname", result.getNickname());
         assertEquals(UserRole.USER, result.getRole());
 
         ArgumentCaptor<CreateUserDTO> createUserDTOCaptor = ArgumentCaptor.forClass(CreateUserDTO.class);
@@ -83,7 +93,7 @@ public class OAuth2ServiceImplTest {
 
         CreateUserDTO capturedDTO = createUserDTOCaptor.getValue();
         assertEquals(email, capturedDTO.getEmail());
-        assertEquals(name, capturedDTO.getNickname());
+        assertEquals("TestNickname", capturedDTO.getNickname());
         assertEquals(Oauth.GOOGLE, capturedDTO.getOauth());
         assertEquals(providerId, capturedDTO.getProviderId());
         assertEquals(accessToken, capturedDTO.getAccessToken());

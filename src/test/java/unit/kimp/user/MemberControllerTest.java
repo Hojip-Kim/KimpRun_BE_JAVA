@@ -70,8 +70,7 @@ public class MemberControllerTest {
     @DisplayName("현재 사용자 정보 조회")
     void shouldReturnCurrentUserInformation() {
         // Arrange
-        when(memberService.getmemberById(anyLong())).thenReturn(mockMember);
-        when(memberService.convertUserToUserDto(any(Member.class))).thenReturn(mockUserDto);
+        when(memberService.getMemberDtoById(anyLong())).thenReturn(mockUserDto);
 
         // Act
         ApiResponse<UserDto> response = memberController.getMember(customUserDetails);
@@ -81,16 +80,14 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(mockUserDto, response.getData());
-        verify(memberService, times(1)).getmemberById(1L);
-        verify(memberService, times(1)).convertUserToUserDto(mockMember);
+        verify(memberService, times(1)).getMemberDtoById(1L);
     }
 
     @Test
     @DisplayName("ID로 사용자 정보 조회 (관리자 전용)")
     void shouldReturnMemberByIdForManager() throws IOException {
         // Arrange
-        when(memberService.getmemberById(anyLong())).thenReturn(mockMember);
-        when(memberService.convertUserToUserDto(any(Member.class))).thenReturn(mockUserDto);
+        when(memberService.getMemberDtoById(anyLong())).thenReturn(mockUserDto);
 
         // Act
         ApiResponse<UserDto> response = memberController.findMemberById(customUserDetails, 1L);
@@ -100,8 +97,7 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(mockUserDto, response.getData());
-        verify(memberService, times(1)).getmemberById(1L);
-        verify(memberService, times(1)).convertUserToUserDto(mockMember);
+        verify(memberService, times(1)).getMemberDtoById(1L);
     }
 
     @Test
@@ -190,8 +186,7 @@ public class MemberControllerTest {
         Member newMember = new Member("newuser@example.com", "newuser", "password123", userRole);
         UserDto newUserDto = new UserDto("newuser@example.com", "newuser", UserRole.USER);
 
-        when(memberService.createMember(any(CreateUserDTO.class))).thenReturn(newMember);
-        when(memberService.convertUserToUserDto(any(Member.class))).thenReturn(newUserDto);
+        when(memberService.createMemberDto(any(CreateUserDTO.class))).thenReturn(newUserDto);
 
         // Act
         ApiResponse<UserDto> response = memberController.createMember(createUserDTO);
@@ -201,8 +196,7 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(newUserDto, response.getData());
-        verify(memberService, times(1)).createMember(createUserDTO);
-        verify(memberService, times(1)).convertUserToUserDto(newMember);
+        verify(memberService, times(1)).createMemberDto(createUserDTO);
     }
 
     @Test
@@ -214,8 +208,7 @@ public class MemberControllerTest {
         Member updatedMember = new Member("test@example.com", "testuser", "password", managerRole);
         UserDto updatedUserDto = new UserDto("test@example.com", "testuser", UserRole.MANAGER);
 
-        when(memberService.grantRole(anyLong(), any(UserRole.class))).thenReturn(updatedMember);
-        when(memberService.convertUserToUserDto(any(Member.class))).thenReturn(updatedUserDto);
+        when(memberService.grantRoleDto(anyLong(), any(UserRole.class))).thenReturn(updatedUserDto);
 
         // Act
         ApiResponse<UserDto> response = memberController.updateUserRole(customUserDetails, updateUserRoleDTO);
@@ -225,8 +218,7 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(updatedUserDto, response.getData());
-        verify(memberService, times(1)).grantRole(1L, UserRole.MANAGER);
-        verify(memberService, times(1)).convertUserToUserDto(updatedMember);
+        verify(memberService, times(1)).grantRoleDto(1L, UserRole.MANAGER);
     }
 
     @Test
@@ -238,8 +230,7 @@ public class MemberControllerTest {
         Member updatedMember = new Member("test@example.com", "testuser", "newpass", userRole);
         UserDto updatedUserDto = new UserDto("test@example.com", "testuser", UserRole.USER);
 
-        when(memberService.updateMember(anyLong(), any(UpdateUserPasswordDTO.class))).thenReturn(updatedMember);
-        when(memberService.convertUserToUserDto(any(Member.class))).thenReturn(updatedUserDto);
+        when(memberService.updateMemberDto(anyLong(), any(UpdateUserPasswordDTO.class))).thenReturn(updatedUserDto);
 
         // Act
         ApiResponse<UserDto> response = memberController.updateMember(customUserDetails, updatePasswordDTO);
@@ -249,8 +240,7 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(updatedUserDto, response.getData());
-        verify(memberService, times(1)).updateMember(1L, updatePasswordDTO);
-        verify(memberService, times(1)).convertUserToUserDto(updatedMember);
+        verify(memberService, times(1)).updateMemberDto(1L, updatePasswordDTO);
     }
 
     @Test
@@ -271,9 +261,9 @@ public class MemberControllerTest {
         UpdateUserNicknameDTO updateNicknameDTO = new UpdateUserNicknameDTO("newnickname");
         MemberRole userRole = new MemberRole("user-role-key", UserRole.USER);
         Member updatedMember = new Member("test@example.com", "newnickname", "password", userRole);
-        UserWithIdNameEmailDto updatedUserDto = new UserWithIdNameEmailDto("test@example.com", "newnickname", UserRole.USER.name());
+        UserWithIdNameEmailDto updatedUserDto = new UserWithIdNameEmailDto("test@example.com", "newnickname", UserRole.USER.name(), 1L);
 
-        when(memberService.updateNickname(anyLong(), any(UpdateUserNicknameDTO.class))).thenReturn(updatedMember);
+        when(memberService.updateNicknameDto(anyLong(), any(UpdateUserNicknameDTO.class))).thenReturn(updatedUserDto);
 
         // Act
         ApiResponse<UserWithIdNameEmailDto> response = memberController.updateMemberNickname(customUserDetails, updateNicknameDTO);
@@ -283,7 +273,7 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(updatedUserDto.getName(), response.getData().getName());
-        verify(memberService, times(1)).updateNickname(1L, updateNicknameDTO);
+        verify(memberService, times(1)).updateNicknameDto(1L, updateNicknameDTO);
     }
 
     @Test
@@ -360,7 +350,6 @@ public class MemberControllerTest {
     void shouldRedirectToAdminPage() throws IOException {
         // Arrange
         MockHttpServletResponse httpServletResponse = new MockHttpServletResponse();
-        when(memberService.getmemberById(anyLong())).thenReturn(mockMember);
 
         // Act
         ApiResponse<AdminResponse> response = memberController.redirectAdmin(customUserDetails, httpServletResponse);
@@ -370,6 +359,5 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertNotNull(response.getData().getResponse());
-        verify(memberService, times(1)).getmemberById(1L);
     }
 }

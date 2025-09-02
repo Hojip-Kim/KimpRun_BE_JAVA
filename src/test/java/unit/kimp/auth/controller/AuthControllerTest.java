@@ -46,7 +46,7 @@ public class AuthControllerTest {
     void shouldReturnAuthStatusForAuthenticatedUser() {
         // Arrange
         CustomUserDetails authenticatedUser = mock(CustomUserDetails.class);
-        UserWithIdNameEmailDto userWithIdNameEmailDto = new UserWithIdNameEmailDto("test@example.com", "testUser", "USER");
+        UserWithIdNameEmailDto userWithIdNameEmailDto = new UserWithIdNameEmailDto("test@example.com", "testUser", "USER", 1L);
         LoginMemberResponseDto mockResponseDto = new LoginMemberResponseDto(true, userWithIdNameEmailDto, "RandomUuid");
         when(authService.checkAuthStatus(authenticatedUser)).thenReturn(mockResponseDto);
 

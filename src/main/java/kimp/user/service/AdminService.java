@@ -23,6 +23,8 @@ public interface AdminService {
     
     void deleteActivityRank(Long id);
     
+    void initializeActivityRanks(List<String> grades);
+    
     // SeedMoneyRange methods
     SeedMoneyRange createSeedMoneyRange(String range, String rank);
     
@@ -37,4 +39,6 @@ public interface AdminService {
     List<SeedMoneyRange> getAllSeedMoneyRanges();
     
     void deleteSeedMoneyRange(Long id);
+    
+    void initializeSeedMoneyRanges(List<String[]> seedMoneyData);
 }

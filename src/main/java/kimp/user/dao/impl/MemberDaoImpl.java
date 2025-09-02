@@ -13,17 +13,29 @@ import java.util.Optional;
 
 @Repository
 @Slf4j
-public class UserDaoImpl implements MemberDao {
+public class MemberDaoImpl implements MemberDao {
 
     private final MemberRepository memberRepository;
 
-    public UserDaoImpl(MemberRepository memberRepository) {
+    public MemberDaoImpl(MemberRepository memberRepository) {
         this.memberRepository = memberRepository;
     }
 
     @Override
     public Member findMemberById(Long id){
         Optional<Member> member =  this.memberRepository.findById(id);
+
+        if(member.isEmpty()){
+            throw new IllegalArgumentException("member not found");
+        }
+
+        return member.get();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Member findMemberByIdWithProfile(Long id){
+        Optional<Member> member = this.memberRepository.findByIdWithProfile(id);
 
         if(member.isEmpty()){
             throw new IllegalArgumentException("member not found");
@@ -69,6 +81,47 @@ public class UserDaoImpl implements MemberDao {
     }
 
     @Override
+    public Member findActiveMemberById(Long id){
+        Optional<Member> member = this.memberRepository.findByIdAndIsActiveTrue(id);
+
+        if(member.isEmpty()){
+            throw new IllegalArgumentException("active member not found");
+        }
+
+        return member.get();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Member findActiveMemberByIdWithProfile(Long id){
+        Optional<Member> member = this.memberRepository.findByIdWithProfileAndIsActiveTrue(id);
+
+        if(member.isEmpty()){
+            throw new IllegalArgumentException("active member not found");
+        }
+
+        return member.get();
+    }
+
+    @Override
+    public Member findActiveMemberByEmail(String email){
+        Optional<Member> member = this.memberRepository.findByEmailAndIsActiveTrue(email);
+        if(member.isEmpty()){
+            return null;
+        }
+        return member.get();
+    }
+
+    @Override
+    public Member findActiveMemberByOAuthProviderId(String provider, String providerId){
+        Optional<Member> member = this.memberRepository.findByOauthProviderAndOauthProviderIdAndIsActiveTrue(provider, providerId);
+        if(member.isEmpty()){
+            return null;
+        }
+        return member.get();
+    }
+
+    @Override
     public Boolean deleteMember(Long id) {
         Member member = findMemberById(id);
         this.memberRepository.delete(member);
@@ -79,5 +132,11 @@ public class UserDaoImpl implements MemberDao {
         }
 
         return true;
+    }
+
+    @Override
+    public boolean isExistsByNickname(String name) {
+
+        return this.memberRepository.existsMemberByNickname(name);
     }
 }

@@ -2,6 +2,7 @@ package kimp.user.service;
 
 import kimp.user.dto.UserCopyDto;
 import kimp.user.dto.UserDto;
+import kimp.user.dto.UserWithIdNameEmailDto;
 import kimp.user.dto.request.*;
 import kimp.user.entity.Member;
 import kimp.user.enums.UserRole;
@@ -44,4 +45,17 @@ public interface MemberService {
     public Member attachOAuthToMember(Member member, String provider, String providerId, 
                                      String accessToken, String refreshToken, String tokenType, 
                                      Long expiresIn, String scope);
+
+    public Boolean updatePassword(UpdateUserPasswordRequest request);
+
+    // DTO 반환 메소드들 (Controller용)
+    public UserDto createMemberDto(CreateUserDTO request);
+    
+    public UserDto getMemberDtoById(Long id);
+    
+    public UserDto updateMemberDto(Long id, UpdateUserPasswordDTO updateUserPasswordDTO);
+    
+    public UserWithIdNameEmailDto updateNicknameDto(Long id, UpdateUserNicknameDTO updateUserNicknameDTO);
+    
+    public UserDto grantRoleDto(Long memberId, UserRole grantRole);
 }
