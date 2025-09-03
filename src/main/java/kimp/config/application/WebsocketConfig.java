@@ -1,17 +1,15 @@
 package kimp.config.application;
 
+import kimp.chat.service.ChatTrackingService;
 import kimp.websocket.interceptor.ChatHandshakeInterceptor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.security.messaging.web.csrf.CsrfChannelInterceptor;
 
 import org.springframework.web.socket.config.annotation.*;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
@@ -24,6 +22,11 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Value("${environment.websocket.allowOrigins}")
     private String allowOrigins;
+    private final ChatTrackingService chatTrackingService;
+
+    public WebsocketConfig(ChatTrackingService chatTrackingService) {
+        this.chatTrackingService = chatTrackingService;
+    }
 
     // STOMP 하트비트를 위한 TaskScheduler Bean
     @Bean
@@ -43,7 +46,7 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setAllowedOrigins(allowOrigins.split(","))
                 .addInterceptors(
                     new HttpSessionHandshakeInterceptor(), // HTTP 세션 정보 전달
-                    new ChatHandshakeInterceptor()         // 커스텀 핸드셰이크 인터셉터
+                    new ChatHandshakeInterceptor(chatTrackingService)         // 커스텀 핸드셰이크 인터셉터
                 );
     }
 

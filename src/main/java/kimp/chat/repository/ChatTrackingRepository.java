@@ -14,6 +14,8 @@ public interface ChatTrackingRepository extends JpaRepository<ChatTracking, Long
     
     Optional<ChatTracking> findByUuid(String uuid);
     
+    Optional<ChatTracking> findByUuidAndIsAuthenticated(String uuid, Boolean isAuthenticated);
+    
     Optional<ChatTracking> findByMemberIdOrUuid(Long memberId, String uuid);
     
     List<ChatTracking> findByMemberIdIn(List<Long> memberIds);

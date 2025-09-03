@@ -23,6 +23,17 @@ public class SchedulingConfig {
         return scheduler;
     }
 
+    @Bean("marketDataCoinoneTaskScheduler")
+    public TaskScheduler marketDataCoinoneTaskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(1); // 코인원데이터 전용 스레드 2개
+        scheduler.setThreadNamePrefix("market-coinone-data-");
+        scheduler.setAwaitTerminationSeconds(60);
+        scheduler.setWaitForTasksToCompleteOnShutdown(true);
+        scheduler.initialize();
+        return scheduler;
+    }
+
     // 기타 스케줄러용 (기본)
     @Bean("defaultTaskScheduler")
     @Primary

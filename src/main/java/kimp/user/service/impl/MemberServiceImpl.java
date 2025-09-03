@@ -20,6 +20,7 @@ import kimp.user.service.MemberService;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -117,7 +118,7 @@ public class MemberServiceImpl implements MemberService {
                     if (request.getNickname() != null && !request.getNickname().trim().isEmpty()) {
                         existingMember.updateNickname(request.getNickname());
                     }
-                    chatTrackingService.createOrUpdateChatTracking(null, existingMember.getNickname(), existingMember.getId());
+                    chatTrackingService.createOrUpdateChatTracking(null, existingMember.getNickname(), existingMember.getId(), true);
                     return existingMember;
                 }
                 // 기존 사용자가 OAuth만 가입한 경우 (비밀번호가 없거나 OAuth 정보가 있는 경우)
@@ -181,7 +182,7 @@ public class MemberServiceImpl implements MemberService {
 
             userAgent.setBannedCount(bannedCount);
             
-            chatTrackingService.createOrUpdateChatTracking(null, member.getNickname(), member.getId());
+            chatTrackingService.createOrUpdateChatTracking(null, member.getNickname(), member.getId(), true);
 
             log.info("유저 생성 완료: {}", member);
             return member;
@@ -220,8 +221,10 @@ public class MemberServiceImpl implements MemberService {
         try {
             member.updateNickname(UpdateUserNicknameDTO.getNickname());
             chatTrackingService.updateNicknameByMemberId(id, UpdateUserNicknameDTO.getNickname());
-        }catch(Exception e) {
+        } catch (DataIntegrityViolationException e) {
             throw new KimprunException(KimprunExceptionEnum.INVALID_REQUEST_EXCEPTION, "이미 있는 닉네임입니다.", HttpStatus.BAD_REQUEST, "MemberServiceImpl.updateNickname");
+        } catch (IllegalArgumentException e) {
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, e.getMessage(), HttpStatus.BAD_REQUEST, "MemberServiceImpl.updateNickname");
         }
 
         return member;

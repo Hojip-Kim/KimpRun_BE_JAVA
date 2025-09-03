@@ -109,8 +109,8 @@ public class AnnonyMousMemberController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "UUID and nickname cannot be null", HttpStatus.BAD_REQUEST, "AnnonyMousMemberController.updateAnonNickname");
         }
 
-        UpdateAnonNicknameResponse updateAnonNicknameResponse = chatTrackingService.createOrUpdateChatTracking(request.getUuid(), request.getNickname(), null);
-        return ApiResponse.success(null);
+        UpdateAnonNicknameResponse updateAnonNicknameResponse = chatTrackingService.createOrUpdateChatTracking(request.getUuid(), request.getNickname(), null, false);
+        return ApiResponse.success(updateAnonNicknameResponse);
     }
 
 }

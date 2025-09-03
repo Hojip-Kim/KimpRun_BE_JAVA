@@ -18,16 +18,20 @@ public class ChatTracking extends TimeStamp {
     @Column(name = "uuid", nullable = true)
     private String uuid;
 
-    @Column(name = "nickname", nullable = false)
+    @Column(name = "nickname", nullable = false, unique = true)
     private String nickname;
 
     @Column(name = "member_id", nullable = true)
     private Long memberId;
 
-    public ChatTracking(String uuid, String nickname, Long memberId) {
+    @Column(name = "is_authenticated", nullable = false)
+    private Boolean isAuthenticated;
+
+    public ChatTracking(String uuid, String nickname, Long memberId, Boolean isAuthenticated) {
         this.uuid = uuid;
         this.nickname = nickname;
         this.memberId = memberId;
+        this.isAuthenticated = isAuthenticated;
     }
 
     public ChatTracking updateNickname(String newNickname) {

@@ -1,21 +1,36 @@
 package kimp.websocket.interceptor;
 
+import kimp.chat.service.ChatTrackingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 public class ChatHandshakeInterceptor implements HandshakeInterceptor {
 
+    private final ChatTrackingService chatTrackingService;
+
+    public ChatHandshakeInterceptor(ChatTrackingService chatTrackingService) {
+        this.chatTrackingService = chatTrackingService;
+    }
+
     private static final String KIMPRUN_TOKEN_COOKIE = "kimprun-token";
     private static final String SESSION_KIMPRUN_TOKEN = "kimprun-token";
+    private static final String SESSION_ANON_NICKNAME = "nickname";
+    private static final String ANON_NICKNAME = "nickname";
     private static final String SESSION_CLIENT_IP = "clientIp";
 
     @Override
@@ -41,8 +56,32 @@ public class ChatHandshakeInterceptor implements HandshakeInterceptor {
             attributes.put(SESSION_CLIENT_IP, clientIp);
             log.debug("Client IP extracted: {}", clientIp);
 
-            log.info("WebSocket handshake completed - IP: {}, Token present: {}", 
-                clientIp, kimprunToken != null);
+            // 3. anon nickname 추출 및 URL 디코딩
+            String anonNickname = extractNicknameFromCookies(servletRequest);
+            if (anonNickname != null) {
+                try {
+                    anonNickname = URLDecoder.decode(anonNickname, StandardCharsets.UTF_8);
+                    attributes.put(SESSION_ANON_NICKNAME, anonNickname);
+                    log.debug("anon-nickname extracted and decoded from cookie: {}", anonNickname);
+                } catch (Exception e) {
+                    log.warn("Failed to decode nickname from cookie: {}", anonNickname, e);
+                    anonNickname = null;
+                }
+            } else {
+                log.debug("No anon-nickname found in cookies");
+            }
+
+            // 4. Spring Security 세션 인증 상태 확인
+            boolean isLoggedIn = isAuthenticated(servletRequest);
+            log.debug("User authentication status: {}", isLoggedIn);
+
+            // 5. 비로그인 사용자의 ChatTracking 처리
+            if (!isLoggedIn && anonNickname != null && kimprunToken != null) {
+                handleAnonUserChatTracking(kimprunToken, anonNickname);
+            }
+
+            log.info("WebSocket handshake completed - IP: {}, Token present: {}, anon nickname: {}, authenticated: {}",
+                clientIp, kimprunToken != null, anonNickname, isLoggedIn);
         }
 
         return true; // 핸드셰이크 계속 진행
@@ -71,6 +110,80 @@ public class ChatHandshakeInterceptor implements HandshakeInterceptor {
             }
         }
         return null;
+    }
+
+    /**
+     * 쿠키에서 nickname 추출
+     */
+    private String extractNicknameFromCookies(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (ANON_NICKNAME.equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Spring Security 세션을 통한 인증 상태 확인
+     */
+    private boolean isAuthenticated(HttpServletRequest request) {
+        try {
+            // HTTP 세션에서 Spring Security Context 확인
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                Object securityContext = session.getAttribute("SPRING_SECURITY_CONTEXT");
+                if (securityContext != null) {
+                    // SecurityContextHolder에서 현재 인증 상태 확인
+                    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                    return authentication != null && authentication.isAuthenticated() 
+                           && !"anonymousUser".equals(authentication.getPrincipal());
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            log.debug("Failed to check authentication status", e);
+            return false;
+        }
+    }
+
+    /**
+     * 사용자 UUID 생성 또는 기존 UUID 반환
+     */
+    private String generateOrGetUserUuid(Map<String, Object> attributes) {
+        String existingUuid = (String) attributes.get("userUuid");
+        if (existingUuid != null) {
+            return existingUuid;
+        }
+        return UUID.randomUUID().toString();
+    }
+
+    /**
+     * 비로그인 사용자의 ChatTracking 처리
+     */
+    private void handleAnonUserChatTracking(String uuid, String nickname) {
+        try {
+            // authenticated=false인 ChatTracking 확인
+            String existingNickname = chatTrackingService.getNicknameByUuidAndAuthenticated(uuid, false);
+            
+            if (existingNickname != null) {
+                // 기존 ChatTracking이 있고 닉네임이 다른 경우에만 업데이트
+                if (!existingNickname.equals(nickname)) {
+                    log.debug("Updating anon user ChatTracking - UUID: {}, old nickname: {}, new nickname: {}", 
+                             uuid, existingNickname, nickname);
+                    chatTrackingService.updateNicknameByUuid(uuid, nickname);
+                }
+            } else {
+                // 새로운 ChatTracking 생성 (authenticated = false, memberId = null)
+                log.debug("Creating new anon user ChatTracking - UUID: {}, nickname: {}", uuid, nickname);
+                chatTrackingService.createOrUpdateChatTracking(uuid, nickname, null, false);
+            }
+        } catch (Exception e) {
+            log.error("Failed to handle anon user ChatTracking - UUID: {}, nickname: {}", uuid, nickname, e);
+        }
     }
 
     /**

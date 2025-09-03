@@ -46,7 +46,6 @@ public class ChatServiceImplTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        // Setup test data using reflection to set required fields
         chat1 = new Chat("user1", "Hello, world!", true);
         setPrivateField(chat1, "userIp", "192.168.1.1");
         setPrivateField(chat1, "cookiePayload", "cookie1");

@@ -31,11 +31,17 @@ public class ChatTrackingServiceImpl implements ChatTrackingService {
         Optional<ChatTracking> chatTracking = chatTrackingDao.findByUuid(uuid);
         return chatTracking.map(ChatTracking::getNickname).orElse(null);
     }
+    
+    @Override
+    public String getNicknameByUuidAndAuthenticated(String uuid, Boolean isAuthenticated) {
+        Optional<ChatTracking> chatTracking = chatTrackingDao.findByUuidAndIsAuthenticated(uuid, isAuthenticated);
+        return chatTracking.map(ChatTracking::getNickname).orElse(null);
+    }
 
     @Override
-    public UpdateAnonNicknameResponse createOrUpdateChatTracking(String uuid, String nickname, Long memberId) {
+    public UpdateAnonNicknameResponse createOrUpdateChatTracking(String uuid, String nickname, Long memberId, Boolean isAuthenticated) {
 
-        ChatTracking chatTracking = chatTrackingDao.createOrUpdateChatTracking(uuid, nickname, memberId);
+        ChatTracking chatTracking = chatTrackingDao.createOrUpdateChatTracking(uuid, nickname, memberId, isAuthenticated);
 
         return new UpdateAnonNicknameResponse(null, chatTracking.getNickname(), "GUEST", null);
     }
@@ -43,6 +49,11 @@ public class ChatTrackingServiceImpl implements ChatTrackingService {
     @Override
     public void updateNicknameByMemberId(Long memberId, String newNickname) {
         chatTrackingDao.updateNicknameByMemberId(memberId, newNickname);
+    }
+    
+    @Override
+    public void updateNicknameByUuid(String uuid, String newNickname) {
+        chatTrackingDao.updateNicknameByUuid(uuid, newNickname);
     }
     
     @Override

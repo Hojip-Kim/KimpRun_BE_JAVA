@@ -36,14 +36,19 @@ public class ChatTrackingDaoImpl implements ChatTrackingDao {
     }
 
     @Override
-    public ChatTracking createOrUpdateChatTracking(String uuid, String nickname, Long memberId) {
+    public Optional<ChatTracking> findByUuidAndIsAuthenticated(String uuid, Boolean isAuthenticated) {
+        return chatTrackingRepository.findByUuidAndIsAuthenticated(uuid, isAuthenticated);
+    }
+
+    @Override
+    public ChatTracking createOrUpdateChatTracking(String uuid, String nickname, Long memberId, Boolean isAuthenticated) {
         Optional<ChatTracking> existing = chatTrackingRepository.findByMemberIdOrUuid(memberId, uuid);
         
         if (existing.isPresent()) {
             ChatTracking chatTracking = existing.get().updateNickname(nickname);
             return chatTrackingRepository.save(chatTracking);
         } else {
-            ChatTracking newChatTracking = new ChatTracking(uuid, nickname, memberId);
+            ChatTracking newChatTracking = new ChatTracking(uuid, nickname, memberId, isAuthenticated);
             return chatTrackingRepository.save(newChatTracking);
         }
     }
@@ -56,6 +61,17 @@ public class ChatTrackingDaoImpl implements ChatTrackingDao {
             chatTrackingRepository.save(updated);
         }else{
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "not have matched memberId : " + memberId, HttpStatus.BAD_REQUEST, "ChatTrackingDaoImpl.updateNicknameByMemberId");
+        }
+    }
+    
+    @Override
+    public void updateNicknameByUuid(String uuid, String newNickname) {
+        Optional<ChatTracking> chatTracking = findByUuidAndIsAuthenticated(uuid, false);
+        if (chatTracking.isPresent()) {
+            ChatTracking updated = chatTracking.get().updateNickname(newNickname);
+            chatTrackingRepository.save(updated);
+        }else{
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "not have matched uuid : " + uuid, HttpStatus.BAD_REQUEST, "ChatTrackingDaoImpl.updateNicknameByUuid");
         }
     }
     

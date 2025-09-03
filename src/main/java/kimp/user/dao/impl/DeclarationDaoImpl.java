@@ -11,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+
 @Repository
 public class DeclarationDaoImpl implements DeclarationDao {
     private final DeclarationRepository declarationRepository;
@@ -41,5 +44,11 @@ public class DeclarationDaoImpl implements DeclarationDao {
     @Transactional(readOnly = true)
     public long getDeclarationCountByToMember(String toMember) {
         return declarationRepository.countByToMember(toMember);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Declaration> findRecentDeclarationByFromAndToMember(String fromMember, String toMember, LocalDateTime timeLimit) {
+        return declarationRepository.findRecentDeclarationByFromAndToMember(fromMember, toMember, timeLimit);
     }
 }
