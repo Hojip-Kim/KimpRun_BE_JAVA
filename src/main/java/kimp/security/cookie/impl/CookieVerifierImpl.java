@@ -10,6 +10,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.UUID;
 
 @Component
 public class CookieVerifierImpl implements CookieVerifier {
@@ -67,5 +68,32 @@ public class CookieVerifierImpl implements CookieVerifier {
             r |= a[i] ^ b[i];
         }
         return r == 0;
+    }
+
+    @Override
+    public String createSignedCookie(String id, String secret) {
+        try {
+            CookiePayload payload = new CookiePayload(id, System.currentTimeMillis() / 1000);
+            String payloadJson = objectMapper.writeValueAsString(payload);
+            byte[] payloadBytes = payloadJson.getBytes(StandardCharsets.UTF_8);
+            
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            byte[] signature = mac.doFinal(payloadBytes);
+            
+            String payloadB64 = base64UrlEncode(payloadBytes);
+            String signatureB64 = base64UrlEncode(signature);
+            
+            return payloadB64 + "." + signatureB64;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create signed cookie", e);
+        }
+    }
+    
+    private String base64UrlEncode(byte[] input) {
+        return Base64.getEncoder().encodeToString(input)
+                .replace("+", "-")
+                .replace("/", "_")
+                .replaceAll("=", "");
     }
 }

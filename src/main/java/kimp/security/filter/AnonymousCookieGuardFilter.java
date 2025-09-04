@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Component
 public class AnonymousCookieGuardFilter extends OncePerRequestFilter {
@@ -37,31 +38,38 @@ public class AnonymousCookieGuardFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String tokenValue = readCookie(request, "kimprun-token");
+        boolean needNewToken = false;
+        
         if(tokenValue != null){
             CookiePayload cookiePayload = cookieVerifier.verify(tokenValue, cookieSecret);
-
-            // secret을 톨한 cookie verify가 실패할 경우
+            // Cookie verification failed - need new token
             if(cookiePayload == null){
-                ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from("kimprun-token", tokenValue)
-                        .path("/")
-                        .httpOnly(true)
-                        .secure(true)
-                        .maxAge(0);
-                if(cookieDomain != null && !cookieDomain.isBlank()) {
-                    cookieBuilder.secure(true);
-                }else{
-                    cookieBuilder.secure(false);
-                }
-                response.addHeader(HttpHeaders.SET_COOKIE, cookieBuilder.build().toString());
-                response.setStatus(HttpStatus.BAD_REQUEST.value());
-                response.setContentType("application/json;charset=UTF-8");
-                response.setHeader("Cache-Control", "no-store");
-
-                ApiResponse responseBody = ApiResponse.error(HttpStatus.BAD_REQUEST.value(), "INVALID_COOKIE", "Signature verification failed.");
-                objectMapper.writeValue(response.getWriter(), responseBody);
-                return;
+                needNewToken = true;
             }
+        } else {
+            // No token exists - need new token
+            needNewToken = true;
         }
+        
+        // Generate new UUID token if needed
+        if(needNewToken) {
+            String newTokenId = UUID.randomUUID().toString();
+            String signedToken = cookieVerifier.createSignedCookie(newTokenId, cookieSecret);
+            
+            ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from("kimprun-token", signedToken)
+                    .path("/")
+                    .httpOnly(true)
+                    .maxAge(60 * 60 * 24 * 365); // 1 year
+            
+            if(cookieDomain != null && !cookieDomain.isBlank()) {
+                cookieBuilder.domain(cookieDomain).secure(true);
+            } else {
+                cookieBuilder.secure(false);
+            }
+            
+            response.addHeader(HttpHeaders.SET_COOKIE, cookieBuilder.build().toString());
+        }
+        
         filterChain.doFilter(request, response);
     }
 

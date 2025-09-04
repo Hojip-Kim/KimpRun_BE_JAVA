@@ -167,7 +167,9 @@ public class ChatHandshakeInterceptor implements HandshakeInterceptor {
     private void handleAnonUserChatTracking(String uuid, String nickname) {
         try {
             // authenticated=false인 ChatTracking 확인
+            log.info("kimprun-token : {}", uuid);
             String existingNickname = chatTrackingService.getNicknameByUuidAndAuthenticated(uuid, false);
+            log.info("found kimprun-token : {}", existingNickname);
             
             if (existingNickname != null) {
                 // 기존 ChatTracking이 있고 닉네임이 다른 경우에만 업데이트

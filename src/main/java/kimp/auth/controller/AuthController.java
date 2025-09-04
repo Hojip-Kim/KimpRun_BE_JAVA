@@ -41,6 +41,7 @@ public class AuthController {
                 return ApiResponse.success(new UnLoginMemberResponseDto(kimprunToken));
             }
         }
+        
         CustomUserDetails customUserDetails = (CustomUserDetails) member;
         LoginMemberResponseDto result = authService.checkAuthStatus(customUserDetails.getId());
         result.setUuid(kimprunToken);
