@@ -75,7 +75,7 @@ public class OAuth2ServiceImplTest {
         Member newMember = new Member(email, "TestNickname", "generated-password", userRole);
         newMember.setName(name);
 
-        when(memberService.createMember(any(CreateUserDTO.class))).thenReturn(newMember);
+        when(memberService.createMemberEntity(any(CreateUserDTO.class))).thenReturn(newMember);
 
         OauthProcessDTO oauthProcessDTO = new OauthProcessDTO(accessToken, refreshToken, "Bearer", 3600L, "email profile", oauth2User);
 
@@ -89,7 +89,7 @@ public class OAuth2ServiceImplTest {
         assertEquals(UserRole.USER, result.getRole());
 
         ArgumentCaptor<CreateUserDTO> createUserDTOCaptor = ArgumentCaptor.forClass(CreateUserDTO.class);
-        verify(memberService).createMember(createUserDTOCaptor.capture());
+        verify(memberService).createMemberEntity(createUserDTOCaptor.capture());
 
         CreateUserDTO capturedDTO = createUserDTOCaptor.getValue();
         assertEquals(email, capturedDTO.getEmail());

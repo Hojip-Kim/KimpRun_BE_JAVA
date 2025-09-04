@@ -5,6 +5,8 @@ import kimp.auth.service.serviceImpl.SessionAuthServiceImpl;
 import kimp.user.service.MemberService;
 import kimp.user.util.NicknameGeneratorUtils;
 import kimp.security.user.CustomUserDetails;
+import kimp.user.entity.Member;
+import kimp.user.entity.MemberRole;
 import kimp.user.enums.UserRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,39 +44,39 @@ public class SessionAuthServiceImplTest {
         String email = "test@example.com";
         String username = "testUser";
         UserRole role = UserRole.USER;
+        Long memberId = 1L;
+        
+        MemberRole memberRole = new MemberRole("user-role-key", role);
+        Member mockMember = new Member(email, username, "password", memberRole);
+        // Set id using reflection since it's not exposed by setter
+        try {
+            java.lang.reflect.Field idField = Member.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(mockMember, memberId);
+        } catch (Exception e) {
+            fail("Failed to set member id");
+        }
 
-        when(customUserDetails.getEmail()).thenReturn(email);
-        when(customUserDetails.getUsername()).thenReturn(username);
+        when(memberService.getMemberEntityById(memberId)).thenReturn(mockMember);
 
         // Act
-        LoginMemberResponseDto result = sessionAuthService.checkAuthStatus(customUserDetails.getId());
+        LoginMemberResponseDto result = sessionAuthService.checkAuthStatus(memberId);
 
         // Assert
         assertTrue(result.isAuthenticated());
         assertNotNull(result.getMember());
         assertEquals(email, result.getMember().getEmail());
         assertEquals(username, result.getMember().getName());
-        assertEquals(role.name(), result.getMember().getRole());
+        assertEquals(role.getName(), result.getMember().getRole());
     }
 
     @Test
-    @DisplayName("인증 상태 확인: null 이메일 처리")
-    void shouldHandleNullEmailInCheckAuthStatus() {
-        // Arrange
-        String username = "testUser";
-        UserRole role = UserRole.USER;
-
-        when(customUserDetails.getEmail()).thenReturn(null);
-        when(customUserDetails.getUsername()).thenReturn(username);
-
+    @DisplayName("인증 상태 확인: null memberId 처리")
+    void shouldHandleNullMemberIdInCheckAuthStatus() {
         // Act
-        LoginMemberResponseDto result = sessionAuthService.checkAuthStatus(customUserDetails.getId());
+        LoginMemberResponseDto result = sessionAuthService.checkAuthStatus(null);
 
         // Assert
-        assertTrue(result.isAuthenticated());
-        assertNotNull(result.getMember());
-        assertEquals("", result.getMember().getEmail());
-        assertEquals(username, result.getMember().getName());
-        assertEquals(role.name(), result.getMember().getRole());
+        assertNull(result);
     }
 }

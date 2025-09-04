@@ -223,7 +223,7 @@ public class BoardControllerTest {
     void shouldUpdateBoardSuccessfully() {
         // Arrange
         UpdateBoardRequestDto updateBoardRequestDto = new UpdateBoardRequestDto("Updated Title", "Updated Content");
-        when(boardPacadeService.updateBoardDto(anyLong(), anyLong(), any(UpdateBoardRequestDto.class))).thenReturn(mockBoardResponseDto);
+        when(boardPacadeService.updateBoard(anyLong(), anyLong(), any(UpdateBoardRequestDto.class))).thenReturn(mockBoardResponseDto);
 
         // Act
         ApiResponse<BoardResponseDto> response = boardController.updateBoard(customUserDetails, 1L, updateBoardRequestDto);
@@ -233,7 +233,7 @@ public class BoardControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(mockBoardResponseDto, response.getData());
-        verify(boardPacadeService, times(1)).updateBoardDto(1L, 1L, updateBoardRequestDto);
+        verify(boardPacadeService, times(1)).updateBoard(1L, 1L, updateBoardRequestDto);
     }
 
     @Test
