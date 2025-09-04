@@ -101,6 +101,7 @@ public class BoardServiceImpl implements BoardService {
 
 
     @Override
+    @Transactional
     public Board updateBoard(Board board, UpdateBoardRequestDto updateBoardRequestDto ){
         if(board == null){
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Board object cannot be null", HttpStatus.BAD_REQUEST, "BoardServiceImpl.updateBoard");

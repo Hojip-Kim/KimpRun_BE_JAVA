@@ -135,6 +135,22 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
+    public Member findActiveMemberForNicknameUpdate(Long id) {
+        Optional<Member> member = this.memberRepository.findActiveMemberForNicknameUpdateOptimized(id, true);
+
+        if(member.isEmpty()){
+            throw new IllegalArgumentException("active member not found");
+        }
+
+        return member.get();
+    }
+
+    @Override
+    public Member updateNickname(Member member) {
+        return this.memberRepository.save(member);
+    }
+
+    @Override
     public boolean isExistsByNickname(String name) {
 
         return this.memberRepository.existsMemberByNickname(name);

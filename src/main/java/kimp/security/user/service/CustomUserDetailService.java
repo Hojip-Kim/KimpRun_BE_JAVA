@@ -16,11 +16,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class CustomUserDetailService implements UserDetailsService {
     private final MemberService memberService;
-    private final MemberDao memberDao;
 
-    public CustomUserDetailService(MemberService memberService, MemberDao memberDao) {
+    public CustomUserDetailService(MemberService memberService) {
         this.memberService = memberService;
-        this.memberDao = memberDao;
     }
 
     @Override
@@ -28,7 +26,7 @@ public class CustomUserDetailService implements UserDetailsService {
         UserCopyDto UserDto = memberService.createCopyUserDtoByEmail(email);
 
         if(UserDto != null) {
-            return new CustomUserDetails(UserDto, memberDao);
+            return new CustomUserDetails(UserDto);
         }else{
             throw new UsernameNotFoundException(email);
         }

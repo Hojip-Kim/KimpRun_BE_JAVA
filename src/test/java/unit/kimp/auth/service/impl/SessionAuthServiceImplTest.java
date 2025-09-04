@@ -2,6 +2,7 @@ package unit.kimp.auth.service.impl;
 
 import kimp.auth.dto.LoginMemberResponseDto;
 import kimp.auth.service.serviceImpl.SessionAuthServiceImpl;
+import kimp.user.service.MemberService;
 import kimp.user.util.NicknameGeneratorUtils;
 import kimp.security.user.CustomUserDetails;
 import kimp.user.enums.UserRole;
@@ -24,11 +25,14 @@ public class SessionAuthServiceImplTest {
     @Mock
     private CustomUserDetails customUserDetails;
 
+    @Mock
+    private MemberService memberService;
+
     private SessionAuthServiceImpl sessionAuthService;
 
     @BeforeEach
     void setUp() {
-        sessionAuthService = new SessionAuthServiceImpl(nicknameGeneratorUtils);
+        sessionAuthService = new SessionAuthServiceImpl(nicknameGeneratorUtils, memberService);
     }
 
     @Test
@@ -41,10 +45,9 @@ public class SessionAuthServiceImplTest {
 
         when(customUserDetails.getEmail()).thenReturn(email);
         when(customUserDetails.getUsername()).thenReturn(username);
-        when(customUserDetails.getRole()).thenReturn(role);
 
         // Act
-        LoginMemberResponseDto result = sessionAuthService.checkAuthStatus(customUserDetails);
+        LoginMemberResponseDto result = sessionAuthService.checkAuthStatus(customUserDetails.getId());
 
         // Assert
         assertTrue(result.isAuthenticated());
@@ -63,10 +66,9 @@ public class SessionAuthServiceImplTest {
 
         when(customUserDetails.getEmail()).thenReturn(null);
         when(customUserDetails.getUsername()).thenReturn(username);
-        when(customUserDetails.getRole()).thenReturn(role);
 
         // Act
-        LoginMemberResponseDto result = sessionAuthService.checkAuthStatus(customUserDetails);
+        LoginMemberResponseDto result = sessionAuthService.checkAuthStatus(customUserDetails.getId());
 
         // Assert
         assertTrue(result.isAuthenticated());

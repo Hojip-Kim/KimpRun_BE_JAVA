@@ -32,7 +32,7 @@ public class CommentPacadeService {
     @Transactional
     public Comment createComment(long memberId, long boardId, RequestCreateCommentDto requestCreateCommentDto) {
         Board board = boardService.getBoardById(boardId);
-        Member member = memberService.getmemberById(memberId);
+        Member member = memberService.getMemberEntityById(memberId);
         Comment comment = commentService.createComment(member, board, requestCreateCommentDto);
         CommentLikeCount commentLikeCount = commentService.createCommentLikeCount(comment);
         comment.setCommentLikeCount(commentLikeCount);
@@ -52,7 +52,7 @@ public class CommentPacadeService {
 
     @Transactional
     public Boolean commentLikeById(long commentId, long memberId) {
-        Member member = memberService.getmemberById(memberId);
+        Member member = memberService.getMemberEntityById(memberId);
         Comment comment = commentService.getCommentById(commentId);
         CommentLikeCount commentLikeCount = comment.getLikeCount();
         int beforeLikeCount = commentLikeCount.getLikes();

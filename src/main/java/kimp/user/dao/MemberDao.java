@@ -12,11 +12,13 @@ public interface MemberDao {
     
     public Member findActiveMemberById(Long id);
     public Member findActiveMemberByIdWithProfile(Long id);
+    public Member findActiveMemberForNicknameUpdate(Long id);
     public Member findActiveMemberByEmail(String email);
     public Member findActiveMemberByOAuthProviderId(String provider, String providerId);
     
     public Member createMember(String email, String nickname, String password, MemberRole role);
     public Member updateMember(Member member, String newHashedPassword);
+    public Member updateNickname(Member member);
     public Boolean deleteMember(Long id);
 
     public boolean isExistsByNickname(String name);

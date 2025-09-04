@@ -105,8 +105,12 @@ public class CategoryServiceImpl implements CategoryService {
     // DTO 반환 메소드들 (Controller용)
     @Override
     public List<CategoryDto> getAllCategoriesDto() {
-        List<Category> categories = getAllCategories();
-        return convertCategoryListToDto(categories);
+        try {
+            List<Category> categories = categoryDao.getAllCategory();
+            return convertCategoryListToDto(categories);
+        }catch(Exception e){
+            throw new KimprunException(KimprunExceptionEnum.REQUEST_ACCEPTED, "Not have data", HttpStatus.ACCEPTED, "trace");
+        }
     }
     
     @Override

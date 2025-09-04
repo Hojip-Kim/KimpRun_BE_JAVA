@@ -47,7 +47,7 @@ public class MemberController {
         
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
-        UserDto result = memberService.getMemberDtoById(customUserDetails.getId());
+        UserDto result = memberService.getmemberById(customUserDetails.getId());
         return ApiResponse.success(result);
     }
 
@@ -57,7 +57,7 @@ public class MemberController {
     public ApiResponse<UserDto> findMemberById(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("id") long id ) throws IOException {
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
-        UserDto result = memberService.getMemberDtoById(id);
+        UserDto result = memberService.getmemberById(id);
         return ApiResponse.success(result);
     }
 
@@ -99,7 +99,7 @@ public class MemberController {
     @PostMapping("/sign-up")
     public ApiResponse<UserDto> createMember(@RequestBody CreateUserDTO request){
 
-        UserDto result = memberService.createMemberDto(request);
+        UserDto result = memberService.createMember(request);
         return ApiResponse.success(result);
     }
 
@@ -108,7 +108,7 @@ public class MemberController {
     @PatchMapping("/update/role")
     public ApiResponse<UserDto> updateUserRole(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody UpdateUserRoleDTO updateUserRoleDTO){
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
-        UserDto result = memberService.grantRoleDto(updateUserRoleDTO.getUserId(), updateUserRoleDTO.getRole());
+        UserDto result = memberService.grantRole(updateUserRoleDTO.getUserId(), updateUserRoleDTO.getRole());
         return ApiResponse.success(result);
     }
 
@@ -121,7 +121,7 @@ public class MemberController {
 
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
-        UserDto result = memberService.updateMemberDto(customUserDetails.getId(), UpdateUserPasswordDTO);
+        UserDto result = memberService.updateMember(customUserDetails.getId(), UpdateUserPasswordDTO);
         return ApiResponse.success(result);
 
     }
@@ -143,7 +143,7 @@ public class MemberController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "UpdateUserNicknameDTO cannot be null", HttpStatus.BAD_REQUEST, "MemberController.updateMemberNickname");
         }
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
-        UserWithIdNameEmailDto result = memberService.updateNicknameDto(customUserDetails.getId(), UpdateUserNicknameDTO);
+        UserWithIdNameEmailDto result = memberService.updateNickname(customUserDetails.getId(), UpdateUserNicknameDTO);
         return ApiResponse.success(result);
     }
 

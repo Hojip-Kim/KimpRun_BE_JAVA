@@ -10,7 +10,9 @@ import kimp.user.enums.Oauth;
 
 public interface MemberService {
 
-    public Member createMember(CreateUserDTO request);
+    public UserDto createMember(CreateUserDTO request);
+
+    public Member createMemberEntity(CreateUserDTO request);
 
     public Member getmemberByEmail(String email);
 
@@ -22,7 +24,9 @@ public interface MemberService {
 
     public Boolean verifyCode(String email, String code);
 
-    public Member getmemberById(Long id);
+    public UserDto getmemberById(Long id);
+
+    public Member getMemberEntityById(Long id);
 
     public Boolean isFirstLogin(Member member);
 
@@ -30,9 +34,9 @@ public interface MemberService {
 
     public void setMemberIP(Member member, String ip);
 
-    public Member updateMember(Long id, UpdateUserPasswordDTO UpdateUserPasswordDTO);
+    public UserDto updateMember(Long id, UpdateUserPasswordDTO UpdateUserPasswordDTO);
 
-    public Member updateNickname(Long id, UpdateUserNicknameDTO UpdateUserNicknameDTO);
+    public UserWithIdNameEmailDto updateNickname(Long id, UpdateUserNicknameDTO UpdateUserNicknameDTO);
 
     public Boolean deActivateMember(Long id, DeActivateUserDTO deleteUserDTO);
 
@@ -40,22 +44,11 @@ public interface MemberService {
 
     public UserDto convertUserToUserDto(Member member);
 
-    public Member grantRole(Long memberId, UserRole grantRole);
+    public UserDto grantRole(Long memberId, UserRole grantRole);
 
     public Member attachOAuthToMember(Member member, String provider, String providerId, 
                                      String accessToken, String refreshToken, String tokenType, 
                                      Long expiresIn, String scope);
 
     public Boolean updatePassword(UpdateUserPasswordRequest request);
-
-    // DTO 반환 메소드들 (Controller용)
-    public UserDto createMemberDto(CreateUserDTO request);
-    
-    public UserDto getMemberDtoById(Long id);
-    
-    public UserDto updateMemberDto(Long id, UpdateUserPasswordDTO updateUserPasswordDTO);
-    
-    public UserWithIdNameEmailDto updateNicknameDto(Long id, UpdateUserNicknameDTO updateUserNicknameDTO);
-    
-    public UserDto grantRoleDto(Long memberId, UserRole grantRole);
 }

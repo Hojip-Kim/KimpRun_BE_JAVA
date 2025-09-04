@@ -103,7 +103,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public Member createMember(CreateUserDTO request) {
+    public Member createMemberEntity(CreateUserDTO request) {
         try {
             log.info("유저 생성 시작 - Email: {}, Nickname: {}", request.getEmail(), request.getNickname());
 
@@ -195,6 +195,12 @@ public class MemberServiceImpl implements MemberService {
             throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "Failed to create user: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, "MemberServiceImpl.createMember");
         }
     }
+
+    @Override
+    public UserDto createMember(CreateUserDTO request) {
+        Member member = createMemberEntity(request);
+        return convertUserToUserDto(member);
+    }
     
     private Member addPasswordToExistingOAuthMember(Member existingMember, CreateUserDTO request) {
         log.info("기존 OAuth 사용자에게 비밀번호 추가 - Member ID: {}", existingMember.getId());
@@ -215,8 +221,8 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public Member updateNickname(Long id, UpdateUserNicknameDTO UpdateUserNicknameDTO){
-        Member member = memberDao.findActiveMemberByIdWithProfile(id);
+    public UserWithIdNameEmailDto updateNickname(Long id, UpdateUserNicknameDTO UpdateUserNicknameDTO){
+        Member member = memberDao.findActiveMemberForNicknameUpdate(id);
 
         try {
             member.updateNickname(UpdateUserNicknameDTO.getNickname());
@@ -227,7 +233,7 @@ public class MemberServiceImpl implements MemberService {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, e.getMessage(), HttpStatus.BAD_REQUEST, "MemberServiceImpl.updateNickname");
         }
 
-        return member;
+        return new UserWithIdNameEmailDto(member.getEmail(), member.getNickname(), member.getRole().getRoleName().name(), member.getId());
     }
 
     @Override
@@ -271,9 +277,14 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public Member getmemberById(Long id) {
+    public UserDto getmemberById(Long id) {
         Member member = memberDao.findActiveMemberById(id);
-        return member;
+        return convertUserToUserDto(member);
+    }
+
+    @Override
+    public Member getMemberEntityById(Long id) {
+        return memberDao.findActiveMemberById(id);
     }
 
     @Override
@@ -302,7 +313,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public Member updateMember(Long id, UpdateUserPasswordDTO UpdateUserPasswordDTO) {
+    public UserDto updateMember(Long id, UpdateUserPasswordDTO UpdateUserPasswordDTO) {
         Member member = memberDao.findMemberById(id);
 
         boolean isMatched = passwordEncoder.matches(UpdateUserPasswordDTO.getOldPassword(), member.getPassword());
@@ -311,7 +322,7 @@ public class MemberServiceImpl implements MemberService {
         }
         memberDao.updateMember(member, passwordEncoder.encode(UpdateUserPasswordDTO.getNewPassword()));
 
-        return member;
+        return convertUserToUserDto(member);
     }
 
     @Override
@@ -334,11 +345,11 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public Member grantRole(Long memberId, UserRole grantRole) {
+    public UserDto grantRole(Long memberId, UserRole grantRole) {
         Member member = memberDao.findMemberById(memberId);
         MemberRole memberRole = memberRoleService.getRoleByName(grantRole);
         member.grantRole(memberRole);
-        return member;
+        return convertUserToUserDto(member);
     }
 
     @Override
@@ -434,34 +445,5 @@ public class MemberServiceImpl implements MemberService {
         return String.valueOf(code);
     }
 
-    @Override
-    public UserDto createMemberDto(CreateUserDTO request) {
-        Member member = createMember(request);
-        return convertUserToUserDto(member);
-    }
-
-    @Override
-    public UserDto getMemberDtoById(Long id) {
-        Member member = getmemberById(id);
-        return convertUserToUserDto(member);
-    }
-
-    @Override
-    public UserDto updateMemberDto(Long id, UpdateUserPasswordDTO updateUserPasswordDTO) {
-        Member member = updateMember(id, updateUserPasswordDTO);
-        return convertUserToUserDto(member);
-    }
-
-    @Override
-    public UserWithIdNameEmailDto updateNicknameDto(Long id, UpdateUserNicknameDTO updateUserNicknameDTO) {
-        Member member = updateNickname(id, updateUserNicknameDTO);
-        return new UserWithIdNameEmailDto(member.getEmail(), member.getNickname(), member.getRole().getRoleName().name(), member.getId());
-    }
-
-    @Override
-    public UserDto grantRoleDto(Long memberId, UserRole grantRole) {
-        Member member = grantRole(memberId, grantRole);
-        return convertUserToUserDto(member);
-    }
 
 }

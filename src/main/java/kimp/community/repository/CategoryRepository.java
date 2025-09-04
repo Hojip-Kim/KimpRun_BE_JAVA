@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -18,5 +19,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
      */
     @Query("SELECT c FROM Category c LEFT JOIN FETCH c.boardCount WHERE c.id = :id")
     Optional<Category> findByIdWithBoardCount(@Param("id") Long id);
+
+    @Query("SELECT c FROM Category c LEFT JOIN FETCH c.boardCount")
+    List<Category> findAllWithBoardCount();
 
 }

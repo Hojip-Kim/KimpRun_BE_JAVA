@@ -24,7 +24,7 @@ public class CategoryDaoImpl implements CategoryDao {
 
     @Override
     public List<Category> getAllCategory(){
-        List<Category> categories = categoryRepository.findAll();
+        List<Category> categories = categoryRepository.findAllWithBoardCount();
 
         if(categories.isEmpty()){
             throw new KimprunException(KimprunExceptionEnum.RESOURCE_NOT_FOUND_EXCEPTION, "No categories found in database", HttpStatus.NOT_FOUND, "CategoryDaoImpl.getAllCategory");

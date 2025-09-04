@@ -51,7 +51,7 @@ public class BoardPacadeService {
     @Transactional
     public Board createBoard(Long memberId, Long categoryId, CreateBoardRequestDto createBoardRequestDto) {
 
-        Member member = memberService.getmemberById(memberId);
+        Member member = memberService.getMemberEntityById(memberId);
 
         Category category = categoryService.getCategoryByID(categoryId);
 
@@ -86,13 +86,15 @@ public class BoardPacadeService {
 
     }
 
-    public Board updateBoard(Long memberId, Long boardId, UpdateBoardRequestDto updateBoardRequestDto) {
+    @Transactional
+    public BoardResponseDto updateBoard(Long memberId, Long boardId, UpdateBoardRequestDto updateBoardRequestDto) {
         Board board = boardService.getBoardById(boardId);
         if(!board.getMember().getId().equals(memberId)) {
             throw new KimprunException(KimprunExceptionEnum.AUTHENTICATION_REQUIRED_EXCEPTION, "User not authorized to update this board: " + boardId, HttpStatus.UNAUTHORIZED, "BoardPacadeService.updateBoard");
         }
+        boardService.updateBoard(board, updateBoardRequestDto);
+        return convertBoardToBoardResponseDto(board);
 
-        return boardService.updateBoard(board, updateBoardRequestDto);
     }
 
     public Boolean deleteBoard(Long memberId, Long boardId){
@@ -214,7 +216,7 @@ public class BoardPacadeService {
     @Transactional
     public Comment createComment(long memberId, long boardId, RequestCreateCommentDto requestCreateCommentDto) {
         Board board = boardService.getBoardById(boardId);
-        Member member = memberService.getmemberById(memberId);
+        Member member = memberService.getMemberEntityById(memberId);
         Comment comment = commentService.createComment(member, board, requestCreateCommentDto);
         CommentLikeCount commentLikeCount = commentService.createCommentLikeCount(comment);
         comment.setCommentLikeCount(commentLikeCount);
@@ -244,7 +246,7 @@ public class BoardPacadeService {
     }
 
     public Page<BoardResponseDto> getBoardsByMember(Long memberId, PageRequestDto pageRequestDto) {
-        Member member = memberService.getmemberById(memberId);
+        Member member = memberService.getMemberEntityById(memberId);
         PageRequest pageRequest = PageRequest.of(pageRequestDto.getPage()-1, pageRequestDto.getSize());
         
         Page<BoardResponseDto> dtoPage = boardRepository.findBoardDtosByMemberOrderByRegistedAtDesc(memberId, pageRequest);
@@ -295,11 +297,6 @@ public class BoardPacadeService {
     @Transactional
     public BoardResponseDto createBoardDto(Long memberId, Long categoryId, CreateBoardRequestDto createBoardRequestDto) {
         Board board = createBoard(memberId, categoryId, createBoardRequestDto);
-        return convertBoardToBoardResponseDto(board);
-    }
-
-    public BoardResponseDto updateBoardDto(Long memberId, Long boardId, UpdateBoardRequestDto updateBoardRequestDto) {
-        Board board = updateBoard(memberId, boardId, updateBoardRequestDto);
         return convertBoardToBoardResponseDto(board);
     }
 

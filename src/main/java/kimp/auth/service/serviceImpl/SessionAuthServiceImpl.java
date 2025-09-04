@@ -2,31 +2,39 @@ package kimp.auth.service.serviceImpl;
 
 import kimp.auth.dto.LoginMemberResponseDto;
 import kimp.auth.service.AuthService;
-import kimp.security.user.CustomUserDetails;
 import kimp.user.dto.UserWithIdNameEmailDto;
+import kimp.user.entity.Member;
+import kimp.user.service.MemberService;
 import kimp.user.util.NicknameGeneratorUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
 public class SessionAuthServiceImpl implements AuthService {
 
     private final NicknameGeneratorUtils nicknameGeneratorUtils;
+    private final MemberService memberService;
 
-    public SessionAuthServiceImpl(NicknameGeneratorUtils nicknameGeneratorUtils) {
+    public SessionAuthServiceImpl(NicknameGeneratorUtils nicknameGeneratorUtils, MemberService memberService) {
         this.nicknameGeneratorUtils = nicknameGeneratorUtils;
+        this.memberService = memberService;
     }
 
     @Override
-    public LoginMemberResponseDto checkAuthStatus(CustomUserDetails member) {
-        if(member == null) {
+    @Transactional
+    public LoginMemberResponseDto checkAuthStatus(Long memberId) {
+        if(memberId == null) {
             return null;
         }
+
+        Member member = memberService.getMemberEntityById(memberId);
+
         String memberEmail = member.getEmail();
-        String memberNickname = member.getUsername();
-        String UserRole = member.getRole().name();
-        Long memberId = member.getId();
-        return new LoginMemberResponseDto(true, new UserWithIdNameEmailDto(memberEmail, memberNickname, UserRole, memberId), null);
+        String memberNickname = member.getNickname();
+        String UserRole = member.getRole().getRoleName().getName();
+        Long memberIdFromEntity = member.getId();
+        return new LoginMemberResponseDto(true, new UserWithIdNameEmailDto(memberEmail, memberNickname, UserRole, memberIdFromEntity), null);
 
     }
 }

@@ -48,7 +48,7 @@ public class AuthControllerTest {
         CustomUserDetails authenticatedUser = mock(CustomUserDetails.class);
         UserWithIdNameEmailDto userWithIdNameEmailDto = new UserWithIdNameEmailDto("test@example.com", "testUser", "USER", 1L);
         LoginMemberResponseDto mockResponseDto = new LoginMemberResponseDto(true, userWithIdNameEmailDto, "RandomUuid");
-        when(authService.checkAuthStatus(authenticatedUser)).thenReturn(mockResponseDto);
+        when(authService.checkAuthStatus(authenticatedUser.getId())).thenReturn(mockResponseDto);
 
         // Act
         ApiResponse<AuthResponseDto> apiResponse = authController.checkMemberStatus(authenticatedUser, request, response);
@@ -58,7 +58,7 @@ public class AuthControllerTest {
         assertTrue(apiResponse.isSuccess());
         assertEquals(200, apiResponse.getStatus());
         assertEquals(mockResponseDto, apiResponse.getData());
-        verify(authService, times(1)).checkAuthStatus(authenticatedUser);
+        verify(authService, times(1)).checkAuthStatus(authenticatedUser.getId());
         assertEquals(200, response.getStatus());
     }
 
@@ -81,7 +81,7 @@ public class AuthControllerTest {
         assertTrue(apiResponse.getData() instanceof UnLoginMemberResponseDto); // UnLoginMemberResponseDto가 반환됨
         UnLoginMemberResponseDto unLoginData = (UnLoginMemberResponseDto) apiResponse.getData();
         assertEquals("test-uuid-value", unLoginData.getUuid());
-        verify(authService, never()).checkAuthStatus(any(CustomUserDetails.class));
+        verify(authService, never()).checkAuthStatus(any(Long.class));
     }
     
     @Test
@@ -99,6 +99,6 @@ public class AuthControllerTest {
             authController.checkMemberStatus(unauthenticatedUser, request, response);
         });
         
-        verify(authService, never()).checkAuthStatus(any(CustomUserDetails.class));
+        verify(authService, never()).checkAuthStatus(any(Long.class));
     }
 }

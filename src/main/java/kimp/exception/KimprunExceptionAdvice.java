@@ -1,7 +1,6 @@
 package kimp.exception;
 
 import kimp.exception.response.ApiResponse;
-import kimp.exception.response.ErrorResponseDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

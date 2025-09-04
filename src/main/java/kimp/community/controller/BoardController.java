@@ -133,7 +133,7 @@ public class BoardController {
         }
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
-        BoardResponseDto result = this.boardPacadeService.updateBoardDto(customUserDetails.getId(), boardId, updateBoardRequestDto);
+        BoardResponseDto result = this.boardPacadeService.updateBoard(customUserDetails.getId(), boardId, updateBoardRequestDto);
         return ApiResponse.success(result);
     }
 

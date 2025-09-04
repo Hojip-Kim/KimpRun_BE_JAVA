@@ -21,7 +21,7 @@ public class CategoryPacadeService {
     @Transactional
     public Category createCategory(long memberId, CreateCategoryRequestDto categoryDto){
         Category category = categoryService.createCategory(categoryDto);
-        Member member = memberService.getmemberById(memberId);
+        Member member = memberService.getMemberEntityById(memberId);
         return category.setMember(member);
     }
 

@@ -5,6 +5,6 @@ import kimp.security.user.CustomUserDetails;
 
 public interface AuthService {
 
-    public LoginMemberResponseDto checkAuthStatus(CustomUserDetails member);
+    public LoginMemberResponseDto checkAuthStatus(Long memberId);
 
 }

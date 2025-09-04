@@ -89,7 +89,7 @@ public class OAuth2ServiceImpl implements OAuth2Service {
                 createUserDTO.setScope(oauthProcessDTO.getScope());
             }
 
-            member = memberService.createMember(createUserDTO);
+            member = memberService.createMemberEntity(createUserDTO);
             member.setName(name);
         } else {
             // 기존 회원이 있을 경우 OAuth 정보 연결 또는 업데이트

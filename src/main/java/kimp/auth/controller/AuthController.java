@@ -42,7 +42,7 @@ public class AuthController {
             }
         }
         CustomUserDetails customUserDetails = (CustomUserDetails) member;
-        LoginMemberResponseDto result = authService.checkAuthStatus(customUserDetails);
+        LoginMemberResponseDto result = authService.checkAuthStatus(customUserDetails.getId());
         result.setUuid(kimprunToken);
         return ApiResponse.success(result);
     }

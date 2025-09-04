@@ -132,7 +132,7 @@ public class OAuth2TokenRefreshService {
     }
 
     public OAuth2TokenStatusDto getTokenStatus(Long memberId) {
-        Member member = memberService.getmemberById(memberId);
+        Member member = memberService.getMemberEntityById(memberId);
         
         if (member.getOauth() == null) {
             return new OAuth2TokenStatusDto(false, "OAuth 정보가 없습니다.");
@@ -154,7 +154,7 @@ public class OAuth2TokenRefreshService {
     }
 
     public String refreshMemberToken(Long memberId) {
-        Member member = memberService.getmemberById(memberId);
+        Member member = memberService.getMemberEntityById(memberId);
         
         if (member.getOauth() == null) {
             throw new RuntimeException("OAuth 정보가 없습니다.");
