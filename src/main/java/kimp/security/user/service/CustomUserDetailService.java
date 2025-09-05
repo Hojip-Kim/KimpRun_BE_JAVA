@@ -3,6 +3,7 @@ package kimp.security.user.service;
 import kimp.security.user.CustomUserDetails;
 import kimp.user.dao.MemberDao;
 import kimp.user.dto.UserCopyDto;
+import kimp.user.entity.Member;
 import kimp.user.service.MemberService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,11 +24,19 @@ public class CustomUserDetailService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) {
-        UserCopyDto UserDto = memberService.createCopyUserDtoByEmail(email);
-
-        if(UserDto != null) {
-            return new CustomUserDetails(UserDto);
-        }else{
+        // 최적화된 쿼리로 모든 연관 엔티티를 한 번에 조회
+        Member member = memberService.getMemberByEmailOptimized(email);
+        
+        if(member != null) {
+            UserCopyDto userDto = new UserCopyDto(
+                member.getId(), 
+                member.getEmail(), 
+                member.getPassword(), 
+                member.getNickname(), 
+                member.getRole().getRoleName()
+            );
+            return new CustomUserDetails(userDto);
+        } else {
             throw new UsernameNotFoundException(email);
         }
     }

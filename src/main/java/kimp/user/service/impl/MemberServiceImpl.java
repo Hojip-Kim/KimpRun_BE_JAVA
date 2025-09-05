@@ -306,8 +306,8 @@ public class MemberServiceImpl implements MemberService {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "IP address cannot be null", HttpStatus.BAD_REQUEST, "MemberServiceImpl.setMemberIP");
         }
         log.info("ip : {}" , ip);
-        Member foundMember = memberDao.findMemberById(member.getId());
-        foundMember.getMemberAgent().setIp(ip);
+        // 이미 fetch join으로 로드된 member 객체를 사용하여 추가 쿼리 방지
+        member.getMemberAgent().setIp(ip);
     }
 
     @Override
@@ -435,6 +435,11 @@ public class MemberServiceImpl implements MemberService {
             return true;
         }
         return false;
+    }
+    
+    @Override
+    public Member getMemberByEmailOptimized(String email) {
+        return memberDao.findActiveMemberByEmailOptimized(email);
     }
 
     private String generateVerificationCode(){

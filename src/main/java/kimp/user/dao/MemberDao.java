@@ -22,4 +22,9 @@ public interface MemberDao {
     public Boolean deleteMember(Long id);
 
     public boolean isExistsByNickname(String name);
+    
+    /**
+     * 로그인용 최적화된 Member 조회 (모든 연관 엔티티를 한 번에 fetch)
+     */
+    public Member findActiveMemberByEmailOptimized(String email);
 }

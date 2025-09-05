@@ -155,4 +155,10 @@ public class MemberDaoImpl implements MemberDao {
 
         return this.memberRepository.existsMemberByNickname(name);
     }
+    
+    @Override
+    public Member findActiveMemberByEmailOptimized(String email) {
+        return this.memberRepository.findActiveMemberByEmailOptimized(email)
+                .orElse(null);
+    }
 }
