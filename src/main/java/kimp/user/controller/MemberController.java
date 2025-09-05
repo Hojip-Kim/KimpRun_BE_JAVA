@@ -81,14 +81,14 @@ public class MemberController {
 
         EmailVerifyResponseDTO responseDTO = new EmailVerifyResponseDTO();
 
-        if(memberExists){
-            responseDTO.setIsExisted(true);
+        if(!memberExists){
+            responseDTO.setIsExisted(false);
             return ApiResponse.success(responseDTO);
         }
 
         String verifyCode = memberService.sendEmailVerifyCode(requestDTO.getEmail());
 
-        responseDTO.setIsExisted(false);
+        responseDTO.setIsExisted(true);
         responseDTO.setVerificationCode(verifyCode);
 
         return ApiResponse.success(responseDTO);

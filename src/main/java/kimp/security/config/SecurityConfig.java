@@ -82,6 +82,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/anonymous/member/nickname").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/**").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/user/password").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/chat/anon").permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/**").authenticated()

@@ -84,7 +84,6 @@ public class MemberServiceImpl implements MemberService {
             // redis 5분 제한시간 생성
             redisTemplate.opsForValue().set(email, verificationCode, 5, TimeUnit.MINUTES);
 
-
             return verificationCode;
 
         } catch (MessagingException e) {
