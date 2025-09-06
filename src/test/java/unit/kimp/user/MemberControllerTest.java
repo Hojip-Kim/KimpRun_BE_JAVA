@@ -142,6 +142,7 @@ public class MemberControllerTest {
         // Arrange
         EmailVerifyRequestDTO requestDTO = new EmailVerifyRequestDTO("test@example.com");
         when(memberService.getmemberByEmail(anyString())).thenReturn(mockMember);
+        when(memberService.sendEmailVerifyCode(anyString())).thenReturn("123456");
 
         // Act
         ApiResponse<EmailVerifyResponseDTO> response = memberController.sendEmailVerificationCode(requestDTO);
@@ -151,9 +152,9 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertTrue(response.getData().getIsExisted());
-        assertNull(response.getData().getVerificationCode());
+        assertEquals("123456", response.getData().getVerificationCode());
         verify(memberService, times(1)).getmemberByEmail("test@example.com");
-        verify(memberService, never()).sendEmailVerifyCode(anyString());
+        verify(memberService, times(1)).sendEmailVerifyCode("test@example.com");
     }
 
     @Test
@@ -162,7 +163,6 @@ public class MemberControllerTest {
         // Arrange
         EmailVerifyRequestDTO requestDTO = new EmailVerifyRequestDTO("new@example.com");
         when(memberService.getmemberByEmail(anyString())).thenReturn(null);
-        when(memberService.sendEmailVerifyCode(anyString())).thenReturn("654321");
 
         // Act
         ApiResponse<EmailVerifyResponseDTO> response = memberController.sendEmailVerificationCode(requestDTO);
@@ -172,9 +172,9 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertFalse(response.getData().getIsExisted());
-        assertEquals("654321", response.getData().getVerificationCode());
+        assertNull(response.getData().getVerificationCode());
         verify(memberService, times(1)).getmemberByEmail("new@example.com");
-        verify(memberService, times(1)).sendEmailVerifyCode("new@example.com");
+        verify(memberService, never()).sendEmailVerifyCode(anyString());
     }
 
     @Test

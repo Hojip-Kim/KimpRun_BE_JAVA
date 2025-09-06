@@ -12,6 +12,7 @@ import kimp.user.entity.Member;
 import kimp.user.service.MemberService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -53,8 +54,8 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 
             return this.getAuthenticationManager().authenticate(authToken);
         } catch (IOException e) {
-            log.error("로그인 시도 중 오류 발생", e);
-            throw new RuntimeException(e);
+            log.error("로그인 요청 데이터 처리 중 오류 발생", e);
+            throw new BadCredentialsException("Invalid login request format", e);
         }
     }
 

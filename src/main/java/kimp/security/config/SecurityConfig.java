@@ -1,6 +1,8 @@
 package kimp.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import kimp.exception.response.ApiResponse;
 import kimp.security.filter.AnonymousCookieGuardFilter;
 import kimp.security.filter.CustomAuthenticationFilter;
@@ -22,8 +24,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -78,7 +82,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.GET, "/csrf/token").permitAll()
-                        .requestMatchers(HttpMethod.POST,"/login", "/user/sign-up", "/user/email", "/user/email/verify", "/batch/cmc/sync", "/logout", "/declaration").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/login", "/user/sign-up", "/user/email", "/user/email/verify", "/user/email/new", "/batch/cmc/sync", "/logout", "/declaration").permitAll()
                         .requestMatchers(HttpMethod.POST, "/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/anonymous/member/nickname").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/**").authenticated()
@@ -112,6 +116,9 @@ public class SecurityConfig {
                         .logoutSuccessHandler(new CustomLogoutSuccessHandler())
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
+                )
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(customAuthenticationEntryPoint())
                 )
                 .addFilterAt(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(cookieGuardFilter, UsernamePasswordAuthenticationFilter.class);
@@ -160,6 +167,33 @@ public class SecurityConfig {
         authProvider.setPasswordEncoder(passwordEncoder);
 
         return new ProviderManager(authProvider);
+    }
+
+    /**
+     * Custom AuthenticationEntryPoint - /login 경로는 OAuth2 리다이렉트에서 제외
+     */
+    @Bean
+    public AuthenticationEntryPoint customAuthenticationEntryPoint() {
+        return (request, response, authException) -> {
+            String requestUri = request.getRequestURI();
+            log.info("requestUri : {}" , requestUri);
+            
+            // /login 경로에 대해서는 OAuth2 리다이렉트를 하지 않고 401 응답만 반환
+            if ("/login".equals(requestUri)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write("{\"result\":\"failure\",\"message\":\"Authentication required for login endpoint\"}");
+                response.getWriter().flush();
+                log.info("🔐 /login 엔드포인트 접근 - OAuth2 리다이렉트 방지");
+                return;
+            }
+            
+            // 다른 경로에 대해서는 OAuth2 authorization endpoint로 리다이렉트
+            String redirectUrl = request.getRequestURL().toString().replace(request.getRequestURI(), "") + 
+                                "/oauth2/authorization/google";
+            log.info("🔐 OAuth2 리다이렉트 수행: {}", redirectUrl);
+            response.sendRedirect(redirectUrl);
+        };
     }
 
     // cookie가 변조되어 문제가 발생하면 requestRejectedHanlder 발생. 이에따른 적절한 대처 후 response

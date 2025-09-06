@@ -11,6 +11,7 @@ import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import kimp.security.user.CustomUserDetails;
 import org.springframework.security.core.userdetails.UserDetails;

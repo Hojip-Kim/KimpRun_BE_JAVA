@@ -46,4 +46,15 @@ public class SchedulingConfig {
         scheduler.initialize();
         return scheduler;
     }
+
+    @Bean("batchTaskScheduler")
+    public TaskScheduler batchTaskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(1); // 기타 스케줄러용
+        scheduler.setThreadNamePrefix("batch-scheduler-");
+        scheduler.setAwaitTerminationSeconds(60);
+        scheduler.setWaitForTasksToCompleteOnShutdown(true);
+        scheduler.initialize();
+        return scheduler;
+    }
 }

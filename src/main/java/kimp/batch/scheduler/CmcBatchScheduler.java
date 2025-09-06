@@ -25,7 +25,7 @@ public class CmcBatchScheduler {
      * 매일 새벽 2시에 CoinMarketCap 데이터 동기화 실행
      * CoinMarketCap 데이터가 보통 UTC 기준으로 갱신되므로 한국시간 새벽 2시에 실행
      */
-    @Scheduled(cron = "0 0 2 * * ?", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 2 * * ?", zone = "Asia/Seoul", scheduler = "batchTaskScheduler")
     public void runCmcDataSyncJob() {
         try {
             log.info("=== 스케줄된 CoinMarketCap 데이터 동기화 시작 ===");

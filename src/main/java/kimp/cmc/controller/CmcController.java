@@ -49,5 +49,14 @@ public class CmcController {
         Page<CmcExchangeInfoResponseDto> result = this.cmcExchangeManageService.findAllExchangesOrderBySpotVolume(pageRequestDto);
         return ApiResponse.success(result);
     }
+    
+    @GetMapping("/coin/{symbol}")
+    public ApiResponse<Page<CmcCoinInfoResponseDto>> getCoinsBySymbolContaining(
+            @PathVariable("symbol") String symbol,
+            @ModelAttribute PageRequestDto pageRequestDto
+    ) {
+        Page<CmcCoinInfoResponseDto> result = this.cmcCoinManageService.findCoinsBySymbolContaining(symbol, pageRequestDto);
+        return ApiResponse.success(result);
+    }
 
 }

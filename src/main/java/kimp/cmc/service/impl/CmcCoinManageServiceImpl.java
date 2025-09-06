@@ -200,4 +200,12 @@ public class CmcCoinManageServiceImpl implements CmcCoinManageService {
         // QueryDSL DTO 직접 조회로 완전한 N+1 방지
         return cmcCoinRepository.findAllCoinInfoDtosOrderByRank(pageRequestDto);
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CmcCoinInfoResponseDto> findCoinsBySymbolContaining(String symbol, PageRequestDto pageRequestDto) {
+        // QueryDSL을 사용하여 symbol을 포함하는 코인들을 검색 (대소문자 구분 없음)
+        // N+1 문제를 방지하기 위해 DTO 직접 조회와 batch loading 사용
+        return cmcCoinRepository.findCoinInfoDtosBySymbolContaining(symbol, pageRequestDto);
+    }
 }

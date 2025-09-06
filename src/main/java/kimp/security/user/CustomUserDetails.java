@@ -30,8 +30,7 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
         this.email = memberCopyDto.getEmail();
         this.password = memberCopyDto.getPassword();
         UserRole role = memberCopyDto.getRole();
-        String roleName = (role == null) ? "ROLE_USER" :
-                (role.name().startsWith("ROLE_") ? role.name() : "ROLE_" + role.name());
+        String roleName = (role == null) ? "USER" : role.name();
         this.authorities = Collections.unmodifiableSet(
                 new HashSet<>(Collections.singletonList(new SimpleGrantedAuthority(roleName)))
         );

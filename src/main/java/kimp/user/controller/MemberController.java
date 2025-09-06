@@ -96,6 +96,21 @@ public class MemberController {
 
     }
 
+    @PostMapping("/email/new")
+    public ApiResponse<EmailVerifyResponseDTO> sendEmailVerificationCodeForNew(@RequestBody EmailVerifyRequestDTO requestDTO) {
+
+        EmailVerifyResponseDTO responseDTO = new EmailVerifyResponseDTO();
+
+        String verifyCode = memberService.sendEmailVerifyCode(requestDTO.getEmail());
+
+        responseDTO.setIsExisted(false);
+        responseDTO.setVerificationCode(verifyCode);
+
+        return ApiResponse.success(responseDTO);
+
+
+    }
+
     @PostMapping("/sign-up")
     public ApiResponse<UserDto> createMember(@RequestBody CreateUserDTO request){
 
