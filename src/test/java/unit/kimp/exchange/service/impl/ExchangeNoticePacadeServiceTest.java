@@ -220,4 +220,97 @@ public class ExchangeNoticePacadeServiceTest {
         verify(dtoConverter, never()).convertNoticePageToDtoPage(any());
         verify(dtoConverter, never()).wrappingDtosToExchangeNoticeDto(any(), any());
     }
+
+    @Test
+    @DisplayName("createNoticesBulkOptimized 메서드 테스트 - N+1 문제 해결 검증")
+    void shouldCreateNoticesBulkOptimizedWithoutN1Problem() {
+        // Given
+        String link1 = "https://test.com/notice/1";
+        String link2 = "https://test.com/notice/2";
+        String link3 = "https://test.com/notice/3";
+        
+        NoticeParsedData notice1 = new NoticeParsedData("Title 1", link1, date);
+        NoticeParsedData notice2 = new NoticeParsedData("Title 2", link2, date);
+        NoticeParsedData notice3 = new NoticeParsedData("Title 3", link3, date);
+        
+        List<NoticeParsedData> largeNoticeParsedDataList = Arrays.asList(notice1, notice2, notice3);
+
+        when(exchangeDao.getExchangeByMarketType(marketType)).thenReturn(exchange);
+        // 기존 링크는 1개만 존재한다고 가정
+        when(noticeDao.findExistingNoticeLinks(anyList())).thenReturn(Arrays.asList(link1));
+        when(noticeDao.createBulkNoticeOptimized(anyList())).thenReturn(true);
+
+        // When
+        boolean result = exchangeNoticePacadeService.createNoticesBulkOptimized(marketType, largeNoticeParsedDataList);
+
+        // Then
+        assertThat(result).isTrue();
+        // N+1 문제 해결 검증: 개별 링크 조회가 없어야 함
+        verify(noticeDao, never()).getNoticeByLink(anyString());
+        // 대신 일괄 조회가 한 번만 호출되어야 함
+        verify(noticeDao, times(1)).findExistingNoticeLinks(anyList());
+        // 새로운 공지사항 2개만 배치 INSERT되어야 함
+        verify(noticeDao, times(1)).createBulkNoticeOptimized(anyList());
+    }
+
+    @Test
+    @DisplayName("createNoticesBulkOptimized 메서드 테스트 - 모든 링크가 이미 존재할 때")
+    void shouldCreateNoticesBulkOptimizedWhenAllLinksExist() {
+        // Given
+        List<String> allLinks = Arrays.asList(link);
+        when(exchangeDao.getExchangeByMarketType(marketType)).thenReturn(exchange);
+        when(noticeDao.findExistingNoticeLinks(anyList())).thenReturn(allLinks);
+
+        // When
+        boolean result = exchangeNoticePacadeService.createNoticesBulkOptimized(marketType, noticeParsedDataList);
+
+        // Then
+        assertThat(result).isTrue();
+        verify(noticeDao, times(1)).findExistingNoticeLinks(anyList());
+        // 모든 링크가 이미 존재하므로 배치 INSERT가 호출되지 않아야 함
+        verify(noticeDao, never()).createBulkNoticeOptimized(anyList());
+    }
+
+    @Test
+    @DisplayName("createNoticesBulkOptimized 메서드 테스트 - 빈 리스트일 때")
+    void shouldCreateNoticesBulkOptimizedWhenEmptyList() {
+        // Given
+        List<NoticeParsedData> emptyList = Collections.emptyList();
+
+        // When
+        boolean result = exchangeNoticePacadeService.createNoticesBulkOptimized(marketType, emptyList);
+
+        // Then
+        assertThat(result).isTrue();
+        // 빈 리스트이므로 어떤 DAO 메서드도 호출되지 않아야 함
+        verify(exchangeDao, never()).getExchangeByMarketType(any());
+        verify(noticeDao, never()).findExistingNoticeLinks(any());
+        verify(noticeDao, never()).createBulkNoticeOptimized(any());
+    }
+
+    @Test
+    @DisplayName("createNoticesBulkOptimized 메서드 테스트 - null 링크 필터링")
+    void shouldCreateNoticesBulkOptimizedWithNullLinkFiltering() {
+        // Given
+        NoticeParsedData validNotice = new NoticeParsedData("Valid Title", "https://valid.com", date);
+        NoticeParsedData nullLinkNotice = new NoticeParsedData("Invalid Title", null, date);
+        NoticeParsedData emptyLinkNotice = new NoticeParsedData("Empty Title", "", date);
+        
+        List<NoticeParsedData> mixedList = Arrays.asList(validNotice, nullLinkNotice, emptyLinkNotice);
+
+        when(exchangeDao.getExchangeByMarketType(marketType)).thenReturn(exchange);
+        when(noticeDao.findExistingNoticeLinks(anyList())).thenReturn(Collections.emptyList());
+        when(noticeDao.createBulkNoticeOptimized(anyList())).thenReturn(true);
+
+        // When
+        boolean result = exchangeNoticePacadeService.createNoticesBulkOptimized(marketType, mixedList);
+
+        // Then
+        assertThat(result).isTrue();
+        // 유효한 링크 1개만 처리되어야 함
+        verify(noticeDao, times(1)).findExistingNoticeLinks(argThat(list -> 
+            list.size() == 1 && list.contains("https://valid.com")
+        ));
+        verify(noticeDao, times(1)).createBulkNoticeOptimized(argThat(list -> list.size() == 1));
+    }
 }

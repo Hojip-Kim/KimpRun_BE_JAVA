@@ -13,21 +13,26 @@ import kimp.market.controller.MarketInfoStompController;
 import kimp.notice.dto.notice.NoticeParsedData;
 import kimp.notice.dto.notice.NoticeDto;
 import kimp.notice.service.NoticeService;
+import kimp.common.lock.DistributedLockService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SetOperations;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @DisplayName("ScrapService 구현체 단위 테스트")
@@ -57,6 +62,15 @@ public class ScrapServiceImplTest {
 
     @Mock
     private NoticeService noticeService;
+    
+    @Mock
+    private RedisTemplate<String, Object> redisTemplate;
+    
+    @Mock
+    private SetOperations<String, Object> setOperations;
+    
+    @Mock
+    private DistributedLockService distributedLockService;
 
     private ScrapServiceImpl scrapService;
 
@@ -94,143 +108,153 @@ public class ScrapServiceImplTest {
             binanceScrapComponent,
             exchangeNoticePacadeService,
             noticeService,
-            marketInfoStompController
+            marketInfoStompController,
+            redisTemplate,
+            distributedLockService
         );
     }
 
     @Test
-    @DisplayName("스크랩 서비스 테스트 - Upbit에 새로운 공지사항이 있을 때 (DB 기반)")
-    void shouldScrapNoticeDataWhenNewUpbitNoticeExists() throws IOException {
+    @DisplayName("스크랩 서비스 테스트 - Upbit에 새로운 공지사항이 있을 때 (분산 락 적용)")
+    void shouldScrapUpbitNoticeDataWithDistributedLock() {
         // Given
-        doReturn(upbitNoticeParsedDataList).when(upbitScrapComponent).parseNoticeData();
-        doReturn(coinoneNoticeParsedDataList).when(coinoneScrapComponent).parseNoticeData();
+        String lockToken = "test-lock-token";
+        when(distributedLockService.tryLock(anyString(), anyInt())).thenReturn(lockToken);
+        when(distributedLockService.releaseLock(anyString(), anyString())).thenReturn(true);
         
-        doReturn(MarketType.UPBIT).when(upbitScrapComponent).getMarketType();
-        doReturn(MarketType.COINONE).when(coinoneScrapComponent).getMarketType();
+        try {
+            when(upbitScrapComponent.parseNoticeData()).thenReturn(upbitNoticeParsedDataList);
+        } catch (Exception e) {
+            // Won't happen with mock
+        }
+        when(upbitScrapComponent.getMarketType()).thenReturn(MarketType.UPBIT);
         
-        // DB에서 모든 공지사항 조회 - 새로운 로직에 맞춰 설정
-        LocalDateTime fixedDate = LocalDateTime.now().minusDays(1);
-        List<NoticeDto> upbitDbNotices = List.of(); // 빈 리스트 = 모든 스크래핑 데이터가 새로운 것
-        NoticeDto coinoneExistingNotice1 = new NoticeDto(2L, MarketType.COINONE, "Coinone Notice 1", "https://coinone.co.kr/notice/1", fixedDate);
-        NoticeDto coinoneExistingNotice2 = new NoticeDto(3L, MarketType.COINONE, "Coinone Notice 2", "https://coinone.co.kr/notice/2", fixedDate);
-        List<NoticeDto> coinoneDbNotices = List.of(coinoneExistingNotice1, coinoneExistingNotice2); // 모든 URL이 일치하는 기존 공지사항
-        when(noticeService.getAllNoticesByMarketType(MarketType.UPBIT)).thenReturn(upbitDbNotices);
-        when(noticeService.getAllNoticesByMarketType(MarketType.COINONE)).thenReturn(coinoneDbNotices);
+        // Redis 기반 로직을 위한 Mock 설정
+        when(redisTemplate.opsForSet()).thenReturn(setOperations);
+        when(setOperations.members(anyString())).thenReturn(Set.of()); // Redis 캐시가 비어있음을 시뮬레이션
+        when(noticeService.getRecentNoticeLinks(any(MarketType.class), anyInt())).thenReturn(List.of());
         
         when(noticeService.getNoticeByLink(anyString())).thenReturn(noticeDto);
-        doNothing().when(marketInfoStompController).sendNewNotice(any(NoticeDto.class));
         when(exchangeNoticePacadeService.createNoticesBulk(any(MarketType.class), anyList())).thenReturn(true);
 
         // When
-        scrapService.scrapNoticeData();
+        scrapService.scrapUpbitNoticeData();
 
-        // Then - DB 기반 로직 검증
-        verify(upbitScrapComponent, times(1)).parseNoticeData();
-        verify(coinoneScrapComponent, times(1)).parseNoticeData();
+        // Then - 분산 락 검증
+        verify(distributedLockService, times(1)).tryLock(eq("notice-scrape:upbit"), eq(300));
+        verify(distributedLockService, times(1)).releaseLock(eq("notice-scrape:upbit"), eq(lockToken));
         
-        // DB 전체 공지사항 조회 검증 (새로운 로직)
-        verify(noticeService, times(1)).getAllNoticesByMarketType(MarketType.UPBIT);
-        verify(noticeService, times(1)).getAllNoticesByMarketType(MarketType.COINONE);
-        
-        // Upbit만 새로운 공지사항 처리
-        verify(upbitScrapComponent, times(1)).setNewParsedData(anyList());
-        verify(upbitScrapComponent, times(1)).setNewNotice(anyList());
+        // 스크래핑 로직 검증
+        try {
+            verify(upbitScrapComponent, times(1)).parseNoticeData();
+        } catch (Exception e) {
+            // Mock verification, IOException won't be thrown
+        }
         verify(exchangeNoticePacadeService, times(1)).createNoticesBulk(eq(MarketType.UPBIT), anyList());
-        verify(noticeService, atLeastOnce()).getNoticeByLink(anyString());
-        verify(marketInfoStompController, atLeastOnce()).sendNewNotice(any(NoticeDto.class));
-        
-        // Coinone은 URL이 일치하므로 새로운 공지사항이 없음 - 변경사항 없음으로 처리
-        verify(coinoneScrapComponent, never()).setNewParsedData(anyList());
-        verify(coinoneScrapComponent, never()).setNewNotice(anyList());
     }
-
+    
     @Test
-    @DisplayName("스크랩 서비스 테스트 - Coinone에 새로운 공지사항이 있을 때 (DB 기반)")
-    void shouldScrapNoticeDataWhenNewCoinoneNoticeExists() throws IOException {
+    @DisplayName("스크랩 서비스 테스트 - 다른 서버에서 락을 보유 중일 때 건너뛰기")
+    void shouldSkipScrapingWhenLockIsHeldByAnotherServer() {
         // Given
-        doReturn(upbitNoticeParsedDataList).when(upbitScrapComponent).parseNoticeData();
-        doReturn(coinoneNoticeParsedDataList).when(coinoneScrapComponent).parseNoticeData();
+        when(distributedLockService.tryLock(anyString(), anyInt())).thenReturn(null); // 락 획득 실패
+        when(distributedLockService.getLockOwner(anyString())).thenReturn("other-server-instance");
+
+        // When
+        scrapService.scrapUpbitNoticeData();
+
+        // Then - 락 획득 시도는 하지만 실제 스크래핑은 하지 않음
+        verify(distributedLockService, times(1)).tryLock(eq("notice-scrape:upbit"), eq(300));
+        verify(distributedLockService, times(1)).getLockOwner(eq("notice-scrape:upbit"));
+        verify(distributedLockService, never()).releaseLock(anyString(), anyString());
         
-        doReturn(MarketType.UPBIT).when(upbitScrapComponent).getMarketType();
-        doReturn(MarketType.COINONE).when(coinoneScrapComponent).getMarketType();
+        // 스크래핑 관련 작업은 수행되지 않음
+        try {
+            verify(upbitScrapComponent, never()).parseNoticeData();
+        } catch (Exception e) {
+            // Mock verification, IOException won't be thrown
+        }
+        verify(exchangeNoticePacadeService, never()).createNoticesBulk(any(), any());
+    }
+    
+    @Test
+    @DisplayName("스크랩 서비스 테스트 - Coinone에 새로운 공지사항이 있을 때 (분산 락 적용)")
+    void shouldScrapCoinoneNoticeDataWithDistributedLock() {
+        // Given
+        String lockToken = "test-lock-token";
+        when(distributedLockService.tryLock(anyString(), anyInt())).thenReturn(lockToken);
+        when(distributedLockService.releaseLock(anyString(), anyString())).thenReturn(true);
         
-        // DB에서 모든 공지사항 조회 - Coinone만 새로운 공지사항이 있도록 설정
-        LocalDateTime fixedDate = LocalDateTime.now().minusDays(1);
-        NoticeDto upbitExistingNotice1 = new NoticeDto(1L, MarketType.UPBIT, "Upbit Notice 1", "https://upbit.com/notice/1", fixedDate);
-        NoticeDto upbitExistingNotice2 = new NoticeDto(2L, MarketType.UPBIT, "Upbit Notice 2", "https://upbit.com/notice/2", fixedDate);  
-        List<NoticeDto> upbitDbNotices = List.of(upbitExistingNotice1, upbitExistingNotice2); // UPBIT는 모든 URL이 일치하는 기존 공지사항
-        List<NoticeDto> coinoneDbNotices = List.of(); // COINONE은 빈 리스트 = 모든 스크래핑 데이터가 새로운 것
-        when(noticeService.getAllNoticesByMarketType(MarketType.UPBIT)).thenReturn(upbitDbNotices);
-        when(noticeService.getAllNoticesByMarketType(MarketType.COINONE)).thenReturn(coinoneDbNotices);
+        try {
+            when(coinoneScrapComponent.parseNoticeData()).thenReturn(coinoneNoticeParsedDataList);
+        } catch (Exception e) {
+            // Won't happen with mock
+        }
+        when(coinoneScrapComponent.getMarketType()).thenReturn(MarketType.COINONE);
+        
+        // Redis 기반 로직을 위한 Mock 설정
+        when(redisTemplate.opsForSet()).thenReturn(setOperations);
+        when(setOperations.members(anyString())).thenReturn(Set.of()); // Redis 캐시가 비어있음을 시뮬레이션
+        when(noticeService.getRecentNoticeLinks(any(MarketType.class), anyInt())).thenReturn(List.of());
         
         NoticeDto coinoneNoticeDto = new NoticeDto(2L, MarketType.COINONE, "Coinone New Notice", "https://coinone.co.kr/notice/new", LocalDateTime.now());
         when(noticeService.getNoticeByLink(anyString())).thenReturn(coinoneNoticeDto);
-        doNothing().when(marketInfoStompController).sendNewNotice(any(NoticeDto.class));
         when(exchangeNoticePacadeService.createNoticesBulk(any(MarketType.class), anyList())).thenReturn(true);
 
         // When
-        scrapService.scrapNoticeData();
+        scrapService.scrapCoinoneNoticeData();
 
-        // Then - DB 기반 로직 검증
-        verify(upbitScrapComponent, times(1)).parseNoticeData();
-        verify(coinoneScrapComponent, times(1)).parseNoticeData();
+        // Then - 분산 락 검증
+        verify(distributedLockService, times(1)).tryLock(eq("notice-scrape:coinone"), eq(300));
+        verify(distributedLockService, times(1)).releaseLock(eq("notice-scrape:coinone"), eq(lockToken));
         
-        // DB 전체 공지사항 조회 검증 (새로운 로직)
-        verify(noticeService, times(1)).getAllNoticesByMarketType(MarketType.UPBIT);
-        verify(noticeService, times(1)).getAllNoticesByMarketType(MarketType.COINONE);
-        
-        // Coinone만 새로운 공지사항 처리
-        verify(coinoneScrapComponent, times(1)).setNewParsedData(anyList());
-        verify(coinoneScrapComponent, times(1)).setNewNotice(anyList());
+        // 스크래핑 로직 검증
+        try {
+            verify(coinoneScrapComponent, times(1)).parseNoticeData();
+        } catch (Exception e) {
+            // Mock verification, IOException won't be thrown
+        }
         verify(exchangeNoticePacadeService, times(1)).createNoticesBulk(eq(MarketType.COINONE), anyList());
-        verify(noticeService, atLeastOnce()).getNoticeByLink(anyString());
-        verify(marketInfoStompController, atLeastOnce()).sendNewNotice(any(NoticeDto.class));
-        
-        // Upbit은 URL이 일치하므로 새로운 공지사항이 없음 - 변경사항 없음으로 처리
-        verify(upbitScrapComponent, never()).setNewParsedData(anyList());
-        verify(upbitScrapComponent, never()).setNewNotice(anyList());
     }
 
     @Test
-    @DisplayName("스크랩 서비스 테스트 - 새로운 공지사항이 없을 때 (DB 기반)")
-    void shouldScrapNoticeDataWhenNoNewNoticeExists() throws IOException {
+    @DisplayName("스크랩 서비스 테스트 - 새로운 공지사항이 없을 때 (Redis 기반)")
+    void shouldNotProcessWhenNoNewNoticeExists() {
         // Given
-        doReturn(upbitNoticeParsedDataList).when(upbitScrapComponent).parseNoticeData();
-        doReturn(coinoneNoticeParsedDataList).when(coinoneScrapComponent).parseNoticeData();
+        String lockToken = "test-lock-token";
+        when(distributedLockService.tryLock(anyString(), anyInt())).thenReturn(lockToken);
+        when(distributedLockService.releaseLock(anyString(), anyString())).thenReturn(true);
         
-        doReturn(MarketType.UPBIT).when(upbitScrapComponent).getMarketType();
-        doReturn(MarketType.COINONE).when(coinoneScrapComponent).getMarketType();
+        try {
+            when(upbitScrapComponent.parseNoticeData()).thenReturn(upbitNoticeParsedDataList);
+        } catch (Exception e) {
+            // Won't happen with mock
+        }
+        when(upbitScrapComponent.getMarketType()).thenReturn(MarketType.UPBIT);
         
-        // DB에서 모든 공지사항 조회 - 두 거래소 모두 기존 공지사항이 있어서 새로운 공지사항 없도록 설정
-        LocalDateTime fixedDate = LocalDateTime.now().minusDays(1);
-        NoticeDto upbitExistingNotice1 = new NoticeDto(1L, MarketType.UPBIT, "Upbit Notice 1", "https://upbit.com/notice/1", fixedDate);
-        NoticeDto upbitExistingNotice2 = new NoticeDto(2L, MarketType.UPBIT, "Upbit Notice 2", "https://upbit.com/notice/2", fixedDate);
-        NoticeDto coinoneExistingNotice1 = new NoticeDto(3L, MarketType.COINONE, "Coinone Notice 1", "https://coinone.co.kr/notice/1", fixedDate);
-        NoticeDto coinoneExistingNotice2 = new NoticeDto(4L, MarketType.COINONE, "Coinone Notice 2", "https://coinone.co.kr/notice/2", fixedDate);
-        List<NoticeDto> upbitDbNotices = List.of(upbitExistingNotice1, upbitExistingNotice2); // 모든 URL이 일치하는 기존 공지사항
-        List<NoticeDto> coinoneDbNotices = List.of(coinoneExistingNotice1, coinoneExistingNotice2); // 모든 URL이 일치하는 기존 공지사항
-        when(noticeService.getAllNoticesByMarketType(MarketType.UPBIT)).thenReturn(upbitDbNotices);
-        when(noticeService.getAllNoticesByMarketType(MarketType.COINONE)).thenReturn(coinoneDbNotices);
+        // Redis에 기존 공지사항이 있어서 새로운 공지사항이 없다고 시뮬레이션
+        when(redisTemplate.opsForSet()).thenReturn(setOperations);
+        Set<Object> existingUrls = Set.of("https://upbit.com/notice/1", "https://upbit.com/notice/2");
+        when(setOperations.members(anyString())).thenReturn(existingUrls);
 
         // When
-        scrapService.scrapNoticeData();
+        scrapService.scrapUpbitNoticeData();
 
-        // Then - DB 기반 로직 검증
-        verify(upbitScrapComponent, times(1)).parseNoticeData();
-        verify(coinoneScrapComponent, times(1)).parseNoticeData();
+        // Then - 분산 락은 정상적으로 실행
+        verify(distributedLockService, times(1)).tryLock(eq("notice-scrape:upbit"), eq(300));
+        verify(distributedLockService, times(1)).releaseLock(eq("notice-scrape:upbit"), eq(lockToken));
         
-        // DB 전체 공지사항 조회 검증 (새로운 로직)
-        verify(noticeService, times(1)).getAllNoticesByMarketType(MarketType.UPBIT);
-        verify(noticeService, times(1)).getAllNoticesByMarketType(MarketType.COINONE);
-        
-        // 둘 다 URL이 일치하므로 새로운 공지사항 없음 - 변경사항 없음으로 처리
-        verify(upbitScrapComponent, never()).setNewParsedData(anyList());
-        verify(coinoneScrapComponent, never()).setNewParsedData(anyList());
-        verify(upbitScrapComponent, never()).setNewNotice(anyList());
-        verify(coinoneScrapComponent, never()).setNewNotice(anyList());
-        
+        // 스크래핑은 실행되지만 새로운 공지사항이 없으므로 DB 저장 및 WebSocket 전송 없음
+        try {
+            verify(upbitScrapComponent, times(1)).parseNoticeData();
+        } catch (Exception e) {
+            // Mock verification, IOException won't be thrown
+        }
         verify(exchangeNoticePacadeService, never()).createNoticesBulk(any(MarketType.class), anyList());
-        verify(noticeService, never()).getNoticeByLink(anyString());
-        verify(marketInfoStompController, never()).sendNewNotice(any(NoticeDto.class));
+        try {
+            verify(marketInfoStompController, never()).sendNewNotice(any(NoticeDto.class));
+        } catch (Exception e) {
+            // Mock verification, IOException won't be thrown
+        }
     }
 }

@@ -17,6 +17,9 @@ public interface CommentService {
 
     // comment 관련
     public Page<Comment> getCommentByBoard(Board board, int page);
+    
+    // Board와 함께 가져올 때 사용 (삭제된 댓글도 포함)
+    public Page<Comment> getCommentByBoardWithDeleted(Board board, int page);
 
     public Comment getCommentById(long commentId);
 
