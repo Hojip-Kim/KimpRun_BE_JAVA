@@ -92,7 +92,6 @@ public class Bithumb extends Market<BithumbCryptoDto> {
     }
 
     public void setMarketDataList() {
-        log.info("Bithumb dataList reset");
         if (this.bithumbMarketList == null) {
             throw new IllegalArgumentException("Bithumb Market List is null");
         }

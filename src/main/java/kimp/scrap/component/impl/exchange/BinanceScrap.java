@@ -102,8 +102,6 @@ public class BinanceScrap extends ExchangeScrapAbstract<BinanceNoticeDto> {
     @Override
     public List<NoticeParsedData> parseNoticeData() throws IOException {
         try {
-            log.info("Binance Python 서비스를 통한 공지사항 파싱 시작");
-            
             // flask 서비스에서 공지사항 가져오기
             PythonNoticeResponseDto pythonResponse = super.fetchPythonNotices();
             
@@ -115,7 +113,6 @@ public class BinanceScrap extends ExchangeScrapAbstract<BinanceNoticeDto> {
                 return new ArrayList<>();
             }
             
-            log.info("Binance 공지사항 {} 개 파싱 완료", noticeParsedDataList.size());
             return noticeParsedDataList;
             
         } catch (Exception e) {

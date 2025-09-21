@@ -66,6 +66,7 @@ public class CoinServiceImpl implements CoinService {
     }
 
     @Override
+    @Transactional
     public void createWithDeleteCoin(ChangeCoinDto changeCoinDto) {
         List<String> listedCoinSymbol = changeCoinDto.getListedSymbols();
         List<String> delistedCoinSymbol = changeCoinDto.getDelistedSymbols();

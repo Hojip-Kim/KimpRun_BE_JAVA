@@ -57,4 +57,49 @@ public class SchedulingConfig {
         scheduler.initialize();
         return scheduler;
     }
+
+    // 거래소별 공지사항 스케줄러들
+    @Bean("upbitNoticeTaskScheduler")
+    public TaskScheduler upbitNoticeTaskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(1);
+        scheduler.setThreadNamePrefix("upbit-notice-");
+        scheduler.setAwaitTerminationSeconds(60);
+        scheduler.setWaitForTasksToCompleteOnShutdown(true);
+        scheduler.initialize();
+        return scheduler;
+    }
+
+    @Bean("binanceNoticeTaskScheduler")
+    public TaskScheduler binanceNoticeTaskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(1);
+        scheduler.setThreadNamePrefix("binance-notice-");
+        scheduler.setAwaitTerminationSeconds(60);
+        scheduler.setWaitForTasksToCompleteOnShutdown(true);
+        scheduler.initialize();
+        return scheduler;
+    }
+
+    @Bean("bithumbNoticeTaskScheduler")
+    public TaskScheduler bithumbNoticeTaskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(1);
+        scheduler.setThreadNamePrefix("bithumb-notice-");
+        scheduler.setAwaitTerminationSeconds(60);
+        scheduler.setWaitForTasksToCompleteOnShutdown(true);
+        scheduler.initialize();
+        return scheduler;
+    }
+
+    @Bean("coinoneNoticeTaskScheduler")
+    public TaskScheduler coinoneNoticeTaskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(1);
+        scheduler.setThreadNamePrefix("coinone-notice-");
+        scheduler.setAwaitTerminationSeconds(60);
+        scheduler.setWaitForTasksToCompleteOnShutdown(true);
+        scheduler.initialize();
+        return scheduler;
+    }
 }

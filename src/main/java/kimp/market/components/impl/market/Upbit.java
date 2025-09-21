@@ -98,7 +98,6 @@ public class Upbit extends Market<UpbitCryptoDto> {
 
 
     public void setMarketDataList() {
-        log.info("Upbit dataList reset");
         if (this.upbitMarketList == null) {
             throw new IllegalArgumentException("Upbit Market List is null");
         }

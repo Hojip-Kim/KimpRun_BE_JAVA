@@ -44,4 +44,10 @@ public interface NoticeRepository extends JpaRepository<Notice, Long>, NoticeRep
      */
     @Query("SELECT n FROM Notice n WHERE n.exchange.market = :marketType ORDER BY n.date DESC")
     public List<Notice> findAllNoticesByMarketType(@Param("marketType") MarketType marketType);
+
+    /**
+     * N+1 문제 해결: 여러 링크에 대한 기존 공지사항 존재 여부를 한번에 확인
+     */
+    @Query("SELECT n.link FROM Notice n WHERE n.link IN :links")
+    public List<String> findExistingNoticeLinks(@Param("links") List<String> links);
 }

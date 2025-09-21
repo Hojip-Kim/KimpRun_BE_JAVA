@@ -1,6 +1,7 @@
 package kimp.market.entity;
 
 import jakarta.persistence.*;
+import kimp.common.entity.TimeStamp;
 import kimp.exchange.entity.Exchange;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Table(name="coin_exchange")
 @Getter
 @NoArgsConstructor
-public class CoinExchange {
+public class CoinExchange extends TimeStamp {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -82,8 +82,9 @@
     
     <!-- 코인 상세 정보 삽입 -->
     <insert id="insertCmcCoinInfo" parameterType="kimp.cmc.dto.common.coin.CmcCoinInfoDataDto">
-        INSERT INTO cmc_coin_info (description, infinite_supply, is_fiat, last_updated, registed_at, updated_at)
+        INSERT INTO cmc_coin_info (cmc_coin_id, description, infinite_supply, is_fiat, last_updated, registed_at, updated_at)
         VALUES (
+            #{coinInfo.id},
             COALESCE(#{coinInfo.description}, ''), 
             COALESCE(#{coinInfo.infiniteSupply}, false), 
             0, NOW(), NOW(), NOW()
@@ -131,8 +132,8 @@
     </select>
     
     <insert id="insertCmcExchangeInfo">
-        INSERT INTO cmc_exchange_info (fiats, registed_at, updated_at)
-        VALUES (#{fiats}, NOW(), NOW())
+        INSERT INTO cmc_exchange_info (cmc_exchange_id, fiats, registed_at, updated_at)
+        VALUES (#{exchangeId}, #{fiats}, NOW(), NOW())
     </insert>
     
     <update id="updateCmcExchangeInfo">
@@ -148,8 +149,8 @@
     </select>
     
     <insert id="insertCmcExchangeMeta" parameterType="kimp.cmc.dto.common.exchange.CmcExchangeDetailDto">
-        INSERT INTO cmc_exchange_meta (market_fee, taker_fee, spot_volume_usd, spot_volume_last_updated, weekly_visits, registed_at, updated_at)
-        VALUES (COALESCE(#{exchangeDetail.marketFee}, 0.0), COALESCE(#{exchangeDetail.takerFee}, 0.0), COALESCE(#{exchangeDetail.spotVolumeUsd}, 0.0), 
+        INSERT INTO cmc_exchange_meta (cmc_exchange_id, market_fee, taker_fee, spot_volume_usd, spot_volume_last_updated, weekly_visits, registed_at, updated_at)
+        VALUES (#{exchangeDetail.id}, COALESCE(#{exchangeDetail.marketFee}, 0.0), COALESCE(#{exchangeDetail.takerFee}, 0.0), COALESCE(#{exchangeDetail.spotVolumeUsd}, 0.0), 
                 NOW(), COALESCE(#{exchangeDetail.weeklyVisited}, 0), NOW(), NOW())
     </insert>
     
@@ -170,8 +171,8 @@
     </select>
     
     <insert id="insertCmcExchangeUrl">
-        INSERT INTO cmc_exchange_url (website, twitter, register, registed_at, updated_at)
-        VALUES (#{website}, '', '', NOW(), NOW())
+        INSERT INTO cmc_exchange_url (cmc_exchange_id, website, twitter, register, registed_at, updated_at)
+        VALUES (#{exchangeId}, #{website}, '', '', NOW(), NOW())
     </insert>
     
     <update id="updateCmcExchangeUrl">
@@ -248,11 +249,12 @@
     
     <!-- 코인 메타 정보 삽입하고 바로 매핑 -->
     <insert id="insertCmcCoinMeta" parameterType="kimp.cmc.dto.common.coin.CmcApiDataDto">
-        INSERT INTO cmc_coin_meta (market_cap, market_cap_dominance, fully_diluted_market_cap,
+        INSERT INTO cmc_coin_meta (cmc_coin_id, market_cap, market_cap_dominance, fully_diluted_market_cap,
                                   circulating_supply, total_supply, max_supply, 
                                   self_reported_circulating_supply, self_reported_market_cap,
                                   registed_at, updated_at)
         VALUES (
+            #{coin.id},
             COALESCE(#{coin.quote.USD.marketCap}, '0'),
             COALESCE(#{coin.quote.USD.marketCapDominance}, 0),
             COALESCE(#{coin.quote.USD.fullyDilutedMarketCap}, '0'),

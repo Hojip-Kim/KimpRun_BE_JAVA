@@ -53,4 +53,19 @@ public interface NoticeDao {
      * @return 해당 거래소의 모든 공지사항 목록
      */
     public List<Notice> findAllNoticesByMarketType(MarketType marketType);
+
+    /**
+     * N+1 문제 해결: 여러 링크에 대한 기존 공지사항 존재 여부를 한번에 확인
+     * @param links 확인할 링크 목록
+     * @return 이미 존재하는 링크 목록
+     */
+    public List<String> findExistingNoticeLinks(List<String> links);
+
+    /**
+     * JPA 배치 최적화된 대량 공지사항 생성
+     * Hibernate batch_size 설정을 활용한 배치 INSERT
+     * @param notices 생성할 공지사항 목록
+     * @return 생성 성공 여부
+     */
+    public boolean createBulkNoticeOptimized(List<Notice> notices);
 }
