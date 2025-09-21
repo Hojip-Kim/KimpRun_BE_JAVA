@@ -1,8 +1,6 @@
 package kimp.test;
 
 import jakarta.annotation.PostConstruct;
-import kimp.community.dto.category.request.CreateCategoryRequestDto;
-import kimp.community.service.CategoryService;
 import kimp.exception.KimprunException;
 import kimp.scrap.component.ExchangeScrap;
 import kimp.scrap.component.impl.exchange.ExchangeScrapAbstract;
@@ -18,10 +16,10 @@ import kimp.exchange.service.impl.ExchangeNoticePacadeService;
 import kimp.market.Enum.MarketType;
 import kimp.market.dto.coin.common.ServiceCoinDto;
 import kimp.market.service.serviceImpl.CoinExchangePacadeService;
-import kimp.user.enums.UserRole;
 import kimp.user.service.AdminService;
-import kimp.user.service.MemberRoleService;
+import kimp.cmc.service.CmcEntityPreloaderService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -32,14 +30,13 @@ import java.util.List;
 @Slf4j
 public class testDataInit {
 
-    private final CategoryService categoryService;
     private final NoticeService noticeService;
     private final ScrapService scrapService;
     private final ExchangeNoticePacadeService exchangeNoticePacadeService;
     private final ExchangeService exchangeService;
     private final CoinExchangePacadeService coinExchangePacadeService;
-    private final MemberRoleService memberRoleService;
     private final AdminService adminService;
+    private final CmcEntityPreloaderService cmcEntityPreloaderService;
 
 
     private final ExchangeScrap<UpbitNoticeDto> upbitScrapComponent;
@@ -47,15 +44,14 @@ public class testDataInit {
     private final ExchangeScrap<CoinoneNoticeDto> coinoneScrapComponent;
     private final ExchangeScrap<BinanceNoticeDto> binanceScrapComponent;
 
-    public testDataInit(CategoryService categoryServer, NoticeService noticeService, ScrapService scrapService, ExchangeNoticePacadeService exchangeNoticePacadeService, ExchangeService exchangeService, CoinExchangePacadeService coinExchangePacadeService, MemberRoleService memberRoleService, AdminService adminService, ExchangeScrapAbstract<UpbitNoticeDto> upbitScrap, ExchangeScrapAbstract<BithumbNoticeDto> bithumbScrap, ExchangeScrapAbstract<CoinoneNoticeDto> coinoneScrap, ExchangeScrapAbstract<BinanceNoticeDto> binanceScrap) {
-        this.categoryService = categoryServer;
+    public testDataInit(NoticeService noticeService, ScrapService scrapService, ExchangeNoticePacadeService exchangeNoticePacadeService, ExchangeService exchangeService, CoinExchangePacadeService coinExchangePacadeService, AdminService adminService, CmcEntityPreloaderService cmcEntityPreloaderService, ExchangeScrapAbstract<UpbitNoticeDto> upbitScrap, ExchangeScrapAbstract<BithumbNoticeDto> bithumbScrap, ExchangeScrapAbstract<CoinoneNoticeDto> coinoneScrap, ExchangeScrapAbstract<BinanceNoticeDto> binanceScrap) {
         this.noticeService = noticeService;
         this.scrapService = scrapService;
         this.exchangeNoticePacadeService = exchangeNoticePacadeService;
         this.exchangeService = exchangeService;
         this.coinExchangePacadeService = coinExchangePacadeService;
-        this.memberRoleService = memberRoleService;
         this.adminService = adminService;
+        this.cmcEntityPreloaderService = cmcEntityPreloaderService;
 
         this.upbitScrapComponent = upbitScrap;
         this.bithumbScrapComponent = bithumbScrap;
@@ -63,7 +59,24 @@ public class testDataInit {
         this.binanceScrapComponent = binanceScrap;
     }
 
+    /**
+     * CMC 엔티티 사전 로딩 - N+1 쿼리 방지
+     * 다른 초기화 작업들보다 먼저 실행되어야 함
+     */
     @PostConstruct
+    @Order(1)
+    private void preloadCmcEntities() {
+        log.info("=== CMC 엔티티 사전 로딩 시작 (N+1 쿼리 방지) ===");
+        try {
+            cmcEntityPreloaderService.preloadAllCmcEntities();
+            log.info("=== CMC 엔티티 사전 로딩 완료 ===");
+        } catch (Exception e) {
+            log.warn("CMC 엔티티 사전 로딩 실패 (데이터가 없거나 초기 실행일 수 있음): {}", e.getMessage());
+        }
+    }
+
+    @PostConstruct
+    @Order(2)
     private void coinExchangePacadeServiceInit(){
         MarketType[] marketTypes = MarketType.values();
 
@@ -78,6 +91,7 @@ public class testDataInit {
     }
 
     @PostConstruct
+    @Order(3)
     private void init() {
         log.info("공지사항 초기 데이터 세팅 시작");
         
@@ -120,8 +134,8 @@ public class testDataInit {
         
         if (!upbitNoticeParsedDataList.isEmpty()) {
             upbitScrapComponent.setNewParsedData(upbitNoticeParsedDataList);
-            exchangeNoticePacadeService.createNoticesBulk(upbitScrapComponent.getMarketType(), upbitNoticeParsedDataList);
-            log.info("Upbit 공지사항 {} 개 초기화 완료", upbitNoticeParsedDataList.size());
+            exchangeNoticePacadeService.createNoticesBulkOptimized(upbitScrapComponent.getMarketType(), upbitNoticeParsedDataList);
+            log.info("Upbit 공지사항 {} 개 초기화 완료 (최적화된 배치 INSERT)", upbitNoticeParsedDataList.size());
         } else {
             log.warn("Upbit 공지사항 데이터가 비어있음");
         }
@@ -136,8 +150,8 @@ public class testDataInit {
         
         if (!coinoneNoticeParsedDataList.isEmpty()) {
             coinoneScrapComponent.setNewParsedData(coinoneNoticeParsedDataList);
-            exchangeNoticePacadeService.createNoticesBulk(coinoneScrapComponent.getMarketType(), coinoneNoticeParsedDataList);
-            log.info("Coinone 공지사항 {} 개 초기화 완료", coinoneNoticeParsedDataList.size());
+            exchangeNoticePacadeService.createNoticesBulkOptimized(coinoneScrapComponent.getMarketType(), coinoneNoticeParsedDataList);
+            log.info("Coinone 공지사항 {} 개 초기화 완료 (최적화된 배치 INSERT)", coinoneNoticeParsedDataList.size());
         } else {
             log.warn("Coinone 공지사항 데이터가 비어있음");
         }
@@ -152,8 +166,8 @@ public class testDataInit {
         
         if (!binanceNoticeParsedDataList.isEmpty()) {
             binanceScrapComponent.setNewParsedData(binanceNoticeParsedDataList);
-            exchangeNoticePacadeService.createNoticesBulk(binanceScrapComponent.getMarketType(), binanceNoticeParsedDataList);
-            log.info("Binance 공지사항 {} 개 초기화 완료", binanceNoticeParsedDataList.size());
+            exchangeNoticePacadeService.createNoticesBulkOptimized(binanceScrapComponent.getMarketType(), binanceNoticeParsedDataList);
+            log.info("Binance 공지사항 {} 개 초기화 완료 (최적화된 배치 INSERT)", binanceNoticeParsedDataList.size());
         } else {
             log.warn("Binance 공지사항 데이터가 비어있음");
         }
@@ -168,42 +182,12 @@ public class testDataInit {
         
         if (!bithumbNoticeParsedDataList.isEmpty()) {
             bithumbScrapComponent.setNewParsedData(bithumbNoticeParsedDataList);
-            exchangeNoticePacadeService.createNoticesBulk(bithumbScrapComponent.getMarketType(), bithumbNoticeParsedDataList);
-            log.info("Bithumb 공지사항 {} 개 초기화 완료", bithumbNoticeParsedDataList.size());
+            exchangeNoticePacadeService.createNoticesBulkOptimized(bithumbScrapComponent.getMarketType(), bithumbNoticeParsedDataList);
+            log.info("Bithumb 공지사항 {} 개 초기화 완료 (최적화된 배치 INSERT)", bithumbNoticeParsedDataList.size());
         } else {
             log.warn("Bithumb 공지사항 데이터가 비어있음");
         }
     }
 
-    @PostConstruct
-    private void categoryServiceInit(){
-        List<String> initCategory = List.of("전체","코인","주식","뉴스", "자유");
-        categoryService.initializeCategories(initCategory);
-    }
 
-    @PostConstruct
-    private void memberRoleServiceInit() {
-        List<UserRole> userRoles = List.of(UserRole.values());
-        memberRoleService.initializeUserRoles(userRoles);
-    }
-
-    @PostConstruct
-    private void activityRankInit() {
-        List<String> activityGrades = List.of("새싹", "일반회원", "우수회원", "마스터", "운영자");
-        adminService.initializeActivityRanks(activityGrades);
-    }
-
-    @PostConstruct
-    private void seedMoneyRangeInit() {
-        List<String[]> seedMoneyData = List.of(
-                new String[]{"0 ~ 1000만원", "Bronze"},
-                new String[]{"1000만원 ~ 5000만원", "Silver"},
-                new String[]{"5000만원 ~ 1억원", "Gold"},
-                new String[]{"1억원 ~ 5억원", "Platinum"},
-                new String[]{"5억원 ~ 10억원", "Diamond"},
-                new String[]{"10억원 ~ 100억원", "Master"},
-                new String[]{"100억원 이상", "King"}
-        );
-        adminService.initializeSeedMoneyRanges(seedMoneyData);
-    }
 }
