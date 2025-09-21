@@ -75,7 +75,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(createCsrfTokenRepository())
                         // WebSocket 연결 자체는 CSRF에서 제외하지만, STOMP 메시지는 CsrfChannelInterceptor에서 검증
-                        .ignoringRequestMatchers("/ws/**")
+                        .ignoringRequestMatchers("/ws/**", "/batch/**")
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
