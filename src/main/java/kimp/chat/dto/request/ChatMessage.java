@@ -43,4 +43,20 @@ public class ChatMessage {
     public void setIp(String userIp) {
         this.userIp = userIp;
     }
+
+    public void setChatID(String chatID) {
+        this.chatID = chatID;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public void setAuthenticated(Boolean authenticated) {
+        this.authenticated = authenticated;
+    }
+
+    public void setCreatedAt(LocalDateTime registedAt) {
+        this.registedAt = registedAt;
+    }
 }
