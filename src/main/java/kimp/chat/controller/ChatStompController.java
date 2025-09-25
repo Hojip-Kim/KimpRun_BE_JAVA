@@ -5,10 +5,14 @@ import kimp.chat.dto.vo.SaveChatMessage;
 import kimp.chat.dto.request.ChatMessage;
 import kimp.chat.dto.response.ChatMessageResponse;
 import kimp.chat.service.ChatStompService;
+import kimp.config.redis.RedisMessageBrokerConfig;
+import kimp.config.redis.handler.RedisMessageHandler;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import kimp.util.IpMaskUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
@@ -26,11 +30,19 @@ public class ChatStompController {
     private final ObjectMapper objectMapper;
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatStompService chatStompService;
+    private final RedisTemplate<String, Object> chatRedisTemplate;
+    private final RedisMessageHandler redisMessageHandler;
 
-    public ChatStompController(ObjectMapper objectMapper, SimpMessagingTemplate messagingTemplate, ChatStompService chatStompService) {
+    public ChatStompController(ObjectMapper objectMapper, 
+                              SimpMessagingTemplate messagingTemplate, 
+                              ChatStompService chatStompService,
+                              @Qualifier("chatRedisTemplate") RedisTemplate<String, Object> chatRedisTemplate,
+                              RedisMessageHandler redisMessageHandler) {
         this.objectMapper = objectMapper;
         this.messagingTemplate = messagingTemplate;
         this.chatStompService = chatStompService;
+        this.chatRedisTemplate = chatRedisTemplate;
+        this.redisMessageHandler = redisMessageHandler;
     }
 
     /**
@@ -69,21 +81,24 @@ public class ChatStompController {
             false, chatMessage.getMemberId()
         );
 
-        // 1. 즉시 브로드캐스트 (실시간 응답 우선)
+        // 1. 메시지 응답 객체 생성
         ChatMessageResponse chatMessageResponse = saveChatMessageVo.toResponse();
         chatMessageResponse.setIp(IpMaskUtil.mask(chatMessageResponse.getUserIp()));
+        
+        // 2. 로컬 브로드캐스트 (현재 서버에 연결된 클라이언트에게)
         messagingTemplate.convertAndSend("/topic/chat", chatMessageResponse);
         
-        // 2. 비동기 DB 저장 (별도 스레드에서 처리)
-        chatStompService.saveMessageAsync(saveChatMessageVo)
-            .whenComplete((result, throwable) -> {
-                if (throwable != null) {
-                    log.error("Failed to save chat message - UUID: {}, ChatID: {}, Error: {}", 
-                        randomUUID, chatMessage.getChatID(), throwable.getMessage());
-                } else {
-                    log.debug("Chat message saved successfully - UUID: {}", randomUUID);
-                }
-            });
+        // 3. Redis Pub/Sub으로 다른 서버 인스턴스에 메시지 발행
+        publishToRedis(chatMessageResponse);
+        
+        // 4. 비동기 DB 저장 (별도 스레드에서 처리)
+        boolean saveSuccess = chatStompService.saveMessageAsync(saveChatMessageVo);
+        if (!saveSuccess) {
+            log.error("채팅 메시지 큐 추가 실패 - UUID: {}, 채팅ID: {}", 
+                randomUUID, chatMessage.getChatID());
+        } else {
+            log.debug("채팅 메시지 큐 추가 성공 - UUID: {}", randomUUID);
+        }
     }
 
     /**
@@ -110,11 +125,11 @@ public class ChatStompController {
         
         String kimprunToken = (String) sessionAttributes.get("kimprun-token");
         if (kimprunToken != null) {
-            log.debug("Kimprun token extracted from session (masked): {}", maskToken(kimprunToken));
+            log.debug("세션에서 kimprun-token 추출 완료 (마스킹됨): {}", maskToken(kimprunToken));
             return kimprunToken;
         }
         
-        log.debug("No kimprun-token found in session attributes");
+        log.debug("세션 속성에서 kimprun-token을 찾을 수 없음");
         return null;
     }
 
@@ -143,5 +158,31 @@ public class ChatStompController {
             return "***";
         }
         return token.substring(0, 4) + "***" + token.substring(token.length() - 4);
+    }
+    
+    /**
+     * Redis Pub/Sub으로 메시지 발행
+     * 다른 서버 인스턴스에 메시지를 전파하여 분산 환경에서 채팅 동기화
+     */
+    private void publishToRedis(ChatMessageResponse chatMessageResponse) {
+        try {
+            // 메시지 래퍼 생성 (인스턴스 ID 포함)
+            RedisMessageHandler.ChatMessageWrapper wrapper = new RedisMessageHandler.ChatMessageWrapper(
+                redisMessageHandler.getInstanceId(),
+                chatMessageResponse
+            );
+            
+            // Redis 채널에 메시지 발행
+            chatRedisTemplate.convertAndSend(RedisMessageBrokerConfig.CHAT_CHANNEL, wrapper);
+            
+            log.debug("Redis 메시지 발행 완료 - 채널: {}, 채팅ID: {}, 인스턴스ID: {}", 
+                    RedisMessageBrokerConfig.CHAT_CHANNEL, 
+                    chatMessageResponse.getChatID(),
+                    redisMessageHandler.getInstanceId());
+                    
+        } catch (Exception e) {
+            log.error("Redis 메시지 발행 실패 - 채팅ID: {}", chatMessageResponse.getChatID(), e);
+            // Redis 발행 실패해도 로컬 브로드캐스트는 이미 완료되었으므로 서비스는 계속됨
+        }
     }
 }
