@@ -78,7 +78,8 @@ public class BoardPacadeService {
         if(memberId == -1 || board.getMember().getId() != memberId ) {
             board.getViews().viewCount();
         }
-        Page<Comment> comments = commentPacadeService.getComments(requestBoardId, page);
+        // 삭제된 댓글도 포함하여 모든 댓글 조회
+        Page<Comment> comments = commentPacadeService.getCommentsWithDeleted(requestBoardId, page);
 
         List<ResponseCommentDto> commentDtos =  commentService.converCommentsToResponseDtoList(comments.getContent());
 
