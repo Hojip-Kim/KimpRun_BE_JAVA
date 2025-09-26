@@ -104,7 +104,6 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public Member createMemberEntity(CreateUserDTO request) {
         try {
-            log.info("유저 생성 시작 - Email: {}, Nickname: {}", request.getEmail(), request.getNickname());
 
             // 기존 이메일로 가입된 사용자가 있는지 확인 (비활성화된 회원 포함)
             Member existingMember = memberDao.findMemberByEmail(request.getEmail());
@@ -202,8 +201,7 @@ public class MemberServiceImpl implements MemberService {
     }
     
     private Member addPasswordToExistingOAuthMember(Member existingMember, CreateUserDTO request) {
-        log.info("기존 OAuth 사용자에게 비밀번호 추가 - Member ID: {}", existingMember.getId());
-        
+
         // 비밀번호 설정
         existingMember.updatePassword(passwordEncoder.encode(request.getPassword()));
         
@@ -305,7 +303,6 @@ public class MemberServiceImpl implements MemberService {
         if(ip == null){
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "IP address cannot be null", HttpStatus.BAD_REQUEST, "MemberServiceImpl.setMemberIP");
         }
-        log.info("ip : {}" , ip);
         // 이미 fetch join으로 로드된 member 객체를 사용하여 추가 쿼리 방지
         member.getMemberAgent().setIp(ip);
     }
@@ -364,7 +361,6 @@ public class MemberServiceImpl implements MemberService {
             
             if (existingOAuth != null) {
                 // 기존 OAuth 정보가 있으면 업데이트
-                log.info("기존 OAuth 정보 업데이트 - Member ID: {}", member.getId());
                 LocalDateTime now = LocalDateTime.now();
                 
                 existingOAuth.setProvider(provider)
@@ -412,7 +408,6 @@ public class MemberServiceImpl implements MemberService {
                 member.setOauth(oauth);
             }
             
-            log.info("OAuth 정보 연결 완료 - Member ID: {}", member.getId());
             return member;
             
         } catch (Exception e) {

@@ -50,7 +50,6 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
         OAuth2AuthenticationToken oauth2Authentication = (OAuth2AuthenticationToken) authentication;
-        log.info("OAuth2 로그인 성공 - username: {}", oauth2Authentication.getName());
 
         // Refresh token 추출 및 저장
         updateRefreshTokenIfAvailable(oauth2Authentication);
@@ -75,21 +74,15 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         try {
             String registrationId = authentication.getAuthorizedClientRegistrationId();
             String principalName = authentication.getName();
-            
-            log.info("🔍 Refresh token 조회 시도 - Registration: {}, Principal: {}", registrationId, principalName);
-            
+
             OAuth2AuthorizedClient authorizedClient = authorizedClientService.loadAuthorizedClient(registrationId, principalName);
             
             if (authorizedClient != null) {
-                log.info("✅ OAuth2AuthorizedClient 발견");
-                log.info("📋 AccessToken: {}", authorizedClient.getAccessToken() != null ? "존재" : "null");
-                log.info("📋 RefreshToken: {}", authorizedClient.getRefreshToken() != null ? "존재" : "null");
-                
+
                 OAuth2RefreshToken refreshToken = authorizedClient.getRefreshToken();
                 
                 if (refreshToken != null) {
-                    log.info("🎉 Refresh token 발견! 값: {}", refreshToken.getTokenValue().substring(0, 10) + "...");
-                    
+
                     // 사용자 정보에서 이메일 추출
                     Object emailObj = authentication.getPrincipal().getAttributes().get("email");
                     if (emailObj != null) {
@@ -108,7 +101,6 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                                 member.getOauth().getExpiresIn(),
                                 member.getOauth().getScope()
                             );
-                            log.info("💾 Refresh token 저장 완료 - Member ID: {}", member.getId());
                         } else {
                             log.warn("⚠️ Member 또는 OAuth 정보가 없음 - Email: {}", email);
                         }
@@ -120,11 +112,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 log.warn("❌ OAuth2AuthorizedClient가 null입니다");
                 
                 // 대안: 모든 저장된 클라이언트 확인
-                log.info("🔍 대안 방법: Principal attributes 확인");
                 Object emailObj = authentication.getPrincipal().getAttributes().get("email");
                 if (emailObj != null) {
                     String email = emailObj.toString();
-                    log.info("📧 이메일: {}", email);
                 }
             }
         } catch (Exception e) {

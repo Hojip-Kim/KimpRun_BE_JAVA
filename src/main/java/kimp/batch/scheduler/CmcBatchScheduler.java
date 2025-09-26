@@ -88,7 +88,6 @@ public class CmcBatchScheduler {
         } finally {
             // 락 해제
             if (distributedLockService.releaseLock(CMC_BATCH_LOCK_KEY, lockToken)) {
-                log.info("🔓 CMC 배치 분산 락 해제 완료");
             } else {
                 log.warn("⚠️ CMC 배치 분산 락 해제 실패 - 이미 만료되었을 수 있습니다");
             }
@@ -102,10 +101,11 @@ public class CmcBatchScheduler {
      * @throws IllegalStateException 다른 서버에서 배치 실행 중일 때
      */
     public void runManualCmcDataSync() {
-        String lockToken = distributedLockService.tryLock(CMC_BATCH_LOCK_KEY + ":manual", LOCK_TTL_SECONDS);
+        // 정기 배치와 수동 배치가 동시에 실행되지 않도록 같은 락 키 사용
+        String lockToken = distributedLockService.tryLock(CMC_BATCH_LOCK_KEY, LOCK_TTL_SECONDS);
         
         if (lockToken == null) {
-            String currentOwner = distributedLockService.getLockOwner(CMC_BATCH_LOCK_KEY + ":manual");
+            String currentOwner = distributedLockService.getLockOwner(CMC_BATCH_LOCK_KEY);
             throw new IllegalStateException("다른 서버에서 CMC 배치가 실행 중입니다: " + currentOwner);
         }
         
@@ -125,7 +125,7 @@ public class CmcBatchScheduler {
                     .addLocalDateTime("executeTime", LocalDateTime.now())
                     .addString("executionType", "MANUAL")
                     .addString("lockToken", lockToken)
-                    .addString("distributedLockKey", CMC_BATCH_LOCK_KEY + ":manual")
+                    .addString("distributedLockKey", CMC_BATCH_LOCK_KEY)
                     .toJobParameters();
             
             jobLauncher.run(cmcDataSyncJob, jobParameters);
@@ -137,7 +137,7 @@ public class CmcBatchScheduler {
             throw new RuntimeException("CMC 배치 실행 실패: " + e.getMessage(), e);
             
         } finally {
-            distributedLockService.releaseLock(CMC_BATCH_LOCK_KEY + ":manual", lockToken);
+            distributedLockService.releaseLock(CMC_BATCH_LOCK_KEY, lockToken);
         }
     }
     

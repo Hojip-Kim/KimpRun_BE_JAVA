@@ -33,8 +33,6 @@ public class AnnonymousSchedulerImpl implements AnnonymousScheduler {
     @Scheduled(cron = "0 0 * * * *")
     @Transactional
     public void expireBans() {
-        log.info("Starting expireBans scheduler task");
-        
         try {
             long now = System.currentTimeMillis();
             List<AnnonyMousMember> bannedMembers = annoymousMemberDao.getAllAnnonymousMemberBeforeExpireTime(now);

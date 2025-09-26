@@ -137,20 +137,15 @@ public class ScrapServiceImpl implements ScrapService {
             boolean hasUpdate = !newNotices.isEmpty();
             
             if (hasUpdate) {
-                log.info("{} 거래소에 새로운 공지사항 {} 개 발견", exchangeName, newNotices.size());
-                
+
                 // 4-1. 새로운 공지사항들도 최신순으로 정렬
                 if (newNotices != null && !newNotices.isEmpty()) {
                     newNotices = newNotices.stream()
                         .sorted((a, b) -> b.getDate().compareTo(a.getDate()))
                         .toList();
-                    
-                    log.info("{} 거래소 새로운 공지사항 {} 개 발견 (최신순 정렬)", exchangeName, newNotices.size());
-                    
+
                     // 4-2. 가장 최신 공지사항 정보 로깅
                     NoticeParsedData latestNotice = newNotices.get(0);
-                    log.info("🔔 가장 최신 공지사항: {} - {} ({})", 
-                            exchangeName, latestNotice.getTitle(), latestNotice.getDate());
                     
                     // 5. 메모리 상태 업데이트 (Redis 저장 제거)
                     scrapComponent.setNewParsedData(currentNotices);
@@ -167,8 +162,7 @@ public class ScrapServiceImpl implements ScrapService {
                     );
                     
                     if (saved) {
-                        log.info("{} 거래소 새로운 공지사항 {} 개 저장 완료 (오래된 순서부터 저장)", exchangeName, newNotices.size());
-                        
+
                         // 6-1. Redis 캐시 동기화 - 새로운 공지사항들을 Redis에 추가
                         updateRedisCache(scrapComponent.getMarketType(), newNotices);
                         
@@ -176,9 +170,6 @@ public class ScrapServiceImpl implements ScrapService {
                         for (int i = 0; i < orderedForSaving.size(); i++) {
                             NoticeParsedData notice = orderedForSaving.get(i);
                             boolean isLatest = notice.equals(latestNotice);
-                            log.info("  DB 저장 [{}]: {} - {} {}", 
-                                    i + 1, notice.getTitle(), notice.getDate(), 
-                                    isLatest ? "🔥 (최신 공지사항, 마지막 저장)" : "");
                         }
                         
                         // 7. WebSocket으로 실시간 전송 (최신순으로 - 사용자가 최신 것을 먼저 봐야 함)
@@ -241,9 +232,6 @@ public class ScrapServiceImpl implements ScrapService {
                 .sorted((a, b) -> b.getDate().compareTo(a.getDate()))
                 .toList();
             
-            log.info("{} 거래소 Redis 기반 비교 결과: 전체 {} 개 중 새로운 공지사항 {} 개 발견",
-                    marketType.name(), currentNotices.size(), newNotices.size());
-            
             return newNotices;
             
         } catch (Exception e) {
@@ -304,8 +292,6 @@ public class ScrapServiceImpl implements ScrapService {
                 
                 // TTL 갱신 (7일)
                 redisTemplate.expire(redisKey, 7, TimeUnit.DAYS);
-                
-                log.info("Redis 캐시 업데이트 완료: {} 거래소 - {} 개 새로운 URL 추가", marketType, newUrls.length);
             }
             
         } catch (Exception e) {
@@ -318,10 +304,9 @@ public class ScrapServiceImpl implements ScrapService {
      */
     private List<NoticeParsedData> findNewNoticesFromDB(MarketType marketType, List<NoticeParsedData> currentNotices) {
         try {
-            // 1. DB에서 해당 거래소의 모든 공지사항을 가져오기 (기존 최신 20개 방식에서 변경)
+            // 1. DB에서 해당 거래소의 모든 공지사항을 가져오기
             List<NoticeDto> allDbNotices = noticeService.getAllNoticesByMarketType(marketType);
-            log.info("DB에서 {} 거래소의 모든 공지사항 {} 개를 가져왔습니다", marketType, allDbNotices.size());
-            
+
             List<NoticeParsedData> newOrUpdatedNotices = new ArrayList<>();
             
             for (NoticeParsedData currentNotice : currentNotices) {
@@ -337,23 +322,15 @@ public class ScrapServiceImpl implements ScrapService {
                     LocalDateTime scrapDate = currentNotice.getDate().withSecond(0).withNano(0);
 
                     if (!dbDate.equals(scrapDate)) {
-                        log.info("공지사항 날짜 업데이트 감지: {} - 기존: {}, 새로운: {}", 
-                                currentNotice.getTitle(), dbDate, scrapDate);
-                        
                         // 날짜 업데이트
                         noticeService.updateNoticeDate(existingNotice.getId(), currentNotice.getDate());
                         newOrUpdatedNotices.add(currentNotice); // 업데이트된 공지사항도 웹소켓 송신 대상
                     }
                 } else {
                     // 4. 없으면 아예 새로운 공지사항
-                    log.info("새로운 공지사항 발견: {} - URL: {} - 날짜: {}", 
-                            currentNotice.getTitle(), currentNotice.getAlink(), currentNotice.getDate());
                     newOrUpdatedNotices.add(currentNotice);
                 }
             }
-            
-            log.info("전체 {} 개 중 새로운/업데이트된 공지사항 {} 개 발견", 
-                    currentNotices.size(), newOrUpdatedNotices.size());
             
             return newOrUpdatedNotices.stream()
                 .sorted((a, b) -> b.getDate().compareTo(a.getDate())) // 최신순 정렬
@@ -379,9 +356,6 @@ public class ScrapServiceImpl implements ScrapService {
                 .filter(notice -> !existingLinks.contains(notice.getAlink()))
                 .sorted((a, b) -> b.getDate().compareTo(a.getDate()))
                 .toList();
-                
-            log.info("링크 기반 백업 결과: 전체 {} 개 중 새로운 공지사항 {} 개 발견", 
-                    currentNotices.size(), newNotices.size());
             
             return newNotices;
         } catch (Exception e) {
@@ -402,16 +376,15 @@ public class ScrapServiceImpl implements ScrapService {
         
         if (lockToken == null) {
             String currentOwner = distributedLockService.getLockOwner(lockKey);
-            log.debug("🔒 {} 공지사항 스크래핑 건너뜀 - 다른 서버에서 처리 중 ({})", exchangeName, currentOwner);
             return;
         }
         
         try {
-            log.debug("🚀 {} 공지사항 스크래핑 시작 - 분산 락 획득", exchangeName);
+            log.debug("{} 공지사항 스크래핑 시작 - 분산 락 획득", exchangeName);
             task.run();
             
         } catch (Exception e) {
-            log.error("❌ {} 공지사항 스크래핑 중 오류 발생", exchangeName, e);
+            log.error("{} 공지사항 스크래핑 중 오류 발생", exchangeName, e);
             
         } finally {
             // 락 해제
@@ -427,8 +400,6 @@ public class ScrapServiceImpl implements ScrapService {
      * WebSocket을 통한 실시간 공지사항 전송
      */
     private void sendNewNoticesViaWebSocket(List<NoticeParsedData> newNotices, String exchangeName) {
-        log.info("{} WebSocket 전송 시작 - {} 개 공지사항", exchangeName, newNotices.size());
-        
         for (int i = 0; i < newNotices.size(); i++) {
             NoticeParsedData noticeData = newNotices.get(i);
             try {
@@ -436,8 +407,6 @@ public class ScrapServiceImpl implements ScrapService {
                 NoticeDto noticeDto = noticeService.getNoticeByLink(noticeData.getAlink());
                 if (noticeDto != null) {
                     marketInfoStompController.sendNewNotice(noticeDto);
-                    log.info("✅ WebSocket 전송 완료 [{}]: {} - {} ({})", 
-                            i + 1, exchangeName, noticeData.getTitle(), noticeData.getDate());
                 } else {
                     log.warn("WebSocket 전송 실패 - DB에서 공지사항을 찾을 수 없음: {} - {}",
                             exchangeName, noticeData.getTitle());

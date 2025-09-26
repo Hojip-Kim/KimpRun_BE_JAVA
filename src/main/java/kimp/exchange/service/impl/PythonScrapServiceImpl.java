@@ -47,8 +47,7 @@ public class PythonScrapServiceImpl implements PythonScrapService {
         String url = pythonServiceBaseUrl + "/notices/" + exchangeName;
         
         try {
-            log.info("Python 스크래핑 서비스 호출: {}", url);
-            
+
             PythonNoticeResponseDto responseBody = restClient.get()
                 .uri(url)
                 .retrieve()
