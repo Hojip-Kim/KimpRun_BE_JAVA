@@ -1,14 +1,12 @@
 package kimp.batch.controller;
 
+import kimp.batch.scheduler.CmcBatchScheduler;
 import kimp.exception.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
-import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
-import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -25,9 +23,12 @@ public class CmcBatchController {
     private final JobLauncher jobLauncher;
     private final Job cmcDataSyncJob;
     private final JobExplorer jobExplorer;
+    private final CmcBatchScheduler cmcBatchScheduler;
 
     /**
-     * CoinMarketCap 데이터 전체 동기화 실행
+     * CoinMarketCap 데이터 전체 동기화 실행 (분산 락 적용)
+     * 
+     * Redis 분산 락과 Rate Limiter를 적용하여 안전한 배치 실행 제공
      */
     @PostMapping("/sync")
     public ApiResponse<Map<String, Object>> runCmcDataSync(
@@ -36,37 +37,57 @@ public class CmcBatchController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            log.info("=== 수동 CoinMarketCap 데이터 동기화 실행 요청 ===");
+            log.info("=== 분산 락 기반 CMC 데이터 동기화 실행 요청 ===");
             log.info("실행 모드: {}", mode);
             log.info("요청 시간: {}", LocalDateTime.now());
             
-            JobParameters jobParameters = new JobParametersBuilder()
-                    .addLocalDateTime("executeTime", LocalDateTime.now())
-                    .addString("mode", mode)
-                    .addString("trigger", "manual")
-                    .toJobParameters();
+            // 분산 락을 활용한 안전한 배치 실행
+            cmcBatchScheduler.runManualCmcDataSync();
             
-            JobExecution jobExecution = jobLauncher.run(cmcDataSyncJob, jobParameters);
-
-            log.info("CoinMarketCap 데이터 동기화 시작 완료 - Job Execution ID: {}", jobExecution.getId());
+            response.put("success", true);
+            response.put("message", "CMC 데이터 동기화가 성공적으로 시작되었습니다");
+            response.put("mode", mode);
+            response.put("timestamp", LocalDateTime.now());
+            response.put("distributedLockApplied", true);
             
             return ApiResponse.success(response);
             
-        } catch (JobExecutionAlreadyRunningException e) {
-            log.warn("CoinMarketCap 배치 작업이 이미 실행 중입니다", e);
-            return ApiResponse.error(400, "JOB_ALREADY_RUNNING", "배치 작업이 이미 실행 중입니다. 잠시 후 다시 시도해주세요.");
+        } catch (IllegalStateException e) {
+            log.warn("분산 락 충돌: {}", e.getMessage());
+            response.put("success", false);
+            response.put("error", "DISTRIBUTED_LOCK_CONFLICT");
+            response.put("message", e.getMessage());
+            return ApiResponse.error(409, "DISTRIBUTED_LOCK_CONFLICT", e.getMessage());
             
-        } catch (JobRestartException e) {
-            log.error("CoinMarketCap 배치 작업 재시작 오류", e);
-            return ApiResponse.error(400, "JOB_RESTART_ERROR", "배치 작업 재시작 중 오류가 발생했습니다.");
-            
-        } catch (JobInstanceAlreadyCompleteException e) {
-            log.warn("CoinMarketCap 배치 작업이 이미 완료되었습니다", e);
-            return ApiResponse.error(400, "JOB_ALREADY_COMPLETE", "동일한 파라미터로 이미 완료된 배치 작업이 있습니다.");
+        } catch (RuntimeException e) {
+            log.error("CMC 배치 실행 중 오류 발생", e);
+            return ApiResponse.error(500, "BATCH_EXECUTION_ERROR", e.getMessage());
             
         } catch (Exception e) {
-            log.error("CoinMarketCap 배치 작업 실행 중 예상치 못한 오류 발생", e);
+            log.error("예상치 못한 오류 발생", e);
             return ApiResponse.error(500, "UNEXPECTED_ERROR", "배치 작업 실행 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * CMC API 사용률 및 분산 락 상태 조회
+     */
+    @GetMapping("/api-status")
+    public ApiResponse<Map<String, Object>> getCmcApiStatus() {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            String usageStatus = cmcBatchScheduler.getCmcApiUsageStatus();
+            
+            response.put("success", true);
+            response.put("status", usageStatus);
+            response.put("timestamp", LocalDateTime.now());
+            
+            return ApiResponse.success(response);
+            
+        } catch (Exception e) {
+            log.error("CMC API 상태 조회 중 오류 발생", e);
+            return ApiResponse.error(500, "STATUS_CHECK_ERROR", "상태 조회 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
 
