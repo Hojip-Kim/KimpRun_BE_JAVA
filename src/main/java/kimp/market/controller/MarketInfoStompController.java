@@ -7,6 +7,7 @@ import kimp.market.dto.market.response.websocket.MarketWebsocketResponseDto;
 import kimp.market.dto.market.response.websocket.UserWebsocketResponseDto;
 import kimp.market.dto.marketInfo.common.MarketInfoWebsocketDto;
 import kimp.market.service.MarketInfoService;
+import kimp.telegram.service.TelegramService;
 import kimp.websocket.service.WebSocketUserTracker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -23,12 +24,14 @@ public class MarketInfoStompController {
     private final SimpMessagingTemplate messagingTemplate;
     private final WebSocketUserTracker webSocketUserTracker;
     private final ObjectMapper objectMapper;
+    private final TelegramService telegramService;
 
-    public MarketInfoStompController(MarketInfoService marketInfoService, SimpMessagingTemplate messagingTemplate, WebSocketUserTracker webSocketUserTracker, ObjectMapper objectMapper) {
+    public MarketInfoStompController(MarketInfoService marketInfoService, SimpMessagingTemplate messagingTemplate, WebSocketUserTracker webSocketUserTracker, ObjectMapper objectMapper, TelegramService telegramService) {
         this.marketInfoService = marketInfoService;
         this.messagingTemplate = messagingTemplate;
         this.webSocketUserTracker = webSocketUserTracker;
         this.objectMapper = objectMapper;
+        this.telegramService = telegramService;
     }
 
     public void sendNewNotice(NoticeDto noticeDto) throws IOException {
@@ -36,6 +39,14 @@ public class MarketInfoStompController {
         
         // STOMP 브로커를 통해 /topic/marketInfo/notice로 공지사항 전송
         messagingTemplate.convertAndSend("/topic/marketInfo/notice", noticeData);
+        
+        // 텔레그램 채널로도 공지사항 전송
+        try {
+            telegramService.sendNoticeMessage(noticeDto);
+        } catch (Exception e) {
+            log.error("텔레그램 알림 전송 실패: {} - {} (오류: {})", 
+                    noticeDto.getExchangeType().name(), noticeDto.getTitle(), e.getMessage());
+        }
     }
 
     @Scheduled(fixedRate = 5000)
