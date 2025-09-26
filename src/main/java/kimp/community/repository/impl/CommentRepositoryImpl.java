@@ -1,10 +1,11 @@
-package kimp.community.repository;
+package kimp.community.repository.impl;
 
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import kimp.community.entity.Board;
 import kimp.community.entity.Comment;
+import kimp.community.repository.CommentRepositoryCustom;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
