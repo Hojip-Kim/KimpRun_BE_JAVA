@@ -52,10 +52,8 @@ public abstract class ExchangeScrapAbstract<T> implements ExchangeScrap<T> {
             // Python 서비스 엔드포인트 구성
             String exchangeName = getMarketType().name().toLowerCase();
             String url = pythonServiceUrl + "/notices/" + exchangeName;
-            
-            log.info("Python 서비스 호출: {}", url);
-            
-            // Python 서비스 호출 (RestClient 사용)
+
+            // Python 서비스 호출
             PythonNoticeResponseDto responseBody = restClient.get()
                 .uri(url)
                 .retrieve()
