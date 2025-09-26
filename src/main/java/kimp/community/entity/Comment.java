@@ -18,7 +18,7 @@ public class Comment extends TimeStamp {
     @Column(nullable = false)
     public String content;
 
-    @Column(nullable = false)
+    @Column(name = "parent_comment_id", nullable = false)
     private long parentCommentId = 0;
 
     @Column(nullable = false)
