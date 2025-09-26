@@ -70,9 +70,10 @@ public class CmcBatchMyBatisImpl implements CmcBatchDao {
     @Transactional
     public void updateCmcCoinLatestInfo(List<CmcApiDataDto> latestInfoList) {
         try {
-            // 유효한 데이터만 필터링
+            // 유효한 데이터만 필터링 (cmc_coin 테이블에 존재하는 코인만)
             List<CmcApiDataDto> validItems = latestInfoList.stream()
                 .filter(coin -> coin.getId() != null && coin.getCmcRank() != null && coin.getCmcRank() > 0)
+                .filter(coin -> cmcBatchMapper.existsCmcCoin(coin.getId()))
                 .toList();
 
             if (validItems.isEmpty()) {
@@ -151,7 +152,7 @@ public class CmcBatchMyBatisImpl implements CmcBatchDao {
                     
                     if (exchangeInfoId == null) {
                         // 기존 정보가 없으면 INSERT 후 cmc_exchange 테이블에 FK 연결
-                        cmcBatchMapper.insertCmcExchangeInfo(fiatsData);
+                        cmcBatchMapper.insertCmcExchangeInfo(info.getId(), fiatsData);
                         exchangeInfoId = getLastInsertedId("cmc_exchange_info");
                     } else {
                         // 기존 정보가 있으면 UPDATE
@@ -178,7 +179,7 @@ public class CmcBatchMyBatisImpl implements CmcBatchDao {
                         if (website != null && !website.trim().isEmpty()) {
                             if (exchangeUrlId == null) {
                                 // 기존 정보가 없으면 INSERT 후 cmc_exchange 테이블에 FK 연결
-                                cmcBatchMapper.insertCmcExchangeUrl(website);
+                                cmcBatchMapper.insertCmcExchangeUrl(info.getId(), website);
                                 exchangeUrlId = getLastInsertedId("cmc_exchange_url");
                             } else {
                                 // 기존 정보가 있으면 UPDATE
@@ -281,9 +282,17 @@ public class CmcBatchMyBatisImpl implements CmcBatchDao {
 
         int processedCount = 0;
         int errorCount = 0;
+        int skippedCount = 0;
         
         for (CmcApiDataDto coin : validItems) {
             try {
+                // CMC 코인이 존재하는지 먼저 확인
+                if (!cmcBatchMapper.existsCmcCoin(coin.getId())) {
+                    log.debug("CMC 코인이 존재하지 않아 메타 데이터 처리 건너뜀 - coin_id: {}", coin.getId());
+                    skippedCount++;
+                    continue;
+                }
+                
                 // CmcCoinMeta 테이블에 메타 정보 저장과 동시에 CmcCoinInfo에 연결
                 cmcBatchMapper.insertCmcCoinMeta(coin);
                 processedCount++;
@@ -295,7 +304,7 @@ public class CmcBatchMyBatisImpl implements CmcBatchDao {
             }
         }
 
-        log.info("코인 메타 데이터 처리 완료 - 성공: {} 건, 오류: {} 건", processedCount, errorCount);
+        log.info("코인 메타 데이터 처리 완료 - 성공: {} 건, 오류: {} 건, 건너뜀: {} 건", processedCount, errorCount, skippedCount);
     }
 
     @Override

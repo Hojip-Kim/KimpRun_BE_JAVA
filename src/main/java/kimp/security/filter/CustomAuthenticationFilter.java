@@ -48,8 +48,6 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
             String memberName = credentials.get("email");
             String password = credentials.get("password");
 
-            log.info("로그인 시도 - membername: {}", memberName);
-
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(memberName, password);
 
             return this.getAuthenticationManager().authenticate(authToken);
@@ -80,8 +78,6 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
         ObjectMapper mapper = new ObjectMapper();
 
         String ip = getIpFromRequestHeader(request);
-
-        log.info("로그인 성공 - memberName: {}", customUserDetails.getEmail());
 
         Member member = memberService.getmemberByEmail(customUserDetails.getEmail());
 

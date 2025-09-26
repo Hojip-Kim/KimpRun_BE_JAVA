@@ -40,8 +40,8 @@ public class Board extends TimeStamp {
     @OneToOne(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private BoardLikeCount boardLikeCount;
 
-    @Lob // 길이가 긴 문자열
-    @Column(nullable = false)
+    @Lob // 길이가 긴 문자열 (이미지 포함)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column

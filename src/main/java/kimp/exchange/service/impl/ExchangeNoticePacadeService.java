@@ -21,7 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class ExchangeNoticePacadeService {
@@ -60,6 +63,60 @@ public class ExchangeNoticePacadeService {
         }
 
         return this.noticeDao.createBulkNotice(noticeList);
+    }
+
+
+    /**
+     * 최적화된 JPA 배치를 사용한 공지사항 대량 생성 메서드
+     * - N+1 문제 해결 (한번의 SELECT로 기존 링크 확인)
+     * - Hibernate batch_size 설정 활용한 JPA 배치 INSERT
+     */
+    @Transactional
+    public boolean createNoticesBulkOptimized(MarketType marketType, List<NoticeParsedData> noticeParsedDataList){
+        if (noticeParsedDataList == null || noticeParsedDataList.isEmpty()) {
+            return true;
+        }
+
+        // 1. Exchange 정보 미리 조회 (1 query)
+        Exchange exchange = exchangeDao.getExchangeByMarketType(marketType);
+
+        // 2. 모든 새로운 링크들을 Set으로 추출 (중복 제거 및 빠른 조회)
+        Set<String> newNoticeLinks = noticeParsedDataList.stream()
+                .map(NoticeParsedData::getAlink)
+                .filter(link -> link != null && !link.trim().isEmpty())
+                .collect(Collectors.toSet());
+
+        if (newNoticeLinks.isEmpty()) {
+            return true;
+        }
+
+        // 3. 기존 공지사항 링크들을 한번에 조회 (1 query로 N+1 문제 해결)
+        List<String> existingLinks = noticeDao.findExistingNoticeLinks(new ArrayList<>(newNoticeLinks));
+        Set<String> existingLinkSet = new HashSet<>(existingLinks);
+
+        // 4. 메모리에서 중복되지 않은 공지사항만 필터링하여 Notice 객체 생성
+        List<Notice> noticeList = noticeParsedDataList.stream()
+                .filter(noticeParsedData -> {
+                    String link = noticeParsedData.getAlink();
+                    return link != null && !link.trim().isEmpty() && !existingLinkSet.contains(link);
+                })
+                .map(noticeParsedData -> {
+                    Notice notice = new Notice(
+                            noticeParsedData.getTitle(), 
+                            noticeParsedData.getAlink(), 
+                            noticeParsedData.getDate()
+                    );
+                    return notice.setExchange(exchange);
+                })
+                .collect(Collectors.toList());
+
+        // 5. 생성할 공지사항이 없으면 성공 반환
+        if (noticeList.isEmpty()) {
+            return true;
+        }
+
+        // 6. JPA 배치 INSERT (Hibernate batch_size 설정 활용)
+        return this.noticeDao.createBulkNoticeOptimized(noticeList);
     }
 
     @Transactional

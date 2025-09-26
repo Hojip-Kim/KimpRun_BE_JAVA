@@ -47,6 +47,11 @@ public class CommentDaoImpl implements CommentDao {
     public Page<Comment> getComments(Board board, Pageable pageable) {
         return this.commentRepository.findByBoardAndIsDeletedFalse(board, pageable);
     }
+    
+    @Override
+    public Page<Comment> getCommentsWithBoard(Board board, Pageable pageable) {
+        return this.commentRepository.findByBoardWithMemberFetchJoin(board, pageable);
+    }
 
     @Override
     public boolean deleteComment(long commentId) {

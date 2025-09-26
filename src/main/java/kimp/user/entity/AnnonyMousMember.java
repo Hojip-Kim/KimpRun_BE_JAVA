@@ -28,7 +28,7 @@ public class AnnonyMousMember extends TimeStamp {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="member_uuid", unique = true)
+    @Column(name="member_uuid")
     private String memberUuid;
 
     @Column(name="member_ip")

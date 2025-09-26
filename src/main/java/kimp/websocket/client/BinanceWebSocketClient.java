@@ -9,6 +9,7 @@ import kimp.websocket.dto.response.BinanceReceiveDto;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.framing.Framedata;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.math.BigDecimal;
@@ -89,7 +90,7 @@ public class BinanceWebSocketClient extends WebSocketClient {
     }
 
     @Override
-    public void onWebsocketPong(WebSocket conn, org.java_websocket.framing.Framedata f) {
+    public void onWebsocketPong(WebSocket conn, Framedata f) {
         log.info("[바이낸스] 웹소켓 Pong 메시지 수신 완료");
     }
 
@@ -136,20 +137,20 @@ public class BinanceWebSocketClient extends WebSocketClient {
             this.sendPing();
 
             long startTime = System.currentTimeMillis();
-            long timeout = 3000; // 3 seconds timeout
+            long timeout = 3000;
 
             while (System.currentTimeMillis() - startTime < timeout) {
                 if (isConnected) {
                     return true;
                 }
                 try {
-                    Thread.sleep(100); // Check every 100ms
+                    Thread.sleep(100);
                 } catch (InterruptedException e) {
                     log.warn("[바이낸스] 네트워크 상태 확인 중 인터럽트 발생, 계속 진행");
-                    Thread.interrupted(); // Clear interrupt status
+                    Thread.interrupted();
                 }
             }
-            return false; // Timeout occurred
+            return false;
         } catch (Exception e) {
             log.error("[바이낸스] 네트워크 상태 확인 중 오류 발생", e);
             return false;

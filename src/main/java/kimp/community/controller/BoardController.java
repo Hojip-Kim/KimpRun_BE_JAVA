@@ -8,8 +8,11 @@ import kimp.community.dto.board.request.UpdateBoardRequestDto;
 import kimp.community.dto.board.response.BoardResponseDto;
 import kimp.community.dto.board.response.BoardWithCommentResponseDto;
 import kimp.community.dto.comment.response.ResponseCommentDto;
+import kimp.community.dto.batch.request.BatchHardDeleteRequest;
+import kimp.community.dto.batch.response.BatchHardDeleteResponse;
 import kimp.community.service.BoardService;
 import kimp.community.service.BoardPacadeService;
+import kimp.community.service.BatchService;
 import kimp.exception.response.ApiResponse;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
@@ -29,10 +32,12 @@ public class BoardController {
 
     private final BoardService boardService;
     private final BoardPacadeService boardPacadeService;
+    private final BatchService batchService;
 
-    public BoardController(BoardService boardService, BoardPacadeService boardPacadeService) {
+    public BoardController(BoardService boardService, BoardPacadeService boardPacadeService, BatchService batchService) {
         this.boardService = boardService;
         this.boardPacadeService = boardPacadeService;
+        this.batchService = batchService;
     }
 
 
@@ -222,6 +227,45 @@ public class BoardController {
         CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
         boardPacadeService.softDeleteBoard(customUserDetails.getId(), boardId);
         return ApiResponse.success(null);
+    }
+
+    /**
+     * 소프트 삭제된 게시물 및 댓글 일괄 하드 삭제 (관리자 전용)
+     * executeDelete=false로 설정하면 실제 삭제 없이 삭제 예정 개수만 조회하기 가능.
+     * 
+     * @param request 배치 삭제 요청 정보 (기준 날짜, 배치 크기, 실행 여부)
+     * @return 배치 삭제 결과 (삭제된 게시물/댓글 수, 처리 시간 등)
+     */
+    @PreAuthorize("hasAnyAuthority('MANAGER','OPERATOR')")
+    @PostMapping("/batch/hard-delete")
+    public ApiResponse<BatchHardDeleteResponse> batchHardDelete(
+            @AuthenticationPrincipal UserDetails userDetails, 
+            @RequestBody BatchHardDeleteRequest request) {
+        
+        if (request == null) {
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, 
+                "배치 삭제 요청 정보가 없습니다.", HttpStatus.BAD_REQUEST, "BoardController.batchHardDelete");
+        }
+        
+        if (request.getBeforeDate() == null) {
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, 
+                "기준 날짜가 필요합니다.", HttpStatus.BAD_REQUEST, "BoardController.batchHardDelete");
+        }
+        
+        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
+        
+        log.info("배치 하드 삭제 요청 - 관리자: {}, 기준 날짜: {}, 배치 크기: {}, 실행 여부: {}", 
+            customUserDetails.getUsername(), request.getBeforeDate(), 
+            request.getBatchSize(), request.isExecuteDelete());
+        
+        BatchHardDeleteResponse response = request.isExecuteDelete() 
+            ? batchService.executeHardDeleteBatch(request)
+            : batchService.countSoftDeletedItems(request);
+        
+        log.info("배치 하드 삭제 완료 - 삭제된 게시물: {}개, 삭제된 댓글: {}개, 처리 시간: {}ms", 
+            response.getDeletedBoardCount(), response.getDeletedCommentCount(), response.getProcessingTimeMs());
+        
+        return ApiResponse.success(response);
     }
 
 }

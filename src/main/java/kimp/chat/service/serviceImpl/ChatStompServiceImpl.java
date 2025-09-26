@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
@@ -17,7 +16,6 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -37,7 +35,7 @@ public class ChatStompServiceImpl implements ChatStompService {
     public void initQueueProcessor() {
         queueProcessor = new Thread(this::processMessageQueue, "ChatMessageProcessor");
         queueProcessor.start();
-        log.info("Chat message queue processor started");
+        log.info("채팅 메시지 큐 프로세서 시작됨");
     }
 
     @PreDestroy
@@ -49,7 +47,6 @@ public class ChatStompServiceImpl implements ChatStompService {
                 queueProcessor.join(5000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                log.warn("Queue processor shutdown interrupted");
             }
         }
     }
@@ -62,11 +59,11 @@ public class ChatStompServiceImpl implements ChatStompService {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 if (processingActive.get()) {
-                    log.error("Message queue processor interrupted unexpectedly", e);
+                    log.error("메시지큐 프로세서 인터럽트 발생", e);
                 }
                 break;
             } catch (Exception e) {
-                log.error("Error processing message from queue", e);
+                log.error("큐에서 메시지 처리 중 오류 발생", e);
             }
         }
     }
@@ -74,7 +71,7 @@ public class ChatStompServiceImpl implements ChatStompService {
     private void saveMessageSync(SaveChatMessage saveChatMessage) {
         try {
             if (saveChatMessage.getContent().isEmpty()) {
-                log.error("Empty chat message content - UUID: {}", saveChatMessage.getUuid());
+                log.error("빈 채팅 메시지 내용 - UUID: {}", saveChatMessage.getUuid());
                 return;
             }
 
@@ -83,9 +80,9 @@ public class ChatStompServiceImpl implements ChatStompService {
                     saveChatMessage.getUuid(), saveChatMessage.getInherienceId(),
                     saveChatMessage.getIsDeleted(), saveChatMessage.getMemberId());
 
-            log.debug("Chat message saved - UUID: {}", saveChatMessage.getUuid());
+            log.debug("채팅 메시지 저장됨 - UUID: {}", saveChatMessage.getUuid());
         } catch (Exception e) {
-            log.error("Failed to save chat message - UUID: {}, Error: {}", 
+            log.error("채팅 메시지 저장 실패 - UUID: {}, 오류: {}", 
                 saveChatMessage.getUuid(), e.getMessage(), e);
         }
     }
@@ -119,45 +116,41 @@ public class ChatStompServiceImpl implements ChatStompService {
     }
 
     /**
-     * 채팅 메시지를 비동기적으로 저장.
-     * 전용 스레드 풀에서 실행되어 메인 처리 스레드를 블로킹하지 않음.
+     * 채팅 메시지를 BlockingQueue에 추가하여 순서를 보장하며 비동기 저장
+     * 큐에 추가하는 작업은 동기적으로 처리되지만 매우 빠르므로 성능 영향 최소
+     * 실제 DB 저장은 별도 스레드에서 비동기로 처리됨
      * 
      * @param saveChatMessage 저장할 채팅 메시지
-     * @return CompletableFuture<Void> 비동기 작업 결과
+     * @return boolean 큐 추가 성공 여부 (true: 성공, false: 실패)
      */
     @Override
-    @Async("chatSaveExecutor")
-    public CompletableFuture<Void> saveMessageAsync(SaveChatMessage saveChatMessage) {
+    public boolean saveMessageAsync(SaveChatMessage saveChatMessage) {
         try {
-            log.debug("Async chat save started - UUID: {}, Thread: {}", 
-                saveChatMessage.getUuid(), Thread.currentThread().getName());
-            
             // 메시지 유효성 검증
             if(saveChatMessage.getContent().isEmpty()){
-                log.error("Empty chat message content - UUID: {}", saveChatMessage.getUuid());
-                throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, 
-                    "Chat message content cannot be empty", HttpStatus.BAD_REQUEST, 
-                    "ChatStompServiceImpl.saveMessageAsync");
+                log.error("빈 채팅 메시지 내용 - UUID: {}", saveChatMessage.getUuid());
+                return false;
             }
 
-            // 비동기 DB 저장
-            chatDao.insertChat(saveChatMessage.getChatID(), saveChatMessage.getContent(),
-                saveChatMessage.getAuthenticated(), saveChatMessage.getUserIp(), 
-                saveChatMessage.getUuid(), // cookiePayload (uuid 필드에 저장됨)
-                saveChatMessage.getInherienceId(), // randomUUID (inherienceId 필드에 저장됨)
-                saveChatMessage.getIsDeleted(),
-                    saveChatMessage.getMemberId());
+            // BlockingQueue에 메시지 추가 (순서 보장)
+            // offer는 즉시 반환되므로 동기 처리해도 성능 영향 최소
+            boolean offered = messageQueue.offer(saveChatMessage);
+            if (!offered) {
+                // 큐가 가득 찬 경우 실패 반환 (블로킹 방지)
+                log.error("메시지 큐가 가득 참 - UUID: {}, 큐 크기: {}", 
+                    saveChatMessage.getUuid(), messageQueue.size());
+                return false;
+            }
             
-            log.debug("Async chat save completed - UUID: {}", saveChatMessage.getUuid());
-            return CompletableFuture.completedFuture(null);
+            log.debug("저장을 위해 메시지가 큐에 추가됨 - UUID: {}, 큐 크기: {}", 
+                saveChatMessage.getUuid(), messageQueue.size());
+            
+            return true;
             
         } catch (Exception e) {
-            log.error("Failed to save chat message asynchronously - UUID: {}, Error: {}", 
+            log.error("채팅 메시지 큐 추가 실패 - UUID: {}, 오류: {}", 
                 saveChatMessage.getUuid(), e.getMessage(), e);
-            // 예외를 CompletableFuture로 감싸서 반환
-            CompletableFuture<Void> failedFuture = new CompletableFuture<>();
-            failedFuture.completeExceptionally(e);
-            return failedFuture;
+            return false;
         }
     }
 }

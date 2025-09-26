@@ -17,7 +17,7 @@ public class Category extends TimeStamp {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="category_name",nullable = false)
+    @Column(name="category_name",nullable = false, unique = true)
     public String categoryName;
 
     @OneToOne(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

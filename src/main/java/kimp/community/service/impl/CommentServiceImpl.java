@@ -50,6 +50,13 @@ public class CommentServiceImpl implements CommentService {
 
         return comments;
     }
+    
+    @Override
+    public Page<Comment> getCommentByBoardWithDeleted(Board board, int page) {
+        PageRequest pageRequest = PageRequest.of(page, 30);
+        Page<Comment> comments = commentDao.getCommentsWithBoard(board, pageRequest);
+        return comments;
+    }
 
     @Override
     public Comment getCommentById(long commentId) {
@@ -103,16 +110,28 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public ResponseCommentDto convertCommentToResponseDto(Comment comment) {
-        long commentId = comment.getId();
-        long parentCommentId = comment.getParentCommentId();
-        String content = comment.getContent();
-        int depth = comment.getDepth();
-        String memberEmail = comment.getMember().getEmail();
-        String memberNickName = comment.getMember().getNickname();
-        Long memberId = comment.getMember().getId();
-        LocalDateTime createdAt = comment.getRegistedAt();
-        LocalDateTime updatedAt = comment.getUpdatedAt();
-        return new ResponseCommentDto(commentId, parentCommentId, content, depth, memberEmail, memberNickName, memberId, createdAt, updatedAt);
+        if (comment.isDeleted()) {
+            // 삭제된 댓글의 경우 민감한 정보를 null로 처리
+            return ResponseCommentDto.createDeletedComment(
+                    comment.getId(),
+                    comment.getParentCommentId(),
+                    comment.getDepth(),
+                    comment.getRegistedAt(),
+                    comment.getUpdatedAt()
+            );
+        } else {
+            // 일반 댓글의 경우 모든 정보 포함
+            long commentId = comment.getId();
+            long parentCommentId = comment.getParentCommentId();
+            String content = comment.getContent();
+            int depth = comment.getDepth();
+            String memberEmail = comment.getMember().getEmail();
+            String memberNickName = comment.getMember().getNickname();
+            Long memberId = comment.getMember().getId();
+            LocalDateTime createdAt = comment.getRegistedAt();
+            LocalDateTime updatedAt = comment.getUpdatedAt();
+            return new ResponseCommentDto(commentId, parentCommentId, content, depth, memberEmail, memberNickName, memberId, createdAt, updatedAt);
+        }
     }
 
     @Override

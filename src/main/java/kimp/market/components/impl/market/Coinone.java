@@ -89,7 +89,6 @@ public class Coinone extends Market<CoinoneCryptoDto> {
     }
 
     public void setMarketDataList() {
-        log.info("Coinone dataList reset");
         if (this.coinoneMarketList == null) {
             throw new IllegalArgumentException("Upbit Market List is null");
         }

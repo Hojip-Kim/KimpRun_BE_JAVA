@@ -114,7 +114,6 @@ public class Binance extends Market<BinanceCryptoDto> {
     }
 
     public void setMarketDataList(){
-        log.info("Binance dataList reset");
         if(this.binanceMarketList == null) {
             throw new IllegalArgumentException("Binance Market List is null");
         }

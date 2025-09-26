@@ -27,13 +27,13 @@ public interface CmcBatchMapper {
     // 거래소 관련 배치 메서드들
     void upsertCmcExchangeMap(@Param("exchangeMapList") List<CmcExchangeDto> exchangeMapList);
     Long getExchangeInfoIdByExchangeId(@Param("exchangeId") Long exchangeId);
-    void insertCmcExchangeInfo(@Param("fiats") String fiats);
+    void insertCmcExchangeInfo(@Param("exchangeId") Long exchangeId, @Param("fiats") String fiats);
     void updateCmcExchangeInfo(@Param("exchangeInfoId") Long exchangeInfoId, @Param("fiats") String fiats);
     Long getExchangeMetaIdByExchangeId(@Param("exchangeId") Long exchangeId);
     void insertCmcExchangeMeta(@Param("exchangeDetail") CmcExchangeDetailDto exchangeDetail);
     void updateCmcExchangeMeta(@Param("exchangeMetaId") Long exchangeMetaId, @Param("exchangeDetail") CmcExchangeDetailDto exchangeDetail);
     Long getExchangeUrlIdByExchangeId(@Param("exchangeId") Long exchangeId);
-    void insertCmcExchangeUrl(@Param("website") String website);
+    void insertCmcExchangeUrl(@Param("exchangeId") Long exchangeId, @Param("website") String website);
     void updateCmcExchangeUrl(@Param("exchangeUrlId") Long exchangeUrlId, @Param("website") String website);
     void updateCmcExchangeWithDetails(@Param("exchangeInfoId") Long exchangeInfoId, 
                                      @Param("exchangeMetaId") Long exchangeMetaId, 

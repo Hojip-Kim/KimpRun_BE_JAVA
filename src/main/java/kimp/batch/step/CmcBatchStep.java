@@ -113,8 +113,7 @@ public class CmcBatchStep {
     @Bean
     public Tasklet exchangeInfoBulkTasklet() {
         return (contribution, chunkContext) -> {
-            log.info("CmcExchange 상세 정보 멀티스레딩 작업 시작 ");
-            
+
             // 모든 CMC Exchange ID 조회
             List<Integer> allExchangeIds = cmcBatchDao.getCmcExchangeIds(1000);
             log.info("총 {} 개의 CMC Exchange ID 조회됨", allExchangeIds.size());
@@ -128,7 +127,7 @@ public class CmcBatchStep {
             }
             
             log.info("총 {} 개의 배치로 분할하여 멀티스레드 처리", batches.size());
-            
+
             // 스레드 풀 생성 (최대 5개 스레드)
             ExecutorService executor = Executors.newFixedThreadPool(Math.min(5, batches.size()));
             AtomicInteger processedCount = new AtomicInteger(0);

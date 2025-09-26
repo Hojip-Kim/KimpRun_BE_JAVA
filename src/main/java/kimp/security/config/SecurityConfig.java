@@ -75,7 +75,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(createCsrfTokenRepository())
                         // WebSocket 연결 자체는 CSRF에서 제외하지만, STOMP 메시지는 CsrfChannelInterceptor에서 검증
-                        .ignoringRequestMatchers("/ws/**")
+                        .ignoringRequestMatchers("/ws/**", "/batch/**")
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
@@ -138,7 +138,6 @@ public class SecurityConfig {
         repository.setCookieMaxAge(-1); // 세션 쿠키
         repository.setSecure(false); // HTTPS가 아닌 환경에서도 작동
 
-        log.info("🔧 CSRF 토큰 리포지토리 설정: cookiePath=/, httpOnly=false, secure=false");
         return repository;
     }
 
@@ -184,14 +183,12 @@ public class SecurityConfig {
                 response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().write("{\"result\":\"failure\",\"message\":\"Authentication required for login endpoint\"}");
                 response.getWriter().flush();
-                log.info("🔐 /login 엔드포인트 접근 - OAuth2 리다이렉트 방지");
                 return;
             }
             
             // 다른 경로에 대해서는 OAuth2 authorization endpoint로 리다이렉트
             String redirectUrl = request.getRequestURL().toString().replace(request.getRequestURI(), "") + 
                                 "/oauth2/authorization/google";
-            log.info("🔐 OAuth2 리다이렉트 수행: {}", redirectUrl);
             response.sendRedirect(redirectUrl);
         };
     }

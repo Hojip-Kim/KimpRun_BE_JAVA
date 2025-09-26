@@ -43,8 +43,6 @@ public class OAuth2ServiceImpl implements OAuth2Service {
         String providerId = (String) attributes.get("sub");
         String nickName = nicknameGeneratorUtils.createRandomNickname();
 
-        log.info("OAuth2 attributes: {}", attributes);
-
         String password = UUID.randomUUID().toString();
 
         // 1. 이메일로 회원 조회
@@ -94,7 +92,7 @@ public class OAuth2ServiceImpl implements OAuth2Service {
         } else {
             // 기존 회원이 있을 경우 OAuth 정보 연결 또는 업데이트
             log.info("기존 회원에 OAuth 정보 연결 - Email: {}, Provider: {}", email, Oauth.GOOGLE.name());
-            
+
             member = memberService.attachOAuthToMember(
                 member,
                 Oauth.GOOGLE.name(),

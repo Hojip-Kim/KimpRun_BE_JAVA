@@ -6,6 +6,8 @@ import kimp.community.entity.Category;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
+
 public interface BoardRepositoryCustom {
     
     /**
@@ -49,4 +51,22 @@ public interface BoardRepositoryCustom {
      * 특정 멤버의 게시글 DTO 조회
      */
     Page<BoardResponseDto> findBoardDtosByMemberOrderByRegistedAtDesc(Long memberId, Pageable pageable);
+    
+    /**
+     * 특정 날짜 이전에 소프트 삭제된 게시물 개수 조회
+     * 
+     * @param beforeDate 기준 날짜 (이 날짜 이전에 업데이트된 항목들)
+     * @param pageable 배치 크기 제한
+     * @return 소프트 삭제된 게시물 개수
+     */
+    long countSoftDeletedBoardsBeforeDate(LocalDateTime beforeDate, Pageable pageable);
+    
+    /**
+     * 특정 날짜 이전에 소프트 삭제된 게시물들을 완전 삭제
+     * 
+     * @param beforeDate 기준 날짜 (이 날짜 이전에 업데이트된 항목들)
+     * @param pageable 배치 크기 제한
+     * @return 삭제된 게시물 개수
+     */
+    long deleteSoftDeletedBoardsBeforeDate(LocalDateTime beforeDate, Pageable pageable);
 }

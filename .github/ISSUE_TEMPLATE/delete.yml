@@ -1,0 +1,49 @@
+name: "DELETE: 코드/파일/설정 삭제"
+description: 더 이상 사용되지 않는 코드, 파일, 설정 등을 삭제합니다.
+title: "[DELETE] "
+labels: ["delete", "cleanup"]
+body:
+  - type: textarea
+    id: target
+    attributes:
+      label: 🗑️ 삭제 대상
+      description: 어떤 코드/파일/설정/모듈을 삭제하나요?
+      placeholder: |
+        - src/components/LegacyLogin.tsx
+        - public/images/temp/
+        - application-dev.yml의 사용되지 않는 설정
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: 📌 삭제 사유
+      description: 삭제하는 이유를 설명해주세요 (사용되지 않음, 리팩터링, 환경 통합 등)
+      placeholder: |
+        - 새로운 로그인 로직이 도입되어 기존 컴포넌트가 사용되지 않음
+        - 해당 설정은 더 이상 환경에 적용되지 않음
+        - 테스트 목적 디렉토리로 현재 운영에는 필요 없음
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: 🚨 기능 영향 여부
+      description: 이 삭제가 기능 동작에 영향을 줄 가능성이 있다면 설명해주세요.
+      placeholder: |
+        - 없음 (빌드/테스트 확인 완료)
+        - 공지사항 캐시 로직과 연결되어 있으므로, 삭제 전 확인 필요
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✅ 삭제 전 체크리스트
+      options:
+        - label: 기능에 영향이 없는지 확인함
+        - label: 관련 테스트가 모두 통과함
+        - label: Git blame 및 history 확인 완료
+        - label: CI/CD 영향 없음 확인

@@ -4,13 +4,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import kimp.community.dto.board.response.BoardResponseDto;
-import kimp.community.entity.Board;
-import kimp.community.entity.Category;
-import kimp.community.entity.QBoard;
-import kimp.community.entity.QBoardLikeCount;
-import kimp.community.entity.QBoardViews;
-import kimp.community.entity.QCategory;
-import kimp.community.entity.QCommentCount;
+import kimp.community.entity.*;
 import kimp.community.repository.BoardRepositoryCustom;
 import kimp.user.entity.QMember;
 import org.springframework.data.domain.Page;
@@ -19,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -37,6 +32,7 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
     QBoardViews boardViews = QBoardViews.boardViews;
     QBoardLikeCount boardLikeCount = QBoardLikeCount.boardLikeCount;
     QCommentCount commentCount = QCommentCount.commentCount;
+    QComment comment = QComment.comment;
 
     @Override
     @Transactional(readOnly = true)
@@ -448,5 +444,75 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
                 .fetchOne();
 
         return new PageImpl<>(results, pageable, totalCount != null ? totalCount : 0L);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long countSoftDeletedBoardsBeforeDate(LocalDateTime beforeDate, Pageable pageable) {
+        Long count = queryFactory
+                .select(board.count())
+                .from(board)
+                .where(board.isDeleted.eq(true)
+                    .and(board.updatedAt.before(beforeDate)))
+                .limit(pageable.getPageSize())
+                .fetchOne();
+        
+        return count != null ? count : 0L;
+    }
+    
+    @Override
+    @Transactional
+    public long deleteSoftDeletedBoardsBeforeDate(LocalDateTime beforeDate, Pageable pageable) {
+        // 삭제할 ID들 조회
+        List<Long> idsToDelete = queryFactory
+                .select(board.id)
+                .from(board)
+                .where(board.isDeleted.eq(true)
+                    .and(board.updatedAt.before(beforeDate)))
+                .limit(pageable.getPageSize())
+                .fetch();
+        
+        if (idsToDelete.isEmpty()) {
+            return 0L;
+        }
+        
+        // 연관된 엔티티들 먼저 삭제 (외래키 제약조건 고려)
+        // 1. CommentLikeCount 삭제 (Comment 삭제 전)
+        queryFactory
+                .delete(QCommentLikeCount.commentLikeCount)
+                .where(QCommentLikeCount.commentLikeCount.comment.board.id.in(idsToDelete))
+                .execute();
+        
+        // 2. Comment 삭제
+        queryFactory
+                .delete(comment)
+                .where(comment.board.id.in(idsToDelete))
+                .execute();
+        
+        // 3. BoardViews 삭제
+        queryFactory
+                .delete(boardViews)
+                .where(boardViews.board.id.in(idsToDelete))
+                .execute();
+        
+        // 4. BoardLikeCount 삭제
+        queryFactory
+                .delete(boardLikeCount)
+                .where(boardLikeCount.board.id.in(idsToDelete))
+                .execute();
+        
+        // 5. CommentCount 삭제
+        queryFactory
+                .delete(commentCount)
+                .where(commentCount.board.id.in(idsToDelete))
+                .execute();
+        
+        // 6. Board 삭제
+        long deletedCount = queryFactory
+                .delete(board)
+                .where(board.id.in(idsToDelete))
+                .execute();
+        
+        return deletedCount;
     }
 }

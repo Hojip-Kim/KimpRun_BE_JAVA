@@ -1,6 +1,8 @@
 package kimp.batch.scheduler;
 
 import kimp.cmc.dao.CmcBatchDao;
+import kimp.common.lock.DistributedLockService;
+import kimp.common.ratelimit.DistributedRateLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -20,15 +22,31 @@ public class CmcBatchScheduler {
     private final JobLauncher jobLauncher;
     private final Job cmcDataSyncJob;
     private final CmcBatchDao cmcBatchDao;
+    private final DistributedLockService distributedLockService;
+    private final DistributedRateLimiter distributedRateLimiter;
+    
+    // 분산 락 설정
+    private static final String CMC_BATCH_LOCK_KEY = "cmc-data-sync-daily";
+    private static final int LOCK_TTL_SECONDS = 3600; // 1시간 (배치 작업 최대 예상 시간)
 
     /**
-     * 매일 새벽 2시에 CoinMarketCap 데이터 동기화 실행
+     * 매일 새벽 2시에 CoinMarketCap 데이터 동기화 실행 (Redis 분산 락 적용)
      * CoinMarketCap 데이터가 보통 UTC 기준으로 갱신되므로 한국시간 새벽 2시에 실행
+     * 
+     * 분산 환경에서 여러 서버 중 하나만 배치 작업을 수행하도록 보장
      */
     @Scheduled(cron = "0 0 2 * * ?", zone = "Asia/Seoul", scheduler = "batchTaskScheduler")
     public void runCmcDataSyncJob() {
+        String lockToken = distributedLockService.tryLock(CMC_BATCH_LOCK_KEY, LOCK_TTL_SECONDS);
+        
+        if (lockToken == null) {
+            log.info("🔒 CMC 데이터 동기화 건너뜀 - 다른 서버에서 처리 중 ({})", 
+                distributedLockService.getLockOwner(CMC_BATCH_LOCK_KEY));
+            return;
+        }
+        
         try {
-            log.info("=== 스케줄된 CoinMarketCap 데이터 동기화 시작 ===");
+            log.info("🚀 CMC 데이터 동기화 시작 - 서버가 분산 락을 획득했습니다");
             log.info("실행 시간: {}", LocalDateTime.now());
             
             // 동기화 필요 여부 사전 확인
@@ -46,19 +64,91 @@ public class CmcBatchScheduler {
                 return;
             }
             
+            // CMC API Rate Limit 사전 확인
+            long currentUsage = distributedRateLimiter.getCurrentUsage("cmc-api", 60);
+            log.info("현재 CMC API 사용률: {}/40 (1분 윈도우)", currentUsage);
+            
             JobParameters jobParameters = new JobParametersBuilder()
                     .addLocalDateTime("executeTime", LocalDateTime.now())
+                    .addString("lockToken", lockToken) // 배치 Job에서 락 연장 가능하도록
+                    .toJobParameters();
+            
+            // 장시간 배치 실행 시 락 연장을 위한 추가 파라미터
+            jobParameters = new JobParametersBuilder(jobParameters)
+                    .addString("distributedLockKey", CMC_BATCH_LOCK_KEY)
                     .toJobParameters();
             
             jobLauncher.run(cmcDataSyncJob, jobParameters);
             
-            log.info("=== 스케줄된 CoinMarketCap 데이터 동기화 완료 ===");
+            log.info("✅ CMC 데이터 동기화 완료 - 분산 락 해제 예정");
             
         } catch (Exception e) {
-            log.error("CoinMarketCap 데이터 동기화 중 오류 발생", e);
+            log.error("❌ CoinMarketCap 데이터 동기화 중 오류 발생", e);
+            
+        } finally {
+            // 락 해제
+            if (distributedLockService.releaseLock(CMC_BATCH_LOCK_KEY, lockToken)) {
+            } else {
+                log.warn("⚠️ CMC 배치 분산 락 해제 실패 - 이미 만료되었을 수 있습니다");
+            }
         }
     }
 
-
+    /**
+     * 수동 CMC 데이터 동기화 (관리자 API용)
+     * 분산 락을 적용하여 안전한 수동 실행 제공
+     * 
+     * @throws IllegalStateException 다른 서버에서 배치 실행 중일 때
+     */
+    public void runManualCmcDataSync() {
+        // 정기 배치와 수동 배치가 동시에 실행되지 않도록 같은 락 키 사용
+        String lockToken = distributedLockService.tryLock(CMC_BATCH_LOCK_KEY, LOCK_TTL_SECONDS);
+        
+        if (lockToken == null) {
+            String currentOwner = distributedLockService.getLockOwner(CMC_BATCH_LOCK_KEY);
+            throw new IllegalStateException("다른 서버에서 CMC 배치가 실행 중입니다: " + currentOwner);
+        }
+        
+        try {
+            log.info("🔧 수동 CMC 데이터 동기화 시작");
+            
+            // Rate Limit 확인
+            DistributedRateLimiter.RateLimitResult rateLimitResult = 
+                distributedRateLimiter.tryAcquireCmcApiLimit();
+            
+            if (!rateLimitResult.isAllowed()) {
+                throw new IllegalStateException("CMC API Rate Limit 초과. 잠시 후 재시도해주세요. (남은: " 
+                    + rateLimitResult.getRemainingRequests() + "/" + rateLimitResult.getLimit() + ")");
+            }
+            
+            JobParameters jobParameters = new JobParametersBuilder()
+                    .addLocalDateTime("executeTime", LocalDateTime.now())
+                    .addString("executionType", "MANUAL")
+                    .addString("lockToken", lockToken)
+                    .addString("distributedLockKey", CMC_BATCH_LOCK_KEY)
+                    .toJobParameters();
+            
+            jobLauncher.run(cmcDataSyncJob, jobParameters);
+            
+            log.info("✅ 수동 CMC 데이터 동기화 완료");
+            
+        } catch (Exception e) {
+            log.error("❌ 수동 CMC 데이터 동기화 중 오류 발생", e);
+            throw new RuntimeException("CMC 배치 실행 실패: " + e.getMessage(), e);
+            
+        } finally {
+            distributedLockService.releaseLock(CMC_BATCH_LOCK_KEY, lockToken);
+        }
+    }
     
+    /**
+     * 현재 CMC API 사용률 조회
+     */
+    public String getCmcApiUsageStatus() {
+        long currentUsage = distributedRateLimiter.getCurrentUsage("cmc-api", 60);
+        String lockOwner = distributedLockService.getLockOwner(CMC_BATCH_LOCK_KEY);
+        
+        return String.format("CMC API 사용률: %d/40 (1분), 배치 실행 중: %s", 
+            currentUsage, lockOwner != null ? lockOwner : "없음");
+    }
 } 

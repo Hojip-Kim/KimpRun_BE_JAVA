@@ -7,6 +7,8 @@ import kimp.market.Enum.MarketType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +19,9 @@ import java.util.Optional;
 @Repository
 public class NoticeDaoImpl implements NoticeDao {
     private final NoticeRepository noticeRepository;
+    
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public NoticeDaoImpl(NoticeRepository noticeRepository) {
         this.noticeRepository = noticeRepository;
@@ -91,5 +96,45 @@ public class NoticeDaoImpl implements NoticeDao {
     @Override
     public List<Notice> findAllNoticesByMarketType(MarketType marketType) {
         return this.noticeRepository.findAllNoticesByMarketTypeWithFetch(marketType);
+    }
+
+    @Override
+    public List<String> findExistingNoticeLinks(List<String> links) {
+        if (links == null || links.isEmpty()) {
+            return List.of();
+        }
+        return this.noticeRepository.findExistingNoticeLinks(links);
+    }
+
+    @Override
+    @Transactional
+    public boolean createBulkNoticeOptimized(List<Notice> notices) {
+        if (notices == null || notices.isEmpty()) {
+            return true;
+        }
+
+        try {
+            // JPA의 배치 처리를 위한 최적화
+            // application.yml의 hibernate.jdbc.batch_size: 100 설정 활용
+            int batchSize = 100;
+            
+            for (int i = 0; i < notices.size(); i++) {
+                entityManager.persist(notices.get(i));
+                
+                // 배치 크기마다 flush & clear로 메모리 최적화
+                if (i % batchSize == 0 && i > 0) {
+                    entityManager.flush();
+                    entityManager.clear();
+                }
+            }
+            
+            // 마지막 배치 처리
+            entityManager.flush();
+            entityManager.clear();
+            
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException("배치 INSERT 중 오류 발생", e);
+        }
     }
 }

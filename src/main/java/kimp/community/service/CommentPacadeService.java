@@ -49,6 +49,14 @@ public class CommentPacadeService {
 
         return comments;
     }
+    
+    // Board와 함께 가져올 때 사용 (삭제된 댓글도 포함)
+    public Page<Comment> getCommentsWithDeleted(long boardId, int page) {
+        Board board = boardService.getBoardById(boardId);
+        Page<Comment> comments = commentService.getCommentByBoardWithDeleted(board, page);
+
+        return comments;
+    }
 
     @Transactional
     public Boolean commentLikeById(long commentId, long memberId) {

@@ -14,6 +14,9 @@ public interface CommentDao {
     public Comment createComment(Member member, Board board, String content, long parentCommentId, int depth);
 
     public Page<Comment> getComments(Board board, Pageable pageable);
+    
+    // Board와 함께 가져올 때 사용 (삭제된 댓글도 포함)
+    public Page<Comment> getCommentsWithBoard(Board board, Pageable pageable);
 
     public boolean deleteComment(long commentId);
     

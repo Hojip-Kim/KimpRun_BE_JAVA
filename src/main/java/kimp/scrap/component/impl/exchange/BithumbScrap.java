@@ -101,8 +101,6 @@ public class BithumbScrap extends ExchangeScrapAbstract<BithumbNoticeDto> {
     @Override
     public List<NoticeParsedData> parseNoticeData() throws IOException {
         try {
-            log.info("Bithumb Python 서비스를 통한 공지사항 파싱 시작");
-            
             // Python 서비스에서 공지사항 가져오기 (부모 클래스의 메서드 사용)
             PythonNoticeResponseDto pythonResponse = super.fetchPythonNotices();
             
@@ -114,7 +112,6 @@ public class BithumbScrap extends ExchangeScrapAbstract<BithumbNoticeDto> {
                 return new ArrayList<>();
             }
             
-            log.info("Bithumb 공지사항 {} 개 파싱 완료", noticeParsedDataList.size());
             return noticeParsedDataList;
             
         } catch (Exception e) {
