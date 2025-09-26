@@ -1,9 +1,9 @@
-
 package unit.kimp.cmc.service;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.persistence.EntityManager;
+import kimp.cmc.dao.CmcEntityPreloaderDao;
 import kimp.cmc.service.CmcEntityPreloaderService;
+import kimp.cmc.service.impl.CmcEntityPreloaderServiceImpl;
+import kimp.common.lock.DistributedLockService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,38 +15,92 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.*;
+
 @DisplayName("CmcEntityPreloaderService 단위 테스트")
 @ExtendWith(MockitoExtension.class)
 public class CmcEntityPreloaderServiceTest {
 
     @Mock
-    private EntityManager entityManager;
+    private CmcEntityPreloaderDao cmcEntityPreloaderDao;
 
     @Mock
-    private JPAQueryFactory queryFactory;
+    private DistributedLockService distributedLockService;
 
     private CmcEntityPreloaderService cmcEntityPreloaderService;
 
     @BeforeEach
     void setup() {
-        // 실제 생성자를 사용하여 서비스 객체 생성
-        cmcEntityPreloaderService = new CmcEntityPreloaderService(entityManager);
+        // 실제 구현체를 사용하여 서비스 객체 생성
+        CmcEntityPreloaderServiceImpl serviceImpl = new CmcEntityPreloaderServiceImpl(cmcEntityPreloaderDao);
+        // DistributedLockService는 필드 주입이므로 리플렉션 사용
+        try {
+            java.lang.reflect.Field field = CmcEntityPreloaderServiceImpl.class.getDeclaredField("distributedLockService");
+            field.setAccessible(true);
+            field.set(serviceImpl, distributedLockService);
+        } catch (Exception e) {
+            // 테스트 환경에서만 발생할 수 있는 예외 무시
+        }
+        
+        cmcEntityPreloaderService = serviceImpl;
     }
 
     @Test
-    @DisplayName("preloadAllCmcEntities 메서드 테스트 - 정상 호출 확인")
-    void shouldPreloadAllCmcEntitiesWithoutException() {
-        // Given - QueryDSL은 실제 쿼리 실행 시 엔티티가 필요하므로 여기서는 호출 가능성만 확인
+    @DisplayName("preloadAllCmcEntities 메서드 테스트 - 분산락 없이 정상 실행")
+    void shouldPreloadAllCmcEntitiesWithoutDistributedLock() {
+        // Given - 분산락이 없는 경우를 시뮬레이션
+        CmcEntityPreloaderServiceImpl serviceWithoutLock = new CmcEntityPreloaderServiceImpl(cmcEntityPreloaderDao);
         
-        // When & Then - 메서드 호출이 예외 없이 완료되는지 확인
-        try {
-            cmcEntityPreloaderService.preloadAllCmcEntities();
-            // QueryDSL은 실제 데이터베이스 연결이 필요하므로 예외가 발생할 수 있지만
-            // 메서드 구조와 로직이 올바른지 확인
-        } catch (Exception e) {
-            // QueryDSL 실행 중 발생하는 예외는 정상적인 동작 (Mock 환경에서)
-            // 중요한 것은 메서드 호출이 가능하다는 것
-        }
+        when(cmcEntityPreloaderDao.findAllCmcCoinsWithAssociations()).thenReturn(Collections.emptyList());
+        when(cmcEntityPreloaderDao.findAllCmcExchangesWithAssociations()).thenReturn(Collections.emptyList());
+        when(cmcEntityPreloaderDao.findCmcCoinsWithMainnet()).thenReturn(Collections.emptyList());
+        when(cmcEntityPreloaderDao.findCmcCoinsWithPlatforms()).thenReturn(Collections.emptyList());
+
+        // When
+        serviceWithoutLock.preloadAllCmcEntities();
+
+        // Then - DAO 메서드들이 호출되었는지 확인
+        verify(cmcEntityPreloaderDao, times(1)).findAllCmcCoinsWithAssociations();
+        verify(cmcEntityPreloaderDao, times(1)).findAllCmcExchangesWithAssociations();
+        verify(cmcEntityPreloaderDao, times(1)).findCmcCoinsWithMainnet();
+        verify(cmcEntityPreloaderDao, times(1)).findCmcCoinsWithPlatforms();
+    }
+
+    @Test
+    @DisplayName("preloadAllCmcEntities 메서드 테스트 - 분산락으로 정상 실행")
+    void shouldPreloadAllCmcEntitiesWithDistributedLock() {
+        // Given
+        when(distributedLockService.tryLock(anyString(), anyInt())).thenReturn("test-lock-token");
+        when(distributedLockService.releaseLock(anyString(), anyString())).thenReturn(true);
+        when(cmcEntityPreloaderDao.findAllCmcCoinsWithAssociations()).thenReturn(Collections.emptyList());
+        when(cmcEntityPreloaderDao.findAllCmcExchangesWithAssociations()).thenReturn(Collections.emptyList());
+        when(cmcEntityPreloaderDao.findCmcCoinsWithMainnet()).thenReturn(Collections.emptyList());
+        when(cmcEntityPreloaderDao.findCmcCoinsWithPlatforms()).thenReturn(Collections.emptyList());
+
+        // When
+        cmcEntityPreloaderService.preloadAllCmcEntities();
+
+        // Then
+        verify(distributedLockService, times(1)).tryLock(anyString(), anyInt());
+        verify(distributedLockService, times(1)).releaseLock(anyString(), anyString());
+        verify(cmcEntityPreloaderDao, times(1)).findAllCmcCoinsWithAssociations();
+        verify(cmcEntityPreloaderDao, times(1)).findAllCmcExchangesWithAssociations();
+    }
+
+    @Test
+    @DisplayName("preloadAllCmcEntities 메서드 테스트 - 분산락 획득 실패시 건너뜀")
+    void shouldSkipPreloadingWhenDistributedLockFails() {
+        // Given
+        when(distributedLockService.tryLock(anyString(), anyInt())).thenReturn(null); // 락 획득 실패
+
+        // When
+        cmcEntityPreloaderService.preloadAllCmcEntities();
+
+        // Then
+        verify(distributedLockService, times(1)).tryLock(anyString(), anyInt());
+        verify(distributedLockService, never()).releaseLock(anyString(), anyString());
+        verify(cmcEntityPreloaderDao, never()).findAllCmcCoinsWithAssociations(); // 실행되지 않음
     }
 
     @Test
@@ -54,13 +108,13 @@ public class CmcEntityPreloaderServiceTest {
     void shouldPreloadCmcEntitiesForSpecificCoins() {
         // Given
         List<Long> coinIds = Arrays.asList(1L, 2L, 3L);
+        when(cmcEntityPreloaderDao.findCmcCoinsWithAssociationsByIds(coinIds)).thenReturn(Collections.emptyList());
 
-        // When & Then - 메서드 호출이 예외 없이 완료되는지 확인
-        try {
-            cmcEntityPreloaderService.preloadCmcEntitiesForCoins(coinIds);
-        } catch (Exception e) {
-            // QueryDSL 실행 중 발생하는 예외는 정상적인 동작 (Mock 환경에서)
-        }
+        // When
+        cmcEntityPreloaderService.preloadCmcEntitiesForCoins(coinIds);
+
+        // Then
+        verify(cmcEntityPreloaderDao, times(1)).findCmcCoinsWithAssociationsByIds(coinIds);
     }
 
     @Test
@@ -69,17 +123,21 @@ public class CmcEntityPreloaderServiceTest {
         // Given
         List<Long> emptyList = Collections.emptyList();
 
-        // When & Then - 빈 리스트일 때는 early return으로 아무 동작하지 않음
+        // When
         cmcEntityPreloaderService.preloadCmcEntitiesForCoins(emptyList);
-        // 예외가 발생하지 않으면 성공
+
+        // Then - DAO가 호출되지 않아야 함 (early return)
+        verify(cmcEntityPreloaderDao, never()).findCmcCoinsWithAssociationsByIds(anyList());
     }
 
     @Test
     @DisplayName("preloadCmcEntitiesForCoins 메서드 테스트 - null일 때 처리")
     void shouldHandleNullCoinsListGracefully() {
-        // Given & When & Then - null일 때는 early return으로 아무 동작하지 않음
+        // Given & When
         cmcEntityPreloaderService.preloadCmcEntitiesForCoins(null);
-        // 예외가 발생하지 않으면 성공
+
+        // Then - DAO가 호출되지 않아야 함 (early return)
+        verify(cmcEntityPreloaderDao, never()).findCmcCoinsWithAssociationsByIds(anyList());
     }
 
     @Test
@@ -87,13 +145,13 @@ public class CmcEntityPreloaderServiceTest {
     void shouldPreloadCmcEntitiesForSpecificExchanges() {
         // Given
         List<Long> exchangeIds = Arrays.asList(1L, 2L);
+        when(cmcEntityPreloaderDao.findCmcExchangesWithAssociationsByIds(exchangeIds)).thenReturn(Collections.emptyList());
 
-        // When & Then - 메서드 호출이 예외 없이 완료되는지 확인
-        try {
-            cmcEntityPreloaderService.preloadCmcEntitiesForExchanges(exchangeIds);
-        } catch (Exception e) {
-            // QueryDSL 실행 중 발생하는 예외는 정상적인 동작 (Mock 환경에서)
-        }
+        // When
+        cmcEntityPreloaderService.preloadCmcEntitiesForExchanges(exchangeIds);
+
+        // Then
+        verify(cmcEntityPreloaderDao, times(1)).findCmcExchangesWithAssociationsByIds(exchangeIds);
     }
 
     @Test
@@ -102,16 +160,20 @@ public class CmcEntityPreloaderServiceTest {
         // Given
         List<Long> emptyList = Collections.emptyList();
 
-        // When & Then - 빈 리스트일 때는 early return으로 아무 동작하지 않음
+        // When
         cmcEntityPreloaderService.preloadCmcEntitiesForExchanges(emptyList);
-        // 예외가 발생하지 않으면 성공
+
+        // Then - DAO가 호출되지 않아야 함 (early return)
+        verify(cmcEntityPreloaderDao, never()).findCmcExchangesWithAssociationsByIds(anyList());
     }
 
     @Test
     @DisplayName("preloadCmcEntitiesForExchanges 메서드 테스트 - null일 때 처리")
     void shouldHandleNullExchangesListGracefully() {
-        // Given & When & Then - null일 때는 early return으로 아무 동작하지 않음
+        // Given & When
         cmcEntityPreloaderService.preloadCmcEntitiesForExchanges(null);
-        // 예외가 발생하지 않으면 성공
+
+        // Then - DAO가 호출되지 않아야 함 (early return)
+        verify(cmcEntityPreloaderDao, never()).findCmcExchangesWithAssociationsByIds(anyList());
     }
 }
