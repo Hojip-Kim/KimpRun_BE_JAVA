@@ -48,4 +48,20 @@ public class ResponseCommentDto {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
+    
+    // 삭제된 댓글용 정적 팩토리 메서드
+    public static ResponseCommentDto createDeletedComment(long id, long parentCommentId, int depth, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        ResponseCommentDto deletedComment = new ResponseCommentDto();
+        deletedComment.id = id;
+        deletedComment.parentCommentId = parentCommentId;
+        deletedComment.content = null;
+        deletedComment.depth = depth;
+        deletedComment.email = null;
+        deletedComment.nickName = null;
+        deletedComment.memberId = null;
+        deletedComment.likes = null;
+        deletedComment.createdAt = createdAt;
+        deletedComment.updatedAt = updatedAt;
+        return deletedComment;
+    }
 }
