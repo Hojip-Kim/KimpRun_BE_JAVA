@@ -247,7 +247,7 @@
         SELECT cmc_coin_id FROM cmc_coin ORDER BY cmc_coin_id
     </select>
     
-    <!-- 코인 메타 정보 삽입하고 바로 매핑 -->
+    <!-- 코인 메타 정보 UPSERT (중복 방지) -->
     <insert id="insertCmcCoinMeta" parameterType="kimp.cmc.dto.common.coin.CmcApiDataDto">
         INSERT INTO cmc_coin_meta (cmc_coin_id, market_cap, market_cap_dominance, fully_diluted_market_cap,
                                   circulating_supply, total_supply, max_supply, 
@@ -264,10 +264,24 @@
             COALESCE(#{coin.selfReportedCirculatingSupply}, '0'),
             COALESCE(#{coin.selfReportedMarketCap}, '0'),
             NOW(), NOW()
-        );
+        )
+        ON CONFLICT (cmc_coin_id) DO UPDATE SET
+            market_cap = EXCLUDED.market_cap,
+            market_cap_dominance = EXCLUDED.market_cap_dominance,
+            fully_diluted_market_cap = EXCLUDED.fully_diluted_market_cap,
+            circulating_supply = EXCLUDED.circulating_supply,
+            total_supply = EXCLUDED.total_supply,
+            max_supply = EXCLUDED.max_supply,
+            self_reported_circulating_supply = EXCLUDED.self_reported_circulating_supply,
+            self_reported_market_cap = EXCLUDED.self_reported_market_cap,
+            updated_at = NOW();
         
         UPDATE cmc_coin_info 
-        SET cmc_coin_meta_id = (SELECT id FROM cmc_coin_meta ORDER BY id DESC LIMIT 1),
+        SET cmc_coin_meta_id = (
+            SELECT id FROM cmc_coin_meta 
+            WHERE cmc_coin_id = #{coin.id} 
+            ORDER BY id DESC LIMIT 1
+        ),
             updated_at = NOW()
         WHERE id = (
             SELECT cmc_coin_info_id FROM cmc_coin WHERE cmc_coin_id = #{coin.id}
