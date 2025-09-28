@@ -119,11 +119,11 @@ public class CoinServiceImpl implements CoinService {
                     }
                 ));
 
-        // 모든 MarketType에 해당하는 Exchange 한번씩 조회 (N+1방지용)
+        // 모든 MarketType에 해당하는 Exchange 한번씩 조회 (N+1방지용, CmcExchange 포함)
         Set<MarketType> allMarkets = createCoinDtos.stream()
                 .flatMap(dto -> dto.getMarketType().stream())
                 .collect(Collectors.toSet());
-        List<Exchange> allExchanges = exchangeDao.getExchangeByMarketTypes(new ArrayList<>(allMarkets));
+        List<Exchange> allExchanges = exchangeDao.getExchangeByMarketTypesWithCmcExchange(new ArrayList<>(allMarkets));
         Map<MarketType, List<Exchange>> exchangeMap = allExchanges.stream()
                 .collect(Collectors.groupingBy(Exchange::getMarket));
 

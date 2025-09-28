@@ -34,10 +34,14 @@ public class CmcEntityPreloaderDaoImpl implements CmcEntityPreloaderDao {
 
     /**
      * CmcCoin 엔티티와 OneToOne 관계들을 fetch join으로 일괄 로딩
+     * 최적화된 벌크 로딩으로 N+1 쿼리 완전 방지
      * @return 모든 CmcCoin과 연관 엔티티 리스트
      */
     @Override
     public List<CmcCoin> findAllCmcCoinsWithAssociations() {
+        log.debug("CmcCoin 벌크 로딩 시작");
+        
+        // 모든 CmcCoin과 모든 연관관계를 한 번에 로딩 (단일 쿼리)
         List<CmcCoin> cmcCoins = queryFactory
             .selectFrom(cmcCoin)
             .distinct()
@@ -47,16 +51,18 @@ public class CmcEntityPreloaderDaoImpl implements CmcEntityPreloaderDao {
             .leftJoin(cmcCoin.cmcCoinInfo.cmcCoinMeta).fetchJoin()
             .fetch();
                 
-        log.debug("CmcCoin with associations 조회 완료: {} 개", cmcCoins.size());
+        log.debug("CmcCoin 벌크 로딩 완료: {} 개", cmcCoins.size());
         return cmcCoins;
     }
 
     /**
      * CmcExchange 엔티티와 OneToOne 관계들을 fetch join으로 일괄 로딩
+     * 벌크 로딩으로 N+1 쿼리 완전 방지
      * @return 모든 CmcExchange와 연관 엔티티 리스트
      */
     @Override
     public List<CmcExchange> findAllCmcExchangesWithAssociations() {
+        // 모든 CmcExchange와 연관관계를 한 번에 로딩 (단일 쿼리)
         List<CmcExchange> cmcExchanges = queryFactory
             .selectFrom(cmcExchange)
             .distinct()
@@ -66,7 +72,6 @@ public class CmcEntityPreloaderDaoImpl implements CmcEntityPreloaderDao {
             .leftJoin(cmcExchange.cmcExchangeUrl).fetchJoin()
             .fetch();
                 
-        log.debug("CmcExchange with associations 조회 완료: {} 개", cmcExchanges.size());
         return cmcExchanges;
     }
 
@@ -83,7 +88,6 @@ public class CmcEntityPreloaderDaoImpl implements CmcEntityPreloaderDao {
             .where(cmcCoin.cmcMainnet.isNotEmpty())
             .fetch();
             
-        log.debug("CmcCoin with Mainnet 조회 완료: {} 개", cmcCoins.size());
         return cmcCoins;
     }
 
@@ -100,12 +104,12 @@ public class CmcEntityPreloaderDaoImpl implements CmcEntityPreloaderDao {
             .where(cmcCoin.cmcPlatforms.isNotEmpty())
             .fetch();
             
-        log.debug("CmcCoin with Platforms 조회 완료: {} 개", cmcCoins.size());
         return cmcCoins;
     }
 
     /**
      * 특정 coin ID들에 대한 CMC 관계만 선택적으로 사전 로딩
+     * 벌크 로딩으로 N+1 쿼리 완전 방지
      * @param coinIds 사전 로딩할 coin ID 목록
      * @return 지정된 코인들의 CmcCoin과 연관 엔티티 리스트
      */
@@ -116,6 +120,7 @@ public class CmcEntityPreloaderDaoImpl implements CmcEntityPreloaderDao {
             return List.of();
         }
         
+        // 모든 연관관계를 한 번에 로딩 (단일 쿼리)
         List<CmcCoin> cmcCoins = queryFactory
             .selectFrom(cmcCoin)
             .distinct()
@@ -126,13 +131,12 @@ public class CmcEntityPreloaderDaoImpl implements CmcEntityPreloaderDao {
             .where(cmcCoin.coin.id.in(coinIds))
             .fetch();
                 
-        log.debug("특정 코인들의 CmcCoin with associations 조회 완료: {} 개 (요청: {} 개)", 
-            cmcCoins.size(), coinIds.size());
         return cmcCoins;
     }
 
     /**
      * 특정 exchange ID들에 대한 CMC 관계만 선택적으로 사전 로딩
+     * 벌크 로딩으로 N+1 쿼리 완전 방지
      * @param exchangeIds 사전 로딩할 exchange ID 목록
      * @return 지정된 거래소들의 CmcExchange와 연관 엔티티 리스트
      */
@@ -143,6 +147,7 @@ public class CmcEntityPreloaderDaoImpl implements CmcEntityPreloaderDao {
             return List.of();
         }
         
+        // 모든 연관관계를 한 번에 로딩 (단일 쿼리)
         List<CmcExchange> cmcExchanges = queryFactory
             .selectFrom(cmcExchange)
             .distinct()
@@ -153,8 +158,6 @@ public class CmcEntityPreloaderDaoImpl implements CmcEntityPreloaderDao {
             .where(cmcExchange.exchange.id.in(exchangeIds))
             .fetch();
                 
-        log.debug("특정 거래소들의 CmcExchange with associations 조회 완료: {} 개 (요청: {} 개)", 
-            cmcExchanges.size(), exchangeIds.size());
         return cmcExchanges;
     }
 }

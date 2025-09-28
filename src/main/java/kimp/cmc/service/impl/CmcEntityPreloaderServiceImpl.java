@@ -6,7 +6,9 @@ import kimp.common.lock.DistributedLockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -23,7 +25,7 @@ import java.util.List;
 public class CmcEntityPreloaderServiceImpl implements CmcEntityPreloaderService {
 
     private final CmcEntityPreloaderDao cmcEntityPreloaderDao;
-    
+
     @Autowired(required = false)
     private DistributedLockService distributedLockService;
     
@@ -36,11 +38,11 @@ public class CmcEntityPreloaderServiceImpl implements CmcEntityPreloaderService 
      * 초기 설정(@PostConstruct) 전에 호출하여 N+1 쿼리 방지
      */
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public void preloadAllCmcEntities() {
         // 분산락이 없는 경우 일반 실행
         if (distributedLockService == null) {
-            executePreloading();
+            executePreloadingInternal();
             return;
         }
         
@@ -61,7 +63,7 @@ public class CmcEntityPreloaderServiceImpl implements CmcEntityPreloaderService 
         }
         
         try {
-            executePreloading();
+            executePreloadingInternal();
         } catch (Exception e) {
             log.error("CMC 엔티티 프리로딩 중 오류 발생", e);
         } finally {
@@ -70,41 +72,46 @@ public class CmcEntityPreloaderServiceImpl implements CmcEntityPreloaderService 
     }
     
     /**
-     * 실제 프리로딩 실행 로직
+     * 실제 프리로딩 실행 로직 - 트랜잭션 내에서 실행
+     * N+1 쿼리 방지를 위한 벌크 로딩
      */
-    private void executePreloading() {
-        log.info("CMC 엔티티 사전 로딩 시작 - N+1 쿼리 방지");
-        
+    private void executePreloadingInternal() {
         long startTime = System.currentTimeMillis();
         
-        // 1. CmcCoin과 모든 OneToOne 관계 엔티티들을 fetch join으로 일괄 로딩
-        cmcEntityPreloaderDao.findAllCmcCoinsWithAssociations();
-        log.debug("CmcCoin 사전 로딩 완료");
-        
-        // 2. CmcExchange와 모든 OneToOne 관계 엔티티들을 fetch join으로 일괄 로딩  
-        cmcEntityPreloaderDao.findAllCmcExchangesWithAssociations();
-        log.debug("CmcExchange 사전 로딩 완료");
-        
-        // 3. OneToMany 컬렉션들도 미리 로딩 (필요시)
-        preloadCmcCollections();
-        
-        long endTime = System.currentTimeMillis();
-        log.info("CMC 엔티티 사전 로딩 완료 - 소요시간: {}ms", (endTime - startTime));
+        try {
+            log.debug("1. CmcExchange 엔티티 사전 로딩 시작");
+            // Exchange-CmcExchange 관계의 N+1 쿼리 방지를 위해 우선 로딩
+            cmcEntityPreloaderDao.findAllCmcExchangesWithAssociations();
+            log.debug("CmcExchange 사전 로딩 완료");
+            
+            log.debug("2. CmcCoin 엔티티 사전 로딩 시작");
+            // CmcCoin과 모든 OneToOne 관계 엔티티들을 fetch join으로 일괄 로딩
+            cmcEntityPreloaderDao.findAllCmcCoinsWithAssociations();
+            log.debug("CmcCoin 사전 로딩 완료");
+            
+            log.debug("3. CmcCollection 사전 로딩 시작");
+            // OneToMany 컬렉션들도 미리 로딩 (필요시)
+            preloadCmcCollectionsInternal();
+            log.debug("CmcCollection 사전 로딩 완료");
+            
+            long endTime = System.currentTimeMillis();
+            log.info("CMC 엔티티 사전 로딩 완료 - 소요시간: {}ms", (endTime - startTime));
+            
+        } catch (Exception e) {
+            log.error("CMC 엔티티 사전 로딩 중 오류 발생", e);
+            throw e; // 오류 재발생으로 초기화 중단
+        }
     }
 
     /**
-     * CMC OneToMany 컬렉션들을 미리 로딩
+     * CMC OneToMany 컬렉션들을 미리 로딩 - 내부 메서드
      */
-    private void preloadCmcCollections() {
-        log.debug("CMC 컬렉션 사전 로딩 시작 - 성능 최적화 버전");
-        
+    private void preloadCmcCollectionsInternal() {
         // CmcMainnet 컬렉션이 있는 코인만 로딩 (성능 최적화)
         cmcEntityPreloaderDao.findCmcCoinsWithMainnet();
         
         // CmcPlatform 컬렉션이 있는 코인만 로딩 (성능 최적화)     
         cmcEntityPreloaderDao.findCmcCoinsWithPlatforms();
-                
-        log.debug("CMC 컬렉션 사전 로딩 완료");
     }
 
     /**
@@ -112,7 +119,7 @@ public class CmcEntityPreloaderServiceImpl implements CmcEntityPreloaderService 
      * @param coinIds 사전 로딩할 coin ID 목록
      */
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public void preloadCmcEntitiesForCoins(List<Long> coinIds) {
         if (coinIds == null || coinIds.isEmpty()) {
             log.debug("사전 로딩할 코인 ID 목록이 비어있음");
@@ -131,7 +138,7 @@ public class CmcEntityPreloaderServiceImpl implements CmcEntityPreloaderService 
      * @param exchangeIds 사전 로딩할 exchange ID 목록
      */
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public void preloadCmcEntitiesForExchanges(List<Long> exchangeIds) {
         if (exchangeIds == null || exchangeIds.isEmpty()) {
             log.debug("사전 로딩할 거래소 ID 목록이 비어있음");
