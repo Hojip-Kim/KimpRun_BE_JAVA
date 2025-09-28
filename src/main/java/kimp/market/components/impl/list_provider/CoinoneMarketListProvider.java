@@ -20,15 +20,13 @@ import java.util.stream.Collectors;
 public class CoinoneMarketListProvider implements MarketListProvider {
 
     private final RestClient restClient;
-    private final ObjectMapper objectMapper;
     private final MarketCommonMethod marketCommonMethod;
 
     @Value("${coinone.api.url}")
     private String coinoneApiUrl;
 
-    public CoinoneMarketListProvider(RestClient restClient, ObjectMapper objectMapper, MarketCommonMethod marketCommonMethod) {
+    public CoinoneMarketListProvider(RestClient restClient, MarketCommonMethod marketCommonMethod) {
         this.restClient = restClient;
-        this.objectMapper = objectMapper;
         this.marketCommonMethod = marketCommonMethod;
     }
 

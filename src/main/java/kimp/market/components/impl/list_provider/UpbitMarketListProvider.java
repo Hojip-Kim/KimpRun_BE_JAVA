@@ -17,7 +17,6 @@ import java.util.List;
 public class UpbitMarketListProvider implements MarketListProvider {
 
     private final RestClient restClient;
-    private final ObjectMapper objectMapper;
     private final MarketCommonMethod marketCommonMethod;
 
     @Value("${upbit.api.url}")
@@ -25,9 +24,8 @@ public class UpbitMarketListProvider implements MarketListProvider {
     @Value("${upbit.ticker.url}")
     private String upbitTickerUrl;
 
-    public UpbitMarketListProvider(RestClient restClient, ObjectMapper objectMapper, MarketCommonMethod marketCommonMethod) {
+    public UpbitMarketListProvider(RestClient restClient, MarketCommonMethod marketCommonMethod) {
         this.restClient = restClient;
-        this.objectMapper = objectMapper;
         this.marketCommonMethod = marketCommonMethod;
     }
 

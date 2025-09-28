@@ -3,6 +3,7 @@ package kimp.batch.scheduler;
 import kimp.cmc.dao.CmcBatchDao;
 import kimp.common.lock.DistributedLockService;
 import kimp.common.ratelimit.DistributedRateLimiter;
+import kimp.common.ratelimit.RateLimitResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -37,16 +38,16 @@ public class CmcBatchScheduler {
      */
     @Scheduled(cron = "0 0 2 * * ?", zone = "Asia/Seoul", scheduler = "batchTaskScheduler")
     public void runCmcDataSyncJob() {
+        // 분산 락 획득 시도
         String lockToken = distributedLockService.tryLock(CMC_BATCH_LOCK_KEY, LOCK_TTL_SECONDS);
         
         if (lockToken == null) {
-            log.info("🔒 CMC 데이터 동기화 건너뜀 - 다른 서버에서 처리 중 ({})", 
-                distributedLockService.getLockOwner(CMC_BATCH_LOCK_KEY));
+            log.info("🔒 CMC 데이터 동기화 건너뜀 - 다른 서버에서 처리 중 또는 Redis 연결 실패");
             return;
         }
         
         try {
-            log.info("🚀 CMC 데이터 동기화 시작 - 서버가 분산 락을 획득했습니다");
+            log.info("CMC 데이터 동기화 시작 - 서버가 분산 락을 획득했습니다");
             log.info("실행 시간: {}", LocalDateTime.now());
             
             // 동기화 필요 여부 사전 확인
@@ -65,8 +66,13 @@ public class CmcBatchScheduler {
             }
             
             // CMC API Rate Limit 사전 확인
-            long currentUsage = distributedRateLimiter.getCurrentUsage("cmc-api", 60);
-            log.info("현재 CMC API 사용률: {}/40 (1분 윈도우)", currentUsage);
+            long currentUsage = 0;
+            try {
+                currentUsage = distributedRateLimiter.getCurrentUsage("cmc-api", 60);
+                log.info("현재 CMC API 사용률: {}/30 (1분 윈도우)", currentUsage);
+            } catch (Exception e) {
+                log.warn("CMC API 사용률 확인 실패 (Redis 연결 문제): {}", e.getMessage());
+            }
             
             JobParameters jobParameters = new JobParametersBuilder()
                     .addLocalDateTime("executeTime", LocalDateTime.now())
@@ -80,16 +86,17 @@ public class CmcBatchScheduler {
             
             jobLauncher.run(cmcDataSyncJob, jobParameters);
             
-            log.info("✅ CMC 데이터 동기화 완료 - 분산 락 해제 예정");
+            log.info("CMC 데이터 동기화 완료 - 분산 락 해제 예정");
             
         } catch (Exception e) {
-            log.error("❌ CoinMarketCap 데이터 동기화 중 오류 발생", e);
+            log.error("CoinMarketCap 데이터 동기화 중 오류 발생", e);
             
         } finally {
             // 락 해제
             if (distributedLockService.releaseLock(CMC_BATCH_LOCK_KEY, lockToken)) {
+                log.debug("CMC 배치 분산 락 해제 성공");
             } else {
-                log.warn("⚠️ CMC 배치 분산 락 해제 실패 - 이미 만료되었을 수 있습니다");
+                log.warn("CMC 배치 분산 락 해제 실패 - 이미 만료되었을 수 있습니다");
             }
         }
     }
@@ -105,20 +112,24 @@ public class CmcBatchScheduler {
         String lockToken = distributedLockService.tryLock(CMC_BATCH_LOCK_KEY, LOCK_TTL_SECONDS);
         
         if (lockToken == null) {
-            String currentOwner = distributedLockService.getLockOwner(CMC_BATCH_LOCK_KEY);
-            throw new IllegalStateException("다른 서버에서 CMC 배치가 실행 중입니다: " + currentOwner);
+            throw new IllegalStateException("다른 서버에서 CMC 배치가 실행 중이거나 Redis 연결에 실패했습니다");
         }
         
         try {
             log.info("🔧 수동 CMC 데이터 동기화 시작");
             
-            // Rate Limit 확인
-            DistributedRateLimiter.RateLimitResult rateLimitResult = 
-                distributedRateLimiter.tryAcquireCmcApiLimit();
-            
-            if (!rateLimitResult.isAllowed()) {
-                throw new IllegalStateException("CMC API Rate Limit 초과. 잠시 후 재시도해주세요. (남은: " 
-                    + rateLimitResult.getRemainingRequests() + "/" + rateLimitResult.getLimit() + ")");
+            // Rate Limit 확인 (카운터 증가 없이 체크만)
+            try {
+                RateLimitResult rateLimitResult = 
+                    distributedRateLimiter.checkCmcApiLimit();
+                
+                if (!rateLimitResult.isAllowed()) {
+                    throw new IllegalStateException("CMC API Rate Limit 초과. 잠시 후 재시도해주세요. (남은: " 
+                        + rateLimitResult.getRemainingRequests() + "/" + rateLimitResult.getLimit() + ")");
+                }
+            } catch (Exception e) {
+                log.error("Rate Limit 확인 실패 (Redis 연결 문제): {}", e.getMessage());
+                throw new IllegalStateException("CMC API Rate Limit 확인 실패: " + e.getMessage(), e);
             }
             
             JobParameters jobParameters = new JobParametersBuilder()
@@ -130,10 +141,10 @@ public class CmcBatchScheduler {
             
             jobLauncher.run(cmcDataSyncJob, jobParameters);
             
-            log.info("✅ 수동 CMC 데이터 동기화 완료");
+            log.info("수동 CMC 데이터 동기화 완료");
             
         } catch (Exception e) {
-            log.error("❌ 수동 CMC 데이터 동기화 중 오류 발생", e);
+            log.error("수동 CMC 데이터 동기화 중 오류 발생", e);
             throw new RuntimeException("CMC 배치 실행 실패: " + e.getMessage(), e);
             
         } finally {
@@ -145,8 +156,19 @@ public class CmcBatchScheduler {
      * 현재 CMC API 사용률 조회
      */
     public String getCmcApiUsageStatus() {
-        long currentUsage = distributedRateLimiter.getCurrentUsage("cmc-api", 60);
-        String lockOwner = distributedLockService.getLockOwner(CMC_BATCH_LOCK_KEY);
+        long currentUsage = 0;
+        try {
+            currentUsage = distributedRateLimiter.getCurrentUsage("cmc-api", 60);
+        } catch (Exception e) {
+            log.debug("CMC API 사용률 조회 실패: {}", e.getMessage());
+        }
+        // Redis가 연결되지 않은 경우 null이 반환될 수 있습니다
+        String lockOwner = null;
+        try {
+            lockOwner = distributedLockService.getLockOwner(CMC_BATCH_LOCK_KEY);
+        } catch (Exception e) {
+            log.debug("Redis 락 소유자 조회 실패: {}", e.getMessage());
+        }
         
         return String.format("CMC API 사용률: %d/40 (1분), 배치 실행 중: %s", 
             currentUsage, lockOwner != null ? lockOwner : "없음");

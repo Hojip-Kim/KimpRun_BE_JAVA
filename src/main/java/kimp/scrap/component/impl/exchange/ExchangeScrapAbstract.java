@@ -48,6 +48,8 @@ public abstract class ExchangeScrapAbstract<T> implements ExchangeScrap<T> {
      */
     @Override
     public T getNoticeFromAPI() throws IOException {
+        String serviceName = "python-scraping-" + getMarketType().name().toLowerCase();
+        
         try {
             // Python 서비스 엔드포인트 구성
             String exchangeName = getMarketType().name().toLowerCase();
@@ -74,12 +76,9 @@ public abstract class ExchangeScrapAbstract<T> implements ExchangeScrap<T> {
             
         } catch (Exception e) {
             log.error("Python 서비스 호출 실패: {}", e.getMessage());
-            throw new KimprunException(
-                KimprunExceptionEnum.INTERNAL_SERVER_ERROR, 
-                "Python 서비스 호출 실패: " + e.getMessage(), 
-                HttpStatus.INTERNAL_SERVER_ERROR, 
-                "trace"
-            );
+            log.warn("[{}] Python 서비스 호출 실패 - 폴백 처리: 이전 데이터 사용 또는 스킵", serviceName);
+            // 폴백: null 반환하여 기존 캐시된 데이터 사용하거나 스킵
+            return null;
         }
     }
 
@@ -119,6 +118,8 @@ public abstract class ExchangeScrapAbstract<T> implements ExchangeScrap<T> {
      * RestClient를 사용하여 Python 서비스에서 공지사항을 직접 가져오는 메서드
      */
     protected PythonNoticeResponseDto fetchPythonNotices() throws IOException {
+        String serviceName = "python-scraping-" + getMarketType().name().toLowerCase();
+        
         try {
             String exchangeName = getMarketType().name().toLowerCase();
             String url = pythonServiceUrl + "/notices/" + exchangeName;
@@ -139,7 +140,12 @@ public abstract class ExchangeScrapAbstract<T> implements ExchangeScrap<T> {
             
         } catch (Exception e) {
             log.error("Python 서비스 호출 실패: {}", e.getMessage());
-            throw new IOException("Python 서비스 호출 실패: " + e.getMessage(), e);
+            log.warn("[{}] Python 서비스 호출 실패 - 폴백 처리: 빈 응답 반환", serviceName);
+            // 폴백: 빈 성공 응답 반환
+            PythonNoticeResponseDto fallbackResponse = new PythonNoticeResponseDto();
+            fallbackResponse.setSuccess(true);
+            fallbackResponse.setResults(new ArrayList<>());
+            return fallbackResponse;
         }
     }
 

@@ -41,6 +41,7 @@ public class CmcCoinInfoTest {
 
         // When
         CmcCoinInfo cmcCoinInfo = new CmcCoinInfo(
+                1L, // cmcCoinId 추가
                 description,
                 infiniteSupply,
                 isFiat,

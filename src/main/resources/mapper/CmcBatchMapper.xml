@@ -80,7 +80,7 @@
         </foreach>
     </update>
     
-    <!-- 코인 상세 정보 삽입 -->
+    <!-- 코인 상세 정보 UPSERT (중복 방지) -->
     <insert id="insertCmcCoinInfo" parameterType="kimp.cmc.dto.common.coin.CmcCoinInfoDataDto">
         INSERT INTO cmc_coin_info (cmc_coin_id, description, infinite_supply, is_fiat, last_updated, registed_at, updated_at)
         VALUES (
@@ -89,17 +89,26 @@
             COALESCE(#{coinInfo.infiniteSupply}, false), 
             0, NOW(), NOW(), NOW()
         )
+        ON CONFLICT (cmc_coin_id) DO UPDATE SET
+            description = EXCLUDED.description,
+            infinite_supply = EXCLUDED.infinite_supply,
+            is_fiat = EXCLUDED.is_fiat,
+            last_updated = EXCLUDED.last_updated,
+            updated_at = NOW()
     </insert>
     
-    <!-- 코인 테이블에 코인 상세 정보 FK 업데이트 -->
+    <!-- 코인 테이블에 코인 상세 정보 FK 업데이트 (중복 방지) -->
     <update id="updateCmcCoinWithCoinInfo">
         UPDATE cmc_coin 
         SET cmc_coin_info_id = (
-            SELECT id FROM cmc_coin_info ORDER BY id DESC LIMIT 1
+            SELECT id FROM cmc_coin_info WHERE cmc_coin_id = #{coinInfo.id} LIMIT 1
         ),
         logo = COALESCE(#{coinInfo.logo}, ''),
         updated_at = NOW()
         WHERE cmc_coin_id = #{coinInfo.id}
+        AND (cmc_coin_info_id IS NULL OR cmc_coin_info_id != (
+            SELECT id FROM cmc_coin_info WHERE cmc_coin_id = #{coinInfo.id} LIMIT 1
+        ))
     </update>
     
     <!-- 코인 ID 조회 -->
@@ -134,6 +143,9 @@
     <insert id="insertCmcExchangeInfo">
         INSERT INTO cmc_exchange_info (cmc_exchange_id, fiats, registed_at, updated_at)
         VALUES (#{exchangeId}, #{fiats}, NOW(), NOW())
+        ON CONFLICT (cmc_exchange_id) DO UPDATE SET
+            fiats = EXCLUDED.fiats,
+            updated_at = NOW()
     </insert>
     
     <update id="updateCmcExchangeInfo">
@@ -152,6 +164,13 @@
         INSERT INTO cmc_exchange_meta (cmc_exchange_id, market_fee, taker_fee, spot_volume_usd, spot_volume_last_updated, weekly_visits, registed_at, updated_at)
         VALUES (#{exchangeDetail.id}, COALESCE(#{exchangeDetail.marketFee}, 0.0), COALESCE(#{exchangeDetail.takerFee}, 0.0), COALESCE(#{exchangeDetail.spotVolumeUsd}, 0.0), 
                 NOW(), COALESCE(#{exchangeDetail.weeklyVisited}, 0), NOW(), NOW())
+        ON CONFLICT (cmc_exchange_id) DO UPDATE SET
+            market_fee = EXCLUDED.market_fee,
+            taker_fee = EXCLUDED.taker_fee,
+            spot_volume_usd = EXCLUDED.spot_volume_usd,
+            spot_volume_last_updated = EXCLUDED.spot_volume_last_updated,
+            weekly_visits = EXCLUDED.weekly_visits,
+            updated_at = NOW()
     </insert>
     
     <update id="updateCmcExchangeMeta" parameterType="kimp.cmc.dto.common.exchange.CmcExchangeDetailDto">
@@ -173,6 +192,9 @@
     <insert id="insertCmcExchangeUrl">
         INSERT INTO cmc_exchange_url (cmc_exchange_id, website, twitter, register, registed_at, updated_at)
         VALUES (#{exchangeId}, #{website}, '', '', NOW(), NOW())
+        ON CONFLICT (cmc_exchange_id) DO UPDATE SET
+            website = EXCLUDED.website,
+            updated_at = NOW()
     </insert>
     
     <update id="updateCmcExchangeUrl">
@@ -247,7 +269,7 @@
         SELECT cmc_coin_id FROM cmc_coin ORDER BY cmc_coin_id
     </select>
     
-    <!-- 코인 메타 정보 삽입하고 바로 매핑 -->
+    <!-- 코인 메타 정보 UPSERT (중복 방지) -->
     <insert id="insertCmcCoinMeta" parameterType="kimp.cmc.dto.common.coin.CmcApiDataDto">
         INSERT INTO cmc_coin_meta (cmc_coin_id, market_cap, market_cap_dominance, fully_diluted_market_cap,
                                   circulating_supply, total_supply, max_supply, 
@@ -264,15 +286,36 @@
             COALESCE(#{coin.selfReportedCirculatingSupply}, '0'),
             COALESCE(#{coin.selfReportedMarketCap}, '0'),
             NOW(), NOW()
-        );
-        
-        UPDATE cmc_coin_info 
-        SET cmc_coin_meta_id = (SELECT id FROM cmc_coin_meta ORDER BY id DESC LIMIT 1),
-            updated_at = NOW()
-        WHERE id = (
-            SELECT cmc_coin_info_id FROM cmc_coin WHERE cmc_coin_id = #{coin.id}
         )
+        ON CONFLICT (cmc_coin_id) DO UPDATE SET
+            market_cap = EXCLUDED.market_cap,
+            market_cap_dominance = EXCLUDED.market_cap_dominance,
+            fully_diluted_market_cap = EXCLUDED.fully_diluted_market_cap,
+            circulating_supply = EXCLUDED.circulating_supply,
+            total_supply = EXCLUDED.total_supply,
+            max_supply = EXCLUDED.max_supply,
+            self_reported_circulating_supply = EXCLUDED.self_reported_circulating_supply,
+            self_reported_market_cap = EXCLUDED.self_reported_market_cap,
+            updated_at = NOW()
     </insert>
+    
+    <!-- 코인 정보에 메타 ID 연결 (중복 방지) -->
+    <update id="updateCmcCoinInfoWithMeta">
+        UPDATE cmc_coin_info 
+        SET cmc_coin_meta_id = (
+            SELECT id FROM cmc_coin_meta 
+            WHERE cmc_coin_id = #{cmcCoinId} 
+            LIMIT 1
+        ),
+        updated_at = NOW()
+        WHERE id = (
+            SELECT cmc_coin_info_id FROM cmc_coin WHERE cmc_coin_id = #{cmcCoinId}
+        )
+        AND cmc_coin_meta_id IS NULL
+        AND EXISTS (
+            SELECT 1 FROM cmc_coin_meta WHERE cmc_coin_id = #{cmcCoinId}
+        )
+    </update>
     
     
     <!-- CMC Mainnet 데이터 삭제 -->
@@ -280,10 +323,12 @@
         DELETE FROM cmc_mainnet WHERE cmc_coin_id = #{coinId}
     </delete>
     
-    <!-- CMC Mainnet 데이터 삽입 -->
+    <!-- CMC Mainnet 데이터 UPSERT -->
     <insert id="insertCmcMainnet">
         INSERT INTO cmc_mainnet (explorer_url, cmc_coin_id, registed_at, updated_at)
         VALUES (#{explorerUrl}, #{coinId}, NOW(), NOW())
+        ON CONFLICT (cmc_coin_id, explorer_url) DO UPDATE SET
+            updated_at = NOW()
     </insert>
     
     <!-- CMC Platform 데이터 삭제 -->
@@ -291,10 +336,14 @@
         DELETE FROM cmc_platform WHERE cmc_coin_id = #{coinId}
     </delete>
     
-    <!-- CMC Platform 데이터 삽입 -->
+    <!-- CMC Platform 데이터 UPSERT -->
     <insert id="insertCmcPlatform" parameterType="kimp.cmc.dto.common.coin.CmcCoinInfoDataDto">
         INSERT INTO cmc_platform (name, symbol, cmc_coin_id, registed_at, updated_at)
         VALUES (#{coinInfo.platform.name}, #{coinInfo.platform.symbol}, #{coinInfo.id}, NOW(), NOW())
+        ON CONFLICT (cmc_coin_id) DO UPDATE SET
+            name = EXCLUDED.name,
+            symbol = EXCLUDED.symbol,
+            updated_at = NOW()
     </insert>
     
     <!-- 배치 실행 조건 검사: 코인 맵 동기화 필요 여부 -->

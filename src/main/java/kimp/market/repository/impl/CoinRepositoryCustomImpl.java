@@ -3,6 +3,7 @@ package kimp.market.repository.impl;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import kimp.cmc.entity.coin.QCmcCoin;
+import kimp.cmc.entity.exchange.QCmcExchange;
 import kimp.exchange.entity.QExchange;
 import kimp.market.Enum.MarketType;
 import kimp.market.entity.Coin;
@@ -28,6 +29,7 @@ public class CoinRepositoryCustomImpl implements CoinRepositoryCustom {
     QCoinExchange coinExchange = QCoinExchange.coinExchange;
     QExchange exchange = QExchange.exchange;
     QCmcCoin cmcCoin = QCmcCoin.cmcCoin;
+    QCmcExchange cmcExchange = QCmcExchange.cmcExchange;
 
     @Override
     @Transactional
@@ -36,6 +38,8 @@ public class CoinRepositoryCustomImpl implements CoinRepositoryCustom {
                 .selectFrom(coin)
                 .leftJoin(coin.coinExchanges, coinExchange).fetchJoin()
                 .leftJoin(coinExchange.exchange, exchange).fetchJoin()
+                .leftJoin(exchange.cmcExchange, cmcExchange).fetchJoin()
+                .leftJoin(coin.cmcCoin, cmcCoin).fetchJoin()
                 .where(coin.id.eq(id))
                 .fetchOne();
 
@@ -86,6 +90,8 @@ public class CoinRepositoryCustomImpl implements CoinRepositoryCustom {
                 .distinct()
                 .leftJoin(coin.coinExchanges, coinExchange).fetchJoin()
                 .leftJoin(coinExchange.exchange, exchange).fetchJoin()
+                .leftJoin(exchange.cmcExchange, cmcExchange).fetchJoin()
+                .leftJoin(coin.cmcCoin, cmcCoin).fetchJoin()
                 .where(coin.symbol.in(symbols))
                 .fetch();
     }

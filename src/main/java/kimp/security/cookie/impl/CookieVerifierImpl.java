@@ -1,7 +1,6 @@
 package kimp.security.cookie.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.xml.bind.DatatypeConverter;
 import kimp.security.cookie.CookieVerifier;
 import kimp.security.user.dto.CookiePayload;
 import org.springframework.stereotype.Component;
@@ -10,7 +9,6 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.UUID;
 
 @Component
 public class CookieVerifierImpl implements CookieVerifier {

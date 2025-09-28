@@ -9,7 +9,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "cmc_exchange_meta")
+@Table(name = "cmc_exchange_meta",
+        indexes = {
+                @Index(name = "idx_cmc_exchange_meta_exchange_id", columnList = "cmc_exchange_id")
+        },
+        uniqueConstraints = @UniqueConstraint(columnNames = "cmc_exchange_id")
+)
 @NoArgsConstructor
 @Getter
 public class CmcExchangeMeta extends TimeStamp {
@@ -18,8 +23,11 @@ public class CmcExchangeMeta extends TimeStamp {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(nullable = false, name = "cmc_exchange_id")
+    private Long cmcExchangeId;
+
     @OneToOne(mappedBy = "cmcExchangeMeta", fetch = FetchType.LAZY)
-    @JoinColumn(name="cmc_exchange_id", referencedColumnName = "cmc_exchange_id", nullable = true)
+    @JoinColumn(name="cmc_exchange_id", referencedColumnName = "cmc_exchange_id", nullable = true, insertable = false, updatable = false)
     private CmcExchange cmcExchange;
 
     @Column(nullable = false, name = "market_fee")
@@ -38,7 +46,8 @@ public class CmcExchangeMeta extends TimeStamp {
     private Long weeklyVisits;
 
 
-    public CmcExchangeMeta(BigDecimal marketFee, BigDecimal takerFee, BigDecimal spotVolumeUsd, LocalDateTime spotVolumeLastUpdated, Long weeklyVisits) {
+    public CmcExchangeMeta(Long cmcExchangeId, BigDecimal marketFee, BigDecimal takerFee, BigDecimal spotVolumeUsd, LocalDateTime spotVolumeLastUpdated, Long weeklyVisits) {
+        this.cmcExchangeId = cmcExchangeId;
         this.marketFee = marketFee;
         this.takerFee = takerFee;
         this.spotVolumeUsd = spotVolumeUsd;

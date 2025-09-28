@@ -77,8 +77,8 @@ public class ExchangeNoticePacadeService {
             return true;
         }
 
-        // 1. Exchange 정보 미리 조회 (1 query)
-        Exchange exchange = exchangeDao.getExchangeByMarketType(marketType);
+        // 1. Exchange 정보 미리 조회 (1 query, CmcExchange 관계 포함하여 N+1 문제 방지)
+        Exchange exchange = exchangeDao.getExchangeByMarketTypeWithCmcExchange(marketType);
 
         // 2. 모든 새로운 링크들을 Set으로 추출 (중복 제거 및 빠른 조회)
         Set<String> newNoticeLinks = noticeParsedDataList.stream()

@@ -54,6 +54,7 @@ public interface CmcBatchMapper {
     
     // CmcCoinMeta 관련 - 메타 데이터 삽입과 동시에 코인 정보에 연결
     void insertCmcCoinMeta(@Param("coin") CmcApiDataDto coin);
+    void updateCmcCoinInfoWithMeta(@Param("cmcCoinId") Long cmcCoinId);
     
     // CmcMainnet 관련
     void deleteCmcMainnet(@Param("coinId") Long coinId);

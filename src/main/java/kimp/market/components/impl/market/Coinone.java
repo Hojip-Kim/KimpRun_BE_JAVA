@@ -1,6 +1,5 @@
 package kimp.market.components.impl.market;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import kimp.market.Enum.MarketType;
 import kimp.market.components.MarketListProvider;

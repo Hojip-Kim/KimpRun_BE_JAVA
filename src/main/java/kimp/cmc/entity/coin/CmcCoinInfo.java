@@ -9,13 +9,21 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Table(name="cmc_coin_info")
+@Table(name="cmc_coin_info",
+        indexes = {
+                @Index(name = "idx_cmc_coin_info_coin_id", columnList = "cmc_coin_id")
+        },
+        uniqueConstraints = @UniqueConstraint(columnNames = "cmc_coin_id")
+)
 @NoArgsConstructor
 public class CmcCoinInfo extends TimeStamp {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
+    @Column(nullable = false, name = "cmc_coin_id")
+    private Long cmcCoinId;
 
     @OneToOne(mappedBy = "cmcCoinInfo", fetch = FetchType.LAZY)
     @JoinColumn(name="cmc_coin_id", referencedColumnName = "cmc_coin_id", nullable = true)
@@ -36,7 +44,8 @@ public class CmcCoinInfo extends TimeStamp {
     @Column(nullable = false, name="last_updated")
     private LocalDateTime lastUpdated;
 
-    public CmcCoinInfo(String description, boolean infiniteSupply, int isFiat, LocalDateTime lastUpdated) {
+    public CmcCoinInfo(Long cmcCoinId, String description, boolean infiniteSupply, int isFiat, LocalDateTime lastUpdated) {
+        this.cmcCoinId = cmcCoinId;
         this.description = description;
         this.infiniteSupply = infiniteSupply;
         this.isFiat = isFiat;

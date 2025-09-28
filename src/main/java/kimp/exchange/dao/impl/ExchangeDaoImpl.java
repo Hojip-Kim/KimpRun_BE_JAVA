@@ -72,12 +72,32 @@ public class ExchangeDaoImpl implements ExchangeDao {
     }
 
     @Override
+    public List<Exchange> getExchangeByMarketTypesWithCmcExchange(List<MarketType> marketTypes) {
+        List<Exchange> exchanges = exchangeRepository.findByMarketTypesWithCmcExchange(marketTypes);
+
+        if(exchanges.isEmpty()) {
+            throw new KimprunException(KimprunExceptionEnum.RESOURCE_NOT_FOUND_EXCEPTION, "No exchanges found for the provided market types", HttpStatus.NOT_FOUND, "ExchangeDaoImpl.getExchangeByMarketTypesWithCmcExchange");
+        }
+
+        return exchanges;
+    }
+
+    @Override
     public List<Exchange> getExchangesByIds(List<Long> ids) {
         List<Exchange> exchanges = exchangeRepository.findByIdIn(ids);
         if(exchanges.isEmpty()) {
             throw new KimprunException(KimprunExceptionEnum.RESOURCE_NOT_FOUND_EXCEPTION, "No exchanges found for the provided IDs", HttpStatus.NOT_FOUND, "ExchangeDaoImpl.getExchangesByIds");
         }
         return exchanges;
+    }
+
+    @Override
+    public Exchange getExchangeByMarketTypeWithCmcExchange(MarketType marketType) {
+        Exchange exchange = exchangeRepository.findExchangeByMarketTypeWithCmcExchange(marketType);
+        if(exchange == null) {
+            throw new KimprunException(KimprunExceptionEnum.RESOURCE_NOT_FOUND_EXCEPTION, "Exchange not found for market type: " + marketType, HttpStatus.NOT_FOUND, "ExchangeDaoImpl.getExchangeByMarketTypeWithCmcExchange");
+        }
+        return exchange;
     }
 
     @Override

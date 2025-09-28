@@ -235,7 +235,7 @@ public class ExchangeNoticePacadeServiceTest {
         
         List<NoticeParsedData> largeNoticeParsedDataList = Arrays.asList(notice1, notice2, notice3);
 
-        when(exchangeDao.getExchangeByMarketType(marketType)).thenReturn(exchange);
+        when(exchangeDao.getExchangeByMarketTypeWithCmcExchange(marketType)).thenReturn(exchange);
         // 기존 링크는 1개만 존재한다고 가정
         when(noticeDao.findExistingNoticeLinks(anyList())).thenReturn(Arrays.asList(link1));
         when(noticeDao.createBulkNoticeOptimized(anyList())).thenReturn(true);
@@ -258,7 +258,7 @@ public class ExchangeNoticePacadeServiceTest {
     void shouldCreateNoticesBulkOptimizedWhenAllLinksExist() {
         // Given
         List<String> allLinks = Arrays.asList(link);
-        when(exchangeDao.getExchangeByMarketType(marketType)).thenReturn(exchange);
+        when(exchangeDao.getExchangeByMarketTypeWithCmcExchange(marketType)).thenReturn(exchange);
         when(noticeDao.findExistingNoticeLinks(anyList())).thenReturn(allLinks);
 
         // When
@@ -283,7 +283,7 @@ public class ExchangeNoticePacadeServiceTest {
         // Then
         assertThat(result).isTrue();
         // 빈 리스트이므로 어떤 DAO 메서드도 호출되지 않아야 함
-        verify(exchangeDao, never()).getExchangeByMarketType(any());
+        verify(exchangeDao, never()).getExchangeByMarketTypeWithCmcExchange(any());
         verify(noticeDao, never()).findExistingNoticeLinks(any());
         verify(noticeDao, never()).createBulkNoticeOptimized(any());
     }
@@ -298,7 +298,7 @@ public class ExchangeNoticePacadeServiceTest {
         
         List<NoticeParsedData> mixedList = Arrays.asList(validNotice, nullLinkNotice, emptyLinkNotice);
 
-        when(exchangeDao.getExchangeByMarketType(marketType)).thenReturn(exchange);
+        when(exchangeDao.getExchangeByMarketTypeWithCmcExchange(marketType)).thenReturn(exchange);
         when(noticeDao.findExistingNoticeLinks(anyList())).thenReturn(Collections.emptyList());
         when(noticeDao.createBulkNoticeOptimized(anyList())).thenReturn(true);
 

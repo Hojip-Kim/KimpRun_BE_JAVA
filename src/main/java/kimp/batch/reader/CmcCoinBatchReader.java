@@ -33,8 +33,22 @@ public class CmcCoinBatchReader {
 
     @StepScope
     public ItemReader<CmcCoinMapDataDto> getCoinMapReader() {
-        log.info("코인 맵 데이터 Reader 시작");
-        
+        return new ItemReader<CmcCoinMapDataDto>() {
+            private ItemReader<CmcCoinMapDataDto> delegate;
+            private boolean initialized = false;
+            
+            @Override
+            public CmcCoinMapDataDto read() throws Exception {
+                if (!initialized) {
+                    delegate = createCoinMapReader();
+                    initialized = true;
+                }
+                return delegate.read();
+            }
+        };
+    }
+    
+    private ItemReader<CmcCoinMapDataDto> createCoinMapReader() {
         // 동기화 필요 여부 체크
         if (!cmcBatchDao.shouldRunCoinMapSync()) {
             log.info("코인 맵 데이터가 최신 상태입니다. API 호출을 건너뜁니다.");
@@ -57,8 +71,22 @@ public class CmcCoinBatchReader {
 
     @StepScope
     public ItemReader<CmcApiDataDto> getLatestCoinInfoReader() {
-        log.info("코인 최신 정보 Reader 시작");
-        
+        return new ItemReader<CmcApiDataDto>() {
+            private ItemReader<CmcApiDataDto> delegate;
+            private boolean initialized = false;
+            
+            @Override
+            public CmcApiDataDto read() throws Exception {
+                if (!initialized) {
+                    delegate = createLatestCoinInfoReader();
+                    initialized = true;
+                }
+                return delegate.read();
+            }
+        };
+    }
+    
+    private ItemReader<CmcApiDataDto> createLatestCoinInfoReader() {
         // 코인 맵이 없으면 최신 정보도 가져올 필요 없음
         if (cmcBatchDao.getCmcCoinCount() == 0) {
             log.info("CMC 코인 데이터가 없습니다. 최신 정보 수집을 건너뜁니다.");
@@ -81,8 +109,22 @@ public class CmcCoinBatchReader {
 
     @StepScope
     public ItemReader<List<CmcCoinInfoDataDto>> getCmcCoinInfoReader() {
-        log.info("코인 상세 정보 Reader 시작");
-        
+        return new ItemReader<List<CmcCoinInfoDataDto>>() {
+            private ItemReader<List<CmcCoinInfoDataDto>> delegate;
+            private boolean initialized = false;
+            
+            @Override
+            public List<CmcCoinInfoDataDto> read() throws Exception {
+                if (!initialized) {
+                    delegate = createCmcCoinInfoReader();
+                    initialized = true;
+                }
+                return delegate.read();
+            }
+        };
+    }
+    
+    private ItemReader<List<CmcCoinInfoDataDto>> createCmcCoinInfoReader() {
         // 상세 정보 동기화 필요 여부 체크
         if (!cmcBatchDao.shouldRunCoinInfoSync()) {
             log.info("코인 상세 정보 동기화가 필요하지 않습니다. API 호출을 건너뜁니다.");
