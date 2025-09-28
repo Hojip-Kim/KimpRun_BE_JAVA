@@ -1,7 +1,12 @@
 # 메인 브랜치(개발용 서버 배포)에 푸시되면 실행되는 워크플로우
 name: CI-main
 
-on: push
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'build.gradle'
+      - 'Dockerfile'
 
 jobs:
   # 단위 테스트
