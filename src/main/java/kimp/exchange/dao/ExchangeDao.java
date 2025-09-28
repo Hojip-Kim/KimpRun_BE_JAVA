@@ -15,7 +15,11 @@ public interface ExchangeDao {
 
     public Exchange getExchangeByMarketType(MarketType marketType);
 
+    public Exchange getExchangeByMarketTypeWithCmcExchange(MarketType marketType);
+
     public List<Exchange> getExchangeByMarketTypes(List<MarketType> marketTypes);
+
+    public List<Exchange> getExchangeByMarketTypesWithCmcExchange(List<MarketType> marketTypes);
 
     public List<Exchange> getExchangesByIds(List<Long> ids);
 
