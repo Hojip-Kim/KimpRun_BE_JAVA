@@ -128,8 +128,8 @@ public class CmcBatchStep {
             
             log.info("총 {} 개의 배치로 분할하여 멀티스레드 처리", batches.size());
 
-            // 스레드 풀 생성 (최대 5개 스레드)
-            ExecutorService executor = Executors.newFixedThreadPool(Math.min(5, batches.size()));
+            // 스레드 풀 생성
+            ExecutorService executor = Executors.newFixedThreadPool(Math.min(4, batches.size())); // 30회 제한 + 강화된 동기화로 4개까지 안전
             AtomicInteger processedCount = new AtomicInteger(0);
             AtomicInteger errorCount = new AtomicInteger(0);
             
@@ -138,7 +138,7 @@ public class CmcBatchStep {
                 List<CompletableFuture<Void>> futures = batches.stream()
                     .map(batch -> CompletableFuture.runAsync(() -> {
                         try {
-                            // CMC API 호출 (Rate Limiter 적용됨)
+                            // CMC API 호출 (Rate Limiter가 자동으로 대기 처리)
                             var exchangeInfoMap = cmcExchangeBatchReader.getCmcExchangeInfoComponent().getExchangeInfo(batch);
                             
                             if (exchangeInfoMap != null && !exchangeInfoMap.isEmpty()) {
@@ -209,7 +209,7 @@ public class CmcBatchStep {
             log.info("총 {} 개의 배치로 분할하여 멀티스레드 처리", batches.size());
             
             // 스레드 풀 생성
-            ExecutorService executor = Executors.newFixedThreadPool(Math.min(5, batches.size()));
+            ExecutorService executor = Executors.newFixedThreadPool(Math.min(4, batches.size())); // 30회 제한 + 강화된 동기화로 4개까지 안전
             AtomicInteger processedCount = new AtomicInteger(0);
             AtomicInteger errorCount = new AtomicInteger(0);
             
@@ -222,7 +222,7 @@ public class CmcBatchStep {
                             .toList();
                         
                         try {
-                            // CMC API 호출
+                            // CMC API 호출 (Rate Limiter가 자동으로 대기 처리)
                             CmcCoinInfoDataMapDto coinInfoMap = cmcCoinBatchReader.getCmcCoinInfoComponent().getCmcCoinInfos(intBatchIds);
                             
                             if (coinInfoMap != null && !coinInfoMap.isEmpty()) {
