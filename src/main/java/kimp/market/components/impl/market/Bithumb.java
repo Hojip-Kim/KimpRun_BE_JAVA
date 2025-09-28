@@ -1,6 +1,5 @@
 package kimp.market.components.impl.market;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import kimp.market.Enum.MarketType;
 import kimp.market.components.MarketListProvider;
@@ -34,13 +33,11 @@ public class Bithumb extends Market<BithumbCryptoDto> {
 
     private final MarketListProvider bithumbMarketListProvider;
     private final RestClient restClient;
-    private final ObjectMapper objectMapper;
     private final CoinService coinService;
 
-    public Bithumb(@Qualifier("bithumbName") MarketListProvider bithumbMarketListProvider, RestClient restClient, ObjectMapper objectMapper, CoinService coinService) {
+    public Bithumb(@Qualifier("bithumbName") MarketListProvider bithumbMarketListProvider, RestClient restClient, CoinService coinService) {
         this.bithumbMarketListProvider = bithumbMarketListProvider;
         this.restClient = restClient;
-        this.objectMapper = objectMapper;
         this.coinService = coinService;
     }
 
@@ -100,16 +97,15 @@ public class Bithumb extends Market<BithumbCryptoDto> {
 
 
         String tickerUrlwithParams = bithumbTickerUrl + "?markets=" + markets;
-        String tickerData = restClient.get()
-                .uri(tickerUrlwithParams)
-                .retrieve()
-                .body(String.class);
-
+        
         BithumbDto bithumbDto = null;
         MarketDataList<BithumbDto> bithumbMarketDataList = null;
 
         try{
-            BithumbTicker[] tickers = objectMapper.readValue(tickerData, BithumbTicker[].class);
+            BithumbTicker[] tickers = restClient.get()
+                    .uri(tickerUrlwithParams)
+                    .retrieve()
+                    .body(BithumbTicker[].class);
 
             List<BithumbDto> marketDataList = new ArrayList<>();
 

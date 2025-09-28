@@ -1,6 +1,5 @@
 package kimp.market.components.impl.market;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import kimp.market.Enum.MarketType;
 import kimp.market.components.MarketListProvider;
@@ -33,14 +32,12 @@ import java.util.Set;
 @Qualifier("upbit")
 public class Upbit extends Market<UpbitCryptoDto> {
     private final RestClient restClient;
-    private final ObjectMapper objectMapper;
     private final MarketListProvider upbitMarketListProvider;
     private final CoinService coinService;
 
 
-    public Upbit(RestClient restClient, ObjectMapper objectMapper, @Qualifier("upbitName") MarketListProvider upbitMarketListProvider, CoinService coinService) {
+    public Upbit(RestClient restClient, @Qualifier("upbitName") MarketListProvider upbitMarketListProvider, CoinService coinService) {
         this.restClient = restClient;
-        this.objectMapper = objectMapper;
         this.upbitMarketListProvider = upbitMarketListProvider;
         this.coinService = coinService;
     }
@@ -104,17 +101,15 @@ public class Upbit extends Market<UpbitCryptoDto> {
         String markets = String.join(",", upbitMarketList.getCryptoList());
 
         String tickerUrlwithParams = upbitTickerUrl + "?markets=" + markets;
-        String tickerData = restClient.get()
+        UpbitTicker[] tickers = restClient.get()
                 .uri(tickerUrlwithParams)
                 .retrieve()
-                .body(String.class);
+                .body(UpbitTicker[].class);
 
         UpbitDto upbitDto = null;
         MarketDataList<UpbitDto> upbitMarketDataList = null;
 
         try{
-            UpbitTicker[] tickers = objectMapper.readValue(tickerData, UpbitTicker[].class);
-
             List<UpbitDto> marketDataList = new ArrayList<>();
 
             for (int i = 0; i < tickers.length; i++) {

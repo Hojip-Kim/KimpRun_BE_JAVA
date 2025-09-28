@@ -1,6 +1,5 @@
 package kimp.market.components.impl.market;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import kimp.market.Enum.MarketType;
 import kimp.market.common.MarketCommonMethod;
@@ -36,7 +35,6 @@ public class Binance extends Market<BinanceCryptoDto> {
 
     private final MarketCommonMethod marketCommonMethod;
     private final RestClient restClient;
-    private final ObjectMapper objectMapper;
     private final MarketListProvider binanceMarketListProvider;
     private final CombineMarketListProvider combineMarketListProvider;
     private final CoinService coinService;
@@ -58,10 +56,9 @@ public class Binance extends Market<BinanceCryptoDto> {
     @Value("${binance.ticker.url}")
     private String binanceTickerUrl;
 
-    public Binance(MarketCommonMethod marketCommonMethod, RestClient restClient, ObjectMapper objectMapper, @Qualifier("binanceName") MarketListProvider binanceMarketListProvider, @Qualifier("combineName") CombineMarketListProvider combineMarketListProvider, CoinService coinService, MarketInfoService marketInfoService) {
+    public Binance(MarketCommonMethod marketCommonMethod, RestClient restClient, @Qualifier("binanceName") MarketListProvider binanceMarketListProvider, @Qualifier("combineName") CombineMarketListProvider combineMarketListProvider, CoinService coinService, MarketInfoService marketInfoService) {
         this.marketCommonMethod = marketCommonMethod;
         this.restClient = restClient;
-        this.objectMapper = objectMapper;
         this.binanceMarketListProvider = binanceMarketListProvider;
         this.combineMarketListProvider = combineMarketListProvider;
         this.coinService = coinService;
