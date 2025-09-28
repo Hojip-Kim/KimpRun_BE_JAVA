@@ -50,7 +50,7 @@ public class CmcEntityPreloaderServiceTest {
     @DisplayName("preloadAllCmcEntities 메서드 테스트 - 분산락 없이 정상 실행")
     void shouldPreloadAllCmcEntitiesWithoutDistributedLock() {
         // Given - 분산락이 없는 경우를 시뮬레이션
-        CmcEntityPreloaderServiceImpl serviceWithoutLock = new CmcEntityPreloaderServiceImpl(cmcEntityPreloaderDao, applicationContext);
+        CmcEntityPreloaderServiceImpl serviceWithoutLock = new CmcEntityPreloaderServiceImpl(cmcEntityPreloaderDao);
         
         when(cmcEntityPreloaderDao.findAllCmcCoinsWithAssociations()).thenReturn(Collections.emptyList());
         when(cmcEntityPreloaderDao.findAllCmcExchangesWithAssociations()).thenReturn(Collections.emptyList());
