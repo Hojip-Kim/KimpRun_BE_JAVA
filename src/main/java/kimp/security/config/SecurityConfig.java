@@ -1,7 +1,6 @@
 package kimp.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kimp.exception.response.ApiResponse;
 import kimp.security.filter.AnonymousCookieGuardFilter;
@@ -24,7 +23,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -82,7 +80,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.GET, "/csrf/token").permitAll()
-                        .requestMatchers(HttpMethod.POST,"/login", "/user/sign-up", "/user/email", "/user/email/verify", "/user/email/new", "/batch/cmc/sync", "/logout", "/declaration").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/login", "/user/sign-up", "/user/email", "/user/email/verify", "/user/email/new", "/batch/cmc/sync", "/logout", "/declaration", "/batch/cmc/unlock").permitAll()
                         .requestMatchers(HttpMethod.POST, "/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/anonymous/member/nickname").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/**").authenticated()
