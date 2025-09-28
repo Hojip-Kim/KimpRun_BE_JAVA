@@ -43,11 +43,12 @@ public class PythonScrapServiceImpl implements PythonScrapService {
     
     @Override
     public List<NoticeParsedData> getNoticesByExchange(MarketType marketType) {
-        String exchangeName = convertMarketTypeToExchangeName(marketType);
-        String url = pythonServiceBaseUrl + "/notices/" + exchangeName;
+        String serviceName = "python-scraping-" + marketType.name().toLowerCase();
         
         try {
-
+            String exchangeName = convertMarketTypeToExchangeName(marketType);
+            String url = pythonServiceBaseUrl + "/notices/" + exchangeName;
+            
             PythonNoticeResponseDto responseBody = restClient.get()
                 .uri(url)
                 .retrieve()
@@ -58,11 +59,13 @@ public class PythonScrapServiceImpl implements PythonScrapService {
             } else {
                 String error = responseBody != null ? responseBody.getError() : "null response";
                 log.error("Python 서비스 오류: {}", error);
-                return new ArrayList<>();
+                throw new RuntimeException("Python 서비스 오류: " + error);
             }
             
         } catch (Exception e) {
-            log.error("Python 스크래핑 서비스 호출 실패: {} - {}", url, e.getMessage());
+            log.error("Python 스크래핑 서비스 호출 실패: {} - {}", serviceName, e.getMessage());
+            log.warn("[{}] Python 서비스 호출 실패 - 폴백 처리: 빈 목록 반환", serviceName);
+            // 폴백: 빈 목록 반환
             return new ArrayList<>();
         }
     }
@@ -82,9 +85,11 @@ public class PythonScrapServiceImpl implements PythonScrapService {
     
     @Override
     public boolean isServiceHealthy() {
-        String url = pythonServiceBaseUrl + "/";
+        String serviceName = "python-scraping-health";
         
         try {
+            String url = pythonServiceBaseUrl + "/";
+            
             String response = restClient.get()
                 .uri(url)
                 .retrieve()
@@ -94,6 +99,8 @@ public class PythonScrapServiceImpl implements PythonScrapService {
             
         } catch (Exception e) {
             log.error("Python 서비스 헬스체크 실패: {}", e.getMessage());
+            log.warn("[{}] Python 서비스 헬스체크 실패 - 폴백 처리: false 반환", serviceName);
+            // 폴백: false 반환
             return false;
         }
     }
