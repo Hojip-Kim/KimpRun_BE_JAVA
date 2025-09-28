@@ -6,7 +6,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "cmc_platform")
+@Table(name = "cmc_platform",
+        indexes = {
+                @Index(name = "idx_cmc_platform_coin_id", columnList = "cmc_coin_id")
+        },
+        uniqueConstraints = @UniqueConstraint(columnNames = "cmc_coin_id")
+)
 @Getter
 @NoArgsConstructor
 public class CmcPlatform extends TimeStamp {
@@ -15,6 +20,9 @@ public class CmcPlatform extends TimeStamp {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(nullable = false, name = "cmc_coin_id")
+    private Long cmcCoinId;
+
     @Column(nullable = true, name="name")
     private String name;
 
@@ -22,10 +30,11 @@ public class CmcPlatform extends TimeStamp {
     private String symbol;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="cmc_coin_id", referencedColumnName = "cmc_coin_id", nullable = true)
+    @JoinColumn(name="cmc_coin_id", referencedColumnName = "cmc_coin_id", nullable = true, insertable = false, updatable = false)
     private CmcCoin cmcCoin;
 
-    public CmcPlatform(String name, String symbol) {
+    public CmcPlatform(Long cmcCoinId, String name, String symbol) {
+        this.cmcCoinId = cmcCoinId;
         this.name = name;
         this.symbol = symbol;
     }

@@ -7,7 +7,12 @@ import lombok.NoArgsConstructor;
 
 
 @Entity
-@Table( name = "cmc_exchange_url")
+@Table(name = "cmc_exchange_url",
+        indexes = {
+                @Index(name = "idx_cmc_exchange_url_exchange_id", columnList = "cmc_exchange_id")
+        },
+        uniqueConstraints = @UniqueConstraint(columnNames = "cmc_exchange_id")
+)
 @Getter
 @NoArgsConstructor
 public class CmcExchangeUrl extends TimeStamp {
@@ -16,8 +21,11 @@ public class CmcExchangeUrl extends TimeStamp {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(nullable = false, name = "cmc_exchange_id")
+    private Long cmcExchangeId;
+
     @OneToOne(mappedBy = "cmcExchangeUrl", fetch = FetchType.LAZY)
-    @JoinColumn(name="cmc_exchange_id", referencedColumnName = "cmc_exchange_id", nullable = true)
+    @JoinColumn(name="cmc_exchange_id", referencedColumnName = "cmc_exchange_id", nullable = true, insertable = false, updatable = false)
     private CmcExchange cmcExchange;
 
     @Column(nullable = false, name = "website")
@@ -30,7 +38,8 @@ public class CmcExchangeUrl extends TimeStamp {
     private String register;
 
 
-    public CmcExchangeUrl(String website, String twitter, String register) {
+    public CmcExchangeUrl(Long cmcExchangeId, String website, String twitter, String register) {
+        this.cmcExchangeId = cmcExchangeId;
         this.website = website;
         this.twitter = twitter;
         this.register = register;

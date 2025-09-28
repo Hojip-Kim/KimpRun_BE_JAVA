@@ -6,13 +6,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name="cmc_coin_meta")
+@Table(name="cmc_coin_meta",
+        indexes = {
+                @Index(name = "idx_cmc_coin_meta_coin_id", columnList = "cmc_coin_id")
+        },
+        uniqueConstraints = @UniqueConstraint(columnNames = "cmc_coin_id")
+)
 @NoArgsConstructor
 @Getter
 public class CmcCoinMeta extends TimeStamp {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
+    @Column(nullable = false, name = "cmc_coin_id")
+    private Long cmcCoinId;
+
     @OneToOne(mappedBy = "cmcCoinMeta", fetch = FetchType.LAZY)
     @JoinColumn(name="cmc_coin_info_id", referencedColumnName = "id", nullable = true)
     private CmcCoinInfo cmcCoinInfo;
@@ -42,7 +51,8 @@ public class CmcCoinMeta extends TimeStamp {
     @Column(nullable = false, name="self_reported_market_cap")
     private String selfReportedMarketCap;
 
-    public CmcCoinMeta(String marketCap, double marketCapDominance, String fullyDilutedMarketCap, String circulatingSupply, String totalSupply, String maxSupply, String selfReportedCirculatingSupply, String selfReportedMarketCap) {
+    public CmcCoinMeta(Long cmcCoinId, String marketCap, double marketCapDominance, String fullyDilutedMarketCap, String circulatingSupply, String totalSupply, String maxSupply, String selfReportedCirculatingSupply, String selfReportedMarketCap) {
+        this.cmcCoinId = cmcCoinId;
         this.marketCap = marketCap;
         this.marketCapDominance = marketCapDominance;
         this.fullyDilutedMarketCap = fullyDilutedMarketCap;
