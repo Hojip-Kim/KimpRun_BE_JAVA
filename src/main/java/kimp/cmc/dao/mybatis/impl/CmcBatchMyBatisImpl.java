@@ -286,15 +286,19 @@ public class CmcBatchMyBatisImpl implements CmcBatchDao {
         
         for (CmcApiDataDto coin : validItems) {
             try {
-                // CMC 코인이 존재하는지 먼저 확인
+                // CMC 코인이 존재하는지 확인
                 if (!cmcBatchMapper.existsCmcCoin(coin.getId())) {
                     log.debug("CMC 코인이 존재하지 않아 메타 데이터 처리 건너뜀 - coin_id: {}", coin.getId());
                     skippedCount++;
                     continue;
                 }
                 
-                // CmcCoinMeta 테이블에 메타 정보 저장과 동시에 CmcCoinInfo에 연결
+                // 코인 메타 데이터 UPSERT
                 cmcBatchMapper.insertCmcCoinMeta(coin);
+                
+                // 코인 정보에 메타 ID 연결 (SQL에서 안전하게 처리)
+                cmcBatchMapper.updateCmcCoinInfoWithMeta(coin.getId());
+                
                 processedCount++;
                 log.debug("코인 메타 데이터 처리 완료 - coin_id: {}", coin.getId());
                     
@@ -411,7 +415,7 @@ public class CmcBatchMyBatisImpl implements CmcBatchDao {
         log.debug("CMC 거래소 총 개수: {}", count);
         return count;
     }
-    
+
     private Long getLastInsertedId(String tableName) {
         try {
             return cmcBatchMapper.getLastInsertedId(tableName);
