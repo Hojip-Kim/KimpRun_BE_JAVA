@@ -7,6 +7,7 @@ import kimp.auth.dto.AuthResponseDto;
 import kimp.auth.dto.LoginMemberResponseDto;
 import kimp.auth.dto.UnLoginMemberResponseDto;
 import kimp.auth.service.AuthService;
+import kimp.auth.vo.CheckAuthStatusVo;
 import kimp.exception.response.ApiResponse;
 import kimp.security.user.CustomUserDetails;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +44,8 @@ public class AuthController {
         }
         
         CustomUserDetails customUserDetails = (CustomUserDetails) member;
-        LoginMemberResponseDto result = authService.checkAuthStatus(customUserDetails.getId());
+        CheckAuthStatusVo vo = new CheckAuthStatusVo(customUserDetails.getId());
+        LoginMemberResponseDto result = authService.checkAuthStatus(vo);
         result.setUuid(kimprunToken);
         return ApiResponse.success(result);
     }

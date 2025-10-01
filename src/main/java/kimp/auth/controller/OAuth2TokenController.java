@@ -2,6 +2,8 @@ package kimp.auth.controller;
 
 import kimp.auth.dto.OAuth2TokenStatusDto;
 import kimp.auth.service.OAuth2TokenRefreshService;
+import kimp.auth.vo.GetTokenStatusVo;
+import kimp.auth.vo.RefreshMemberTokenVo;
 import kimp.exception.response.ApiResponse;
 import kimp.security.user.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +28,8 @@ public class OAuth2TokenController {
         CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
         
         try {
-            String result = tokenRefreshService.refreshMemberToken(customUserDetails.getId());
+            RefreshMemberTokenVo vo = new RefreshMemberTokenVo(customUserDetails.getId());
+            String result = tokenRefreshService.refreshMemberToken(vo);
             return ResponseEntity.ok(ApiResponse.success(result));
         } catch (Exception e) {
             log.error("수동 토큰 갱신 실패 - Member ID: {}", customUserDetails.getId(), e);
@@ -40,7 +43,8 @@ public class OAuth2TokenController {
     public ResponseEntity<ApiResponse<OAuth2TokenStatusDto>> getTokenStatus(@AuthenticationPrincipal UserDetails userDetails) {
         CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
         
-        OAuth2TokenStatusDto tokenStatus = tokenRefreshService.getTokenStatus(customUserDetails.getId());
+        GetTokenStatusVo vo = new GetTokenStatusVo(customUserDetails.getId());
+        OAuth2TokenStatusDto tokenStatus = tokenRefreshService.getTokenStatus(vo);
         return ResponseEntity.ok(ApiResponse.success(tokenStatus));
     }
 }

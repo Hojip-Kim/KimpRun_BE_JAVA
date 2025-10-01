@@ -1,6 +1,8 @@
 package kimp.auth.service;
 
 import kimp.auth.dto.OAuth2TokenStatusDto;
+import kimp.auth.vo.GetTokenStatusVo;
+import kimp.auth.vo.RefreshMemberTokenVo;
 import kimp.user.entity.Member;
 import kimp.user.entity.Oauth;
 import kimp.user.repository.OauthRepository;
@@ -131,8 +133,8 @@ public class OAuth2TokenRefreshService {
         return oauth.getExpiresAt().isBefore(LocalDateTime.now().plusMinutes(minutesThreshold));
     }
 
-    public OAuth2TokenStatusDto getTokenStatus(Long memberId) {
-        Member member = memberService.getMemberEntityById(memberId);
+    public OAuth2TokenStatusDto getTokenStatus(GetTokenStatusVo vo) {
+        Member member = memberService.getMemberEntityById(vo.getMemberId());
         
         if (member.getOauth() == null) {
             return new OAuth2TokenStatusDto(false, "OAuth 정보가 없습니다.");
@@ -153,8 +155,8 @@ public class OAuth2TokenRefreshService {
         );
     }
 
-    public String refreshMemberToken(Long memberId) {
-        Member member = memberService.getMemberEntityById(memberId);
+    public String refreshMemberToken(RefreshMemberTokenVo vo) {
+        Member member = memberService.getMemberEntityById(vo.getMemberId());
         
         if (member.getOauth() == null) {
             throw new RuntimeException("OAuth 정보가 없습니다.");

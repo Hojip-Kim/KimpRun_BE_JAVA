@@ -2,6 +2,7 @@ package kimp.auth.service.serviceImpl;
 
 import kimp.auth.dto.LoginMemberResponseDto;
 import kimp.auth.service.AuthService;
+import kimp.auth.vo.CheckAuthStatusVo;
 import kimp.user.dto.UserWithIdNameEmailDto;
 import kimp.user.entity.Member;
 import kimp.user.service.MemberService;
@@ -23,12 +24,12 @@ public class SessionAuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public LoginMemberResponseDto checkAuthStatus(Long memberId) {
-        if(memberId == null) {
+    public LoginMemberResponseDto checkAuthStatus(CheckAuthStatusVo vo) {
+        if(vo == null || vo.getMemberId() == null) {
             return null;
         }
 
-        Member member = memberService.getMemberEntityById(memberId);
+        Member member = memberService.getMemberEntityById(vo.getMemberId());
 
         String memberEmail = member.getEmail();
         String memberNickname = member.getNickname();
