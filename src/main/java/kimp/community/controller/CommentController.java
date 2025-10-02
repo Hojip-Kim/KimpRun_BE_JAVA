@@ -6,6 +6,7 @@ import kimp.community.dto.comment.response.ResponseCommentDto;
 import kimp.community.service.BoardPacadeService;
 import kimp.community.service.CommentPacadeService;
 import kimp.community.service.CommentService;
+import kimp.community.vo.*;
 import kimp.exception.response.ApiResponse;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
@@ -35,7 +36,8 @@ public class CommentController {
 
     @GetMapping
     public ApiResponse<List<ResponseCommentDto>> getComment(@RequestParam("boardId") Long boardId, @RequestParam("page") int page) {
-        Page<ResponseCommentDto> commentDtoPage = boardPacadeService.getCommentsDto(boardId, page);
+        GetCommentsVo vo = new GetCommentsVo(boardId, page);
+        Page<ResponseCommentDto> commentDtoPage = boardPacadeService.getCommentsDto(vo);
         List<ResponseCommentDto> result = commentDtoPage.getContent();
         return ApiResponse.success(result);
     }
@@ -46,7 +48,8 @@ public class CommentController {
 
         long memberId = customUserDetails.getId();
 
-        ResponseCommentDto result = boardPacadeService.createCommentDto(memberId, boardId, requestCreateCommentDto);
+        CreateCommentVo vo = new CreateCommentVo(memberId, boardId, requestCreateCommentDto);
+        ResponseCommentDto result = boardPacadeService.createCommentDto(vo);
         return ApiResponse.success(result);
     }
 
