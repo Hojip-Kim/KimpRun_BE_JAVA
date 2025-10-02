@@ -35,7 +35,12 @@ public class SessionAuthServiceImpl implements AuthService {
         String memberNickname = member.getNickname();
         String UserRole = member.getRole().getRoleName().getName();
         Long memberIdFromEntity = member.getId();
-        return new LoginMemberResponseDto(true, new UserWithIdNameEmailDto(memberEmail, memberNickname, UserRole, memberIdFromEntity), null);
+
+        return LoginMemberResponseDto.builder()
+                .isAuthenticated(true)
+                .member(new UserWithIdNameEmailDto(memberEmail, memberNickname, UserRole, memberIdFromEntity))
+                .uuid(null)
+                .build();
 
     }
 }

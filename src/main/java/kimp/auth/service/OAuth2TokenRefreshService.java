@@ -137,22 +137,22 @@ public class OAuth2TokenRefreshService {
         Member member = memberService.getMemberEntityById(vo.getMemberId());
         
         if (member.getOauth() == null) {
-            return new OAuth2TokenStatusDto(false, "OAuth 정보가 없습니다.");
+            return OAuth2TokenStatusDto.ofError(false, "OAuth 정보가 없습니다.");
         }
-        
+
         Oauth oauth = member.getOauth();
         boolean isExpired = isTokenExpired(oauth);
         boolean isExpiringSoon = isTokenExpiringSoon(oauth, 30);
-        
-        return new OAuth2TokenStatusDto(
-            true,
-            isExpired,
-            isExpiringSoon,
-            oauth.getExpiresAt(),
-            oauth.getProvider(),
-            oauth.getRefreshToken() != null,
-            null
-        );
+
+        return OAuth2TokenStatusDto.builder()
+                .hasOAuth(true)
+                .isExpired(isExpired)
+                .isExpiringSoon(isExpiringSoon)
+                .expiresAt(oauth.getExpiresAt())
+                .provider(oauth.getProvider())
+                .hasRefreshToken(oauth.getRefreshToken() != null)
+                .message(null)
+                .build();
     }
 
     public String refreshMemberToken(RefreshMemberTokenVo vo) {

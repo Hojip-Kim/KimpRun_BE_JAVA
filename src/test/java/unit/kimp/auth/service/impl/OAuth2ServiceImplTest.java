@@ -132,7 +132,7 @@ public class OAuth2ServiceImplTest {
         assertEquals(name, result.getNickname());
         assertEquals(UserRole.USER, result.getRole());
 
-        verify(memberService, never()).createMember(any(CreateUserDTO.class));
+        verify(memberService, never()).createMember(any());
         verify(memberService).attachOAuthToMember(any(Member.class), anyString(), anyString(), anyString(), anyString(), anyString(), any(), anyString());
     }
 }
