@@ -35,11 +35,11 @@ public class CloudFlareCdnImpl implements Cdn {
 
     @Override
     public String requestIpBan(String ip, String note) {
-        CfCreateAccessRuleReqeustDto cfCreateAccessRuleReqeustDto = new CfCreateAccessRuleReqeustDto(
-                "block",
-                new CfConfiguration("ip", ip),
-                note
-        );
+        CfCreateAccessRuleReqeustDto cfCreateAccessRuleReqeustDto = CfCreateAccessRuleReqeustDto.builder()
+                .mode("block")
+                .configurations(new CfConfiguration("ip", ip))
+                .notes(note)
+                .build();
 
         CfCommonResponseDto<CfAccessRuleResult> response = cdnClient.post()
                 .uri("/{scope}/{id}/firewall/access_rule/rules", scope, scopeId)
