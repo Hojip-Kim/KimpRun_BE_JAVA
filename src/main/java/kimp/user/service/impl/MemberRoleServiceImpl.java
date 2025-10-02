@@ -7,6 +7,7 @@ import kimp.user.dto.response.MemberRoleResponseDto;
 import kimp.user.entity.MemberRole;
 import kimp.user.enums.UserRole;
 import kimp.user.service.MemberRoleService;
+import kimp.user.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -105,23 +106,23 @@ public class MemberRoleServiceImpl implements MemberRoleService {
     // DTO 반환 메소드들 (Controller용)
     @Override
     @Transactional
-    public MemberRoleResponseDto createRoleDto(String roleKey, UserRole roleName) {
-        MemberRole memberRole = createRole(roleKey, roleName);
+    public MemberRoleResponseDto createRoleDto(CreateRoleVo vo) {
+        MemberRole memberRole = createRole(vo.getRoleKey(), vo.getRoleName());
         return new MemberRoleResponseDto(memberRole);
     }
-    
+
     @Override
-    public MemberRoleResponseDto getRoleByIdDto(Long id) {
-        MemberRole memberRole = getRoleById(id);
+    public MemberRoleResponseDto getRoleByIdDto(GetRoleByIdVo vo) {
+        MemberRole memberRole = getRoleById(vo.getId());
         return new MemberRoleResponseDto(memberRole);
     }
-    
+
     @Override
-    public MemberRoleResponseDto getRoleByKeyDto(String roleKey) {
-        MemberRole memberRole = getRoleByKey(roleKey);
+    public MemberRoleResponseDto getRoleByKeyDto(GetRoleByKeyVo vo) {
+        MemberRole memberRole = getRoleByKey(vo.getRoleKey());
         return new MemberRoleResponseDto(memberRole);
     }
-    
+
     @Override
     public List<MemberRoleResponseDto> getAllRolesDto() {
         List<MemberRole> memberRoles = getAllRoles();
@@ -129,11 +130,11 @@ public class MemberRoleServiceImpl implements MemberRoleService {
             .map(MemberRoleResponseDto::new)
             .collect(Collectors.toList());
     }
-    
+
     @Override
     @Transactional
-    public MemberRoleResponseDto updateRoleDto(Long id, UserRole roleName) {
-        MemberRole memberRole = updateRole(id, roleName);
+    public MemberRoleResponseDto updateRoleDto(UpdateRoleVo vo) {
+        MemberRole memberRole = updateRole(vo.getId(), vo.getRoleName());
         return new MemberRoleResponseDto(memberRole);
     }
     

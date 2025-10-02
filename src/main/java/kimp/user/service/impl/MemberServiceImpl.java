@@ -17,6 +17,7 @@ import kimp.user.dto.request.*;
 import kimp.user.entity.*;
 import kimp.user.enums.UserRole;
 import kimp.user.service.MemberService;
+import kimp.user.vo.*;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -65,7 +66,8 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public String sendEmailVerifyCode(String email) {
+    public String sendEmailVerifyCode(SendEmailVerifyCodeVo vo) {
+        String email = vo.getEmail();
         if(email.isEmpty() || email == null){
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Email cannot be null or empty", HttpStatus.BAD_REQUEST, "MemberServiceImpl.sendEmailVerifyCode");
         }
@@ -94,7 +96,9 @@ public class MemberServiceImpl implements MemberService {
 
     // email verification code 정합성 유무 return
     @Override
-    public Boolean verifyCode(String email, String code){
+    public Boolean verifyCode(VerifyEmailCodeVo vo){
+        String email = vo.getEmail();
+        String code = vo.getVerifyCode();
         String storedCode = redisTemplate.opsForValue().get(email);
         return storedCode != null && storedCode.equals(code);
     }
@@ -195,7 +199,8 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public UserDto createMember(CreateUserDTO request) {
+    public UserDto createMember(CreateMemberVo vo) {
+        CreateUserDTO request = vo.getCreateUserDTO();
         Member member = createMemberEntity(request);
         return convertUserToUserDto(member);
     }
@@ -218,7 +223,9 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public UserWithIdNameEmailDto updateNickname(Long id, UpdateUserNicknameDTO UpdateUserNicknameDTO){
+    public UserWithIdNameEmailDto updateNickname(UpdateMemberNicknameVo vo){
+        Long id = vo.getMemberId();
+        UpdateUserNicknameDTO UpdateUserNicknameDTO = vo.getUpdateUserNicknameDTO();
         Member member = memberDao.findActiveMemberForNicknameUpdate(id);
 
         try {
@@ -235,7 +242,9 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public Boolean deActivateMember(Long id, DeActivateUserDTO deleteUserDTO) {
+    public Boolean deActivateMember(DeActivateMemberVo vo) {
+        Long id = vo.getMemberId();
+        DeActivateUserDTO deleteUserDTO = vo.getDeActivateUserDTO();
         Member member = memberDao.findMemberById(id);
 
         if(passwordEncoder.matches(deleteUserDTO.getPassword(), member.getPassword())){
@@ -274,7 +283,8 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public UserDto getmemberById(Long id) {
+    public UserDto getmemberById(GetMemberByIdVo vo) {
+        Long id = vo.getId();
         Member member = memberDao.findActiveMemberById(id);
         return convertUserToUserDto(member);
     }
@@ -309,7 +319,9 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public UserDto updateMember(Long id, UpdateUserPasswordDTO UpdateUserPasswordDTO) {
+    public UserDto updateMember(UpdateMemberPasswordVo vo) {
+        Long id = vo.getMemberId();
+        UpdateUserPasswordDTO UpdateUserPasswordDTO = vo.getUpdateUserPasswordDTO();
         Member member = memberDao.findMemberById(id);
 
         boolean isMatched = passwordEncoder.matches(UpdateUserPasswordDTO.getOldPassword(), member.getPassword());
@@ -322,7 +334,8 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public Boolean deleteMember(DeleteUserDTO deleteUserDTO) {
+    public Boolean deleteMember(DeleteMemberVo vo) {
+        DeleteUserDTO deleteUserDTO = vo.getDeleteUserDTO();
         Member member = memberDao.findMemberById(deleteUserDTO.getUserId());
 
         if(member == null){
@@ -341,7 +354,9 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public UserDto grantRole(Long memberId, UserRole grantRole) {
+    public UserDto grantRole(UpdateUserRoleVo vo) {
+        Long memberId = vo.getUserId();
+        UserRole grantRole = UserRole.valueOf(vo.getRole());
         Member member = memberDao.findMemberById(memberId);
         MemberRole memberRole = memberRoleService.getRoleByName(grantRole);
         member.grantRole(memberRole);
@@ -420,7 +435,8 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public Boolean updatePassword(UpdateUserPasswordRequest request) {
+    public Boolean updatePassword(ResetPasswordVo vo) {
+        UpdateUserPasswordRequest request = vo.getRequest();
         String email = request.getEmail();
         String password = request.getPassword();
 

@@ -2,6 +2,7 @@ package kimp.user.service;
 
 import kimp.user.entity.ActivityRank;
 import kimp.user.entity.SeedMoneyRange;
+import kimp.user.vo.CreateActivityRankVo;
 
 import java.util.List;
 import java.util.Optional;
@@ -9,7 +10,7 @@ import java.util.Optional;
 public interface AdminService {
 
     // ActivityRank methods
-    ActivityRank createActivityRank(String grade);
+    ActivityRank createActivityRank(CreateActivityRankVo vo);
     
     ActivityRank updateActivityRank(Long id, String grade);
     

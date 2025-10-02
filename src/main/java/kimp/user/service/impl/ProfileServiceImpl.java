@@ -12,6 +12,7 @@ import kimp.user.entity.Member;
 import kimp.user.entity.Profile;
 import kimp.user.entity.SeedMoneyRange;
 import kimp.user.service.ProfileService;
+import kimp.user.vo.GetProfileInfoVo;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,8 +55,8 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional(readOnly = true)
-    public ProfileInfoResponse getProfileInfo(Long memberId) {
-        Member member = memberDao.findMemberByIdWithProfile(memberId);
+    public ProfileInfoResponse getProfileInfo(GetProfileInfoVo vo) {
+        Member member = memberDao.findMemberByIdWithProfile(vo.getMemberId());
         if (member == null) {
             throw new KimprunException(
                 KimprunExceptionEnum.RESOURCE_NOT_FOUND_EXCEPTION,
