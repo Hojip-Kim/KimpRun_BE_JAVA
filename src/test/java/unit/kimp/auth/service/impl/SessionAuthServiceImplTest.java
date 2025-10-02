@@ -1,6 +1,6 @@
 package unit.kimp.auth.service.impl;
 
-import kimp.auth.dto.LoginMemberResponseDto;
+import kimp.auth.dto.response.LoginMemberResponseDto;
 import kimp.auth.service.serviceImpl.SessionAuthServiceImpl;
 import kimp.auth.vo.CheckAuthStatusVo;
 import kimp.user.service.MemberService;

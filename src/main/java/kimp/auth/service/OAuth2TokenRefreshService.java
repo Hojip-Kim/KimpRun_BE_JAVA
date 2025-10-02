@@ -1,6 +1,6 @@
 package kimp.auth.service;
 
-import kimp.auth.dto.OAuth2TokenStatusDto;
+import kimp.auth.dto.response.OAuth2TokenStatusDto;
 import kimp.auth.vo.GetTokenStatusVo;
 import kimp.auth.vo.RefreshMemberTokenVo;
 import kimp.user.entity.Member;

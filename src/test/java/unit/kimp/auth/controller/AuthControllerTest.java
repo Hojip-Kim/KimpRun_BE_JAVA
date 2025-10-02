@@ -1,13 +1,13 @@
 package unit.kimp.auth.controller;
 
 import kimp.auth.controller.AuthController;
-import kimp.auth.dto.AuthResponseDto;
-import kimp.auth.dto.LoginMemberResponseDto;
+import kimp.auth.dto.response.AuthResponseDto;
+import kimp.auth.dto.response.LoginMemberResponseDto;
 import kimp.auth.service.AuthService;
 import kimp.auth.vo.CheckAuthStatusVo;
 import kimp.exception.response.ApiResponse;
 import kimp.security.user.CustomUserDetails;
-import kimp.user.dto.UserWithIdNameEmailDto;
+import kimp.user.dto.response.UserWithIdNameEmailDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.userdetails.UserDetails;
-import kimp.auth.dto.UnLoginMemberResponseDto;
+import kimp.auth.dto.response.UnLoginMemberResponseDto;
 import jakarta.servlet.http.Cookie;
 
 import static org.junit.jupiter.api.Assertions.*;
