@@ -1,12 +1,16 @@
 package kimp.chat.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Getter
 public class ChatLogResponseDto {
     @JsonProperty
@@ -30,18 +34,4 @@ public class ChatLogResponseDto {
     private Long memberId;
     @JsonProperty("nickname")
     private String nickname;
-
-
-    public ChatLogResponseDto(String id,String chatId, String content, Boolean authenticated, String uuid, String userIp, LocalDateTime registedAt, String inherenceId, Long memberId, String nickname ) {
-        this.id = id;
-        this.chatId = chatId;
-        this.content = content;
-        this.authenticated = authenticated;
-        this.uuid = uuid;
-        this.userIp = userIp;
-        this.registedAt = registedAt;
-        this.inherenceId = inherenceId;
-        this.memberId = memberId;
-        this.nickname = nickname;
-    }
 }
