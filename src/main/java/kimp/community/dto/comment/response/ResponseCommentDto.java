@@ -1,11 +1,15 @@
 package kimp.community.dto.comment.response;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Getter
 public class ResponseCommentDto {
     private long id;
@@ -23,45 +27,19 @@ public class ResponseCommentDto {
     private Long memberId; // comment 작성자 ID
     private Integer likes;
 
-    // 기존 생성자 (게시글 내 댓글 목록용)
-    public ResponseCommentDto(long id, long parentCommentId, String content, int depth, String email, String nickName, Long memberId, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
-        this.parentCommentId = parentCommentId;
-        this.content = content;
-        this.depth = depth;
-        this.email = email;
-        this.nickName = nickName;
-        this.memberId = memberId;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
-    
-    // 유저별 댓글 조회용 생성자
-    public ResponseCommentDto(Long id, Long boardId, String boardTitle, Long memberId, String nickName, String content, Integer likes, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
-        this.boardId = boardId;
-        this.boardTitle = boardTitle;
-        this.memberId = memberId;
-        this.nickName = nickName;
-        this.content = content;
-        this.likes = likes;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
-    
     // 삭제된 댓글용 정적 팩토리 메서드
     public static ResponseCommentDto createDeletedComment(long id, long parentCommentId, int depth, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        ResponseCommentDto deletedComment = new ResponseCommentDto();
-        deletedComment.id = id;
-        deletedComment.parentCommentId = parentCommentId;
-        deletedComment.content = null;
-        deletedComment.depth = depth;
-        deletedComment.email = null;
-        deletedComment.nickName = null;
-        deletedComment.memberId = null;
-        deletedComment.likes = null;
-        deletedComment.createdAt = createdAt;
-        deletedComment.updatedAt = updatedAt;
-        return deletedComment;
+        return ResponseCommentDto.builder()
+                .id(id)
+                .parentCommentId(parentCommentId)
+                .content(null)
+                .depth(depth)
+                .email(null)
+                .nickName(null)
+                .memberId(null)
+                .likes(null)
+                .createdAt(createdAt)
+                .updatedAt(updatedAt)
+                .build();
     }
 }
