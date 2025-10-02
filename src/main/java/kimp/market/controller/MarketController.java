@@ -8,6 +8,9 @@ import kimp.market.dto.market.response.CombinedMarketList;
 import kimp.market.dto.market.response.CombinedMarketDataList;
 import kimp.market.dto.market.response.MarketDataList;
 import kimp.market.service.MarketService;
+import kimp.market.vo.GetCombinedMarketDataListVo;
+import kimp.market.vo.GetMarketDataListVo;
+import kimp.market.vo.GetMarketListVo;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +30,8 @@ public class MarketController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Market type parameters cannot be null", HttpStatus.BAD_REQUEST, "MarketController.getMarketList");
         }
 
-        CombinedMarketList result = this.marketService.getMarketListFromDatabase(first, second);
+        GetMarketListVo vo = new GetMarketListVo(first, second);
+        CombinedMarketList result = this.marketService.getMarketListFromDatabase(vo);
         return ApiResponse.success(result);
     }
 
@@ -37,7 +41,8 @@ public class MarketController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Market type parameter cannot be null", HttpStatus.BAD_REQUEST, "MarketController.getFirstMarketDatas");
         }
 
-        MarketDataList result = marketService.getMarketDataList(market);
+        GetMarketDataListVo vo = new GetMarketDataListVo(market);
+        MarketDataList result = marketService.getMarketDataList(vo);
         return ApiResponse.success(result);
     }
 
@@ -47,13 +52,15 @@ public class MarketController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Market type parameters cannot be null", HttpStatus.BAD_REQUEST, "MarketController.getCombinedMarketDatas");
         }
 
-        CombinedMarketDataList result = marketService.getCombinedMarketDataList(first, second);
+        GetCombinedMarketDataListVo vo = new GetCombinedMarketDataListVo(first, second);
+        CombinedMarketDataList result = marketService.getCombinedMarketDataList(vo);
         return ApiResponse.success(result);
     }
 
     @GetMapping("/first/test")
     public ApiResponse<CombinedMarketDataList> test() throws IOException {
-       CombinedMarketDataList result = marketService.getCombinedMarketDataList(MarketType.UPBIT, MarketType.BINANCE);
+       GetCombinedMarketDataListVo vo = new GetCombinedMarketDataListVo(MarketType.UPBIT, MarketType.BINANCE);
+       CombinedMarketDataList result = marketService.getCombinedMarketDataList(vo);
        return ApiResponse.success(result);
     }
 }

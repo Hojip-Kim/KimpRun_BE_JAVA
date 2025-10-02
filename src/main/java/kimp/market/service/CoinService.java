@@ -6,33 +6,34 @@ import kimp.market.dto.coin.request.*;
 import kimp.market.dto.coin.response.CoinMarketDto;
 import kimp.market.dto.coin.response.CoinResponseDto;
 import kimp.market.dto.coin.response.CoinResponseWithMarketTypeDto;
+import kimp.market.vo.*;
 
 import java.util.List;
 
 public interface CoinService {
 
-    public CoinResponseWithMarketTypeDto getCoinByID(long id);
+    public CoinResponseWithMarketTypeDto getCoinByID(GetCoinByIdVo vo);
 
-    public CoinResponseDto createCoin(CreateCoinDto createCoinDto);
+    public CoinResponseDto createCoin(CreateCoinVo vo);
 
     // Binance / Upbit 스케줄러를통해 지워지거나 새로 생긴 코인을 추가하거나 지웁니다.
     public void createWithDeleteCoin(ChangeCoinDto changeCoinDto);
 
     public List<CoinResponseDto> createCoinBulk(List<CreateCoinDto> createCoinDtos);
 
-    public List<CoinResponseDto> getCoinsByExchangeId(long exchangeId);
+    public List<CoinResponseDto> getCoinsByExchangeId(GetCoinsByExchangeIdVo vo);
 
-    public CoinResponseDto updateContentCoin(UpdateContentCoinDto updateCoinDto);
+    public CoinResponseDto updateContentCoin(UpdateCoinContentVo vo);
 
-    public CoinResponseDto addExchangeCoin(AdjustExchangeCoinDto addExchangeCoin);
+    public CoinResponseDto addExchangeCoin(AdjustExchangeCoinVo vo);
 
-    public void deleteExchangeCoin(AdjustExchangeCoinDto deleteExchangeCoin);
+    public void deleteExchangeCoin(AdjustExchangeCoinVo vo);
 
-    public CoinResponseDto updateCoin(UpdateCoinDto updateCoinDto);
+    public CoinResponseDto updateCoin(UpdateCoinVo vo);
 
     // 조심해서 사용. exchange의 코인 하나만 지우는것이 아닌, 완전히 지우고 해당 코인을 갖고있는 exchange의 코인을 다 지움.
-    public void deleteCoin(DeleteCoinDto deleteCoinDto);
-    
+    public void deleteCoin(DeleteCoinVo vo);
+
     // 거래소별 코인 목록 조회 (DB 기반)
     public List<CoinMarketDto> getCoinsByMarketType(MarketType marketType);
 }

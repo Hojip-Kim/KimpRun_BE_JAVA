@@ -61,7 +61,7 @@ public class MarketControllerTest {
     @DisplayName("통합 마켓 리스트 조회")
     void shouldReturnCombinedMarketList() throws IOException {
         // Arrange
-        when(marketService.getMarketListFromDatabase(MarketType.UPBIT, MarketType.BINANCE)).thenReturn(combinedMarketList);
+        when(marketService.getMarketListFromDatabase(any())).thenReturn(combinedMarketList);
 
         // Act
         ApiResponse<CombinedMarketList> response = marketController.getMarketList(MarketType.UPBIT, MarketType.BINANCE);
@@ -72,7 +72,7 @@ public class MarketControllerTest {
         assertNotNull(response.getData());
         assertEquals(firstMarketList, response.getData().getFirstMarketList());
         assertEquals(secondMarketList, response.getData().getSecondMarketList());
-        verify(marketService, times(1)).getMarketListFromDatabase(MarketType.UPBIT, MarketType.BINANCE);
+        verify(marketService, times(1)).getMarketListFromDatabase(any());
     }
 
     @Test
@@ -82,14 +82,14 @@ public class MarketControllerTest {
         assertThrows(KimprunException.class, () -> marketController.getMarketList(null, MarketType.BINANCE));
         assertThrows(KimprunException.class, () -> marketController.getMarketList(MarketType.UPBIT, null));
         assertThrows(KimprunException.class, () -> marketController.getMarketList(null, null));
-        verify(marketService, never()).getMarketListFromDatabase(any(), any());
+        verify(marketService, never()).getMarketListFromDatabase(any());
     }
 
     @Test
     @DisplayName("단일 마켓 데이터 조회")
     void shouldReturnMarketDataList() throws IOException {
         // Arrange
-        when(marketService.getMarketDataList(MarketType.UPBIT)).thenReturn(marketDataList);
+        when(marketService.getMarketDataList(any())).thenReturn(marketDataList);
 
         // Act
         ApiResponse<MarketDataList> response = marketController.getFirstMarketDatas(MarketType.UPBIT);
@@ -99,7 +99,7 @@ public class MarketControllerTest {
         assertEquals(200, response.getStatus());
         assertNotNull(response.getData());
         assertEquals(marketDtoList, response.getData().getMarketDataList());
-        verify(marketService, times(1)).getMarketDataList(MarketType.UPBIT);
+        verify(marketService, times(1)).getMarketDataList(any());
     }
 
     @Test
@@ -114,7 +114,7 @@ public class MarketControllerTest {
     @DisplayName("통합 마켓 데이터 조회")
     void shouldReturnCombinedMarketDataList() throws IOException {
         // Arrange
-        when(marketService.getCombinedMarketDataList(MarketType.UPBIT, MarketType.BINANCE)).thenReturn(combinedMarketDataList);
+        when(marketService.getCombinedMarketDataList(any())).thenReturn(combinedMarketDataList);
 
         // Act
         ApiResponse<CombinedMarketDataList> response = marketController.getCombinedMarketDatas(MarketType.UPBIT, MarketType.BINANCE);
@@ -125,7 +125,7 @@ public class MarketControllerTest {
         assertNotNull(response.getData());
         assertEquals(marketDtoList, response.getData().getFirstMarketList());
         assertEquals(marketDtoList, response.getData().getSecondMarketList());
-        verify(marketService, times(1)).getCombinedMarketDataList(MarketType.UPBIT, MarketType.BINANCE);
+        verify(marketService, times(1)).getCombinedMarketDataList(any());
     }
 
     @Test
@@ -135,14 +135,14 @@ public class MarketControllerTest {
         assertThrows(KimprunException.class, () -> marketController.getCombinedMarketDatas(null, MarketType.BINANCE));
         assertThrows(KimprunException.class, () -> marketController.getCombinedMarketDatas(MarketType.UPBIT, null));
         assertThrows(KimprunException.class, () -> marketController.getCombinedMarketDatas(null, null));
-        verify(marketService, never()).getCombinedMarketDataList(any(), any());
+        verify(marketService, never()).getCombinedMarketDataList(any());
     }
 
     @Test
     @DisplayName("테스트용 통합 마켓 데이터 조회")
     void shouldReturnCombinedMarketDataListForTest() throws IOException {
         // Arrange
-        when(marketService.getCombinedMarketDataList(MarketType.UPBIT, MarketType.BINANCE)).thenReturn(combinedMarketDataList);
+        when(marketService.getCombinedMarketDataList(any())).thenReturn(combinedMarketDataList);
 
         // Act
         ApiResponse<CombinedMarketDataList> response = marketController.test();
@@ -153,6 +153,6 @@ public class MarketControllerTest {
         assertNotNull(response.getData());
         assertEquals(marketDtoList, response.getData().getFirstMarketList());
         assertEquals(marketDtoList, response.getData().getSecondMarketList());
-        verify(marketService, times(1)).getCombinedMarketDataList(MarketType.UPBIT, MarketType.BINANCE);
+        verify(marketService, times(1)).getCombinedMarketDataList(any());
     }
 }

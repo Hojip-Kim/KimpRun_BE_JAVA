@@ -4,6 +4,7 @@ import kimp.exception.response.ApiResponse;
 import kimp.market.dto.coin.request.*;
 import kimp.market.dto.coin.response.CoinResponseDto;
 import kimp.market.service.CoinService;
+import kimp.market.vo.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,50 +21,57 @@ public class CoinController {
 
     @GetMapping("/{id}")
     public ApiResponse<CoinResponseDto> getCoinById(@PathVariable("id") long id) {
-        CoinResponseDto response = coinService.getCoinByID(id);
+        GetCoinByIdVo vo = new GetCoinByIdVo(id);
+        CoinResponseDto response = coinService.getCoinByID(vo);
         return ApiResponse.success(response);
     }
 
     @GetMapping("/exchange/{exchangeId}")
     public ApiResponse<List<CoinResponseDto>> getCoinByExchangeId(@PathVariable("exchangeId") long exchangeId) {
-        List<CoinResponseDto> response = coinService.getCoinsByExchangeId(exchangeId);
+        GetCoinsByExchangeIdVo vo = new GetCoinsByExchangeIdVo(exchangeId);
+        List<CoinResponseDto> response = coinService.getCoinsByExchangeId(vo);
         return ApiResponse.success(response);
     }
 
     @PostMapping("/create")
     public ApiResponse<CoinResponseDto> createCoin(@RequestBody CreateCoinDto createCoinDto) {
-        CoinResponseDto response = coinService.createCoin(createCoinDto);
+        CreateCoinVo vo = new CreateCoinVo(createCoinDto);
+        CoinResponseDto response = coinService.createCoin(vo);
         return ApiResponse.success(response);
     }
 
     @PatchMapping("/update/all")
     public ApiResponse<CoinResponseDto> updateAllCoinData(@RequestBody UpdateCoinDto updateCoinDto) {
-
-        CoinResponseDto response = coinService.updateCoin(updateCoinDto);
+        UpdateCoinVo vo = new UpdateCoinVo(updateCoinDto);
+        CoinResponseDto response = coinService.updateCoin(vo);
         return ApiResponse.success(response);
     }
 
     @PatchMapping("/update/content")
     public ApiResponse<CoinResponseDto> updateCoinContent(@RequestBody UpdateContentCoinDto updateContentCoinDto) {
-        CoinResponseDto response = coinService.updateContentCoin(updateContentCoinDto);
+        UpdateCoinContentVo vo = new UpdateCoinContentVo(updateContentCoinDto);
+        CoinResponseDto response = coinService.updateContentCoin(vo);
         return ApiResponse.success(response);
     }
 
     @PatchMapping("/add/exchange")
     public ApiResponse<CoinResponseDto> addExchangeCoin(@RequestBody AdjustExchangeCoinDto adjustExchangeCoinDto) {
-        CoinResponseDto response = coinService.addExchangeCoin(adjustExchangeCoinDto);
+        AdjustExchangeCoinVo vo = new AdjustExchangeCoinVo(adjustExchangeCoinDto);
+        CoinResponseDto response = coinService.addExchangeCoin(vo);
         return ApiResponse.success(response);
     }
 
     @PatchMapping("/delist/exchange")
     public ApiResponse<Boolean> delistExchangeCoin(@RequestBody AdjustExchangeCoinDto adjustExchangeCoinDto) {
-        coinService.deleteExchangeCoin(adjustExchangeCoinDto);
+        AdjustExchangeCoinVo vo = new AdjustExchangeCoinVo(adjustExchangeCoinDto);
+        coinService.deleteExchangeCoin(vo);
         return ApiResponse.success(true);
     }
 
     @DeleteMapping("/delete")
     public ApiResponse<Boolean> deleteCoin(@RequestBody DeleteCoinDto deleteCoinDto) {
-        coinService.deleteCoin(deleteCoinDto);
+        DeleteCoinVo vo = new DeleteCoinVo(deleteCoinDto);
+        coinService.deleteCoin(vo);
         return ApiResponse.success(true);
     }
 

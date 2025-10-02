@@ -133,7 +133,7 @@ public class BithumbTest {
         bithumb.setBithumbMarketList();
 
         // When
-        MarketList result = bithumb.getMarketList();
+        MarketList<BithumbCryptoDto> result = bithumb.getMarketList();
 
         // Then
         assertThat(result).isNotNull();

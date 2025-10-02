@@ -14,6 +14,7 @@ import kimp.market.dto.coin.response.CoinResponseWithMarketTypeDto;
 import kimp.market.entity.Coin;
 import kimp.market.entity.CoinExchange;
 import kimp.market.service.CoinService;
+import kimp.market.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,14 +42,15 @@ public class CoinServiceImpl implements CoinService {
 
     @Override
     @Transactional
-    public CoinResponseWithMarketTypeDto getCoinByID(long id) {
-        Coin coin = coinDao.findByIdWithExchanges(id);
+    public CoinResponseWithMarketTypeDto getCoinByID(GetCoinByIdVo vo) {
+        Coin coin = coinDao.findByIdWithExchanges(vo.getId());
         return dtoConverter.convertCoinToCoinResponseWithMarketTypeDto(coin);
     }
 
     @Override
     @Transactional
-    public CoinResponseDto createCoin(CreateCoinDto createCoinDto) {
+    public CoinResponseDto createCoin(CreateCoinVo vo) {
+        CreateCoinDto createCoinDto = vo.getCreateCoinDto();
 
         Coin coin = coinDao.createCoin(createCoinDto.getSymlbol(), createCoinDto.getName(), createCoinDto.getEnglishName());
 
@@ -82,7 +84,8 @@ public class CoinServiceImpl implements CoinService {
         if(!listedCoinSymbol.isEmpty()){
             for(String symbol : listedCoinSymbol){
                 CreateCoinDto createCoinDto = new CreateCoinDto(symbol, null, null, marketTypes);
-                createCoin(createCoinDto);
+                CreateCoinVo vo = new CreateCoinVo(createCoinDto);
+                createCoin(vo);
             }
         }
         if(!delistedCoinSymbol.isEmpty()){
@@ -90,7 +93,8 @@ public class CoinServiceImpl implements CoinService {
             for(String symbol : delistedCoinSymbol){
                 Coin coin = coinDao.getCoinBySymbol(symbol);
                 AdjustExchangeCoinDto adjustExchangeCoinDto = new AdjustExchangeCoinDto(coin.getId(), exchangeIds);
-                deleteExchangeCoin(adjustExchangeCoinDto);
+                AdjustExchangeCoinVo vo = new AdjustExchangeCoinVo(adjustExchangeCoinDto);
+                deleteExchangeCoin(vo);
             }
         }
     }
@@ -177,16 +181,17 @@ public class CoinServiceImpl implements CoinService {
 
     // coin 가져올 때 select 한번으로 가져오므로 N+1 발생안함
     @Override
-    public List<CoinResponseDto> getCoinsByExchangeId(long exchangeId) {
+    public List<CoinResponseDto> getCoinsByExchangeId(GetCoinsByExchangeIdVo vo) {
 
-        List<Coin> coinList = coinDao.getCoinsByExchangeId(exchangeId);
+        List<Coin> coinList = coinDao.getCoinsByExchangeId(vo.getExchangeId());
 
         return dtoConverter.convertCoinListToCoinResponseDtoList(coinList);
     }
 
     @Override
     @Transactional
-    public CoinResponseDto updateContentCoin(UpdateContentCoinDto updateCoinDto) {
+    public CoinResponseDto updateContentCoin(UpdateCoinContentVo vo) {
+        UpdateContentCoinDto updateCoinDto = vo.getUpdateContentCoinDto();
 
         return dtoConverter.convertCoinToCoinResponseDto(coinDao.updateContentCoin(updateCoinDto.getId(), updateCoinDto.getContent()));
 
@@ -195,7 +200,8 @@ public class CoinServiceImpl implements CoinService {
     // exchanges를 가져오는 떄에 CoinExchange, 이 CoinExchange에 해당하는 Coin까지 같이 fetch했으므로 N+1 발생하지않음.
     @Override
     @Transactional
-    public CoinResponseDto addExchangeCoin(AdjustExchangeCoinDto addExchangeCoin) {
+    public CoinResponseDto addExchangeCoin(AdjustExchangeCoinVo vo) {
+        AdjustExchangeCoinDto addExchangeCoin = vo.getAdjustExchangeCoinDto();
         Coin coin = coinDao.findByIdWithExchanges(addExchangeCoin.getCoinId());
 
         List<Exchange> exchanges = exchangeDao.getExchangesAndCoinExchangesByIds(addExchangeCoin.getCoinId(), addExchangeCoin.getExchangeIds());
@@ -216,7 +222,8 @@ public class CoinServiceImpl implements CoinService {
     // 코인 자체를 지우는것이 아님.
     @Override
     @Transactional
-    public void deleteExchangeCoin(AdjustExchangeCoinDto deleteExchangeCoin) {
+    public void deleteExchangeCoin(AdjustExchangeCoinVo vo) {
+        AdjustExchangeCoinDto deleteExchangeCoin = vo.getAdjustExchangeCoinDto();
         List<CoinExchange> coinExchanges = coinExchangeDao.findCoinExchangeWithExchangeByCoinIdAndExchangeIds(deleteExchangeCoin.getCoinId(), deleteExchangeCoin.getExchangeIds());
 
         List<CoinExchange> collectRemovedCoinExchanges = new ArrayList<>();
@@ -231,7 +238,8 @@ public class CoinServiceImpl implements CoinService {
 
     @Override
     @Transactional
-    public CoinResponseDto updateCoin(UpdateCoinDto updateCoinDto) {
+    public CoinResponseDto updateCoin(UpdateCoinVo vo) {
+        UpdateCoinDto updateCoinDto = vo.getUpdateCoinDto();
         Coin coin = coinDao.findById(updateCoinDto.getId());
         Coin updatedCoin = coin.updateContent(updateCoinDto.getContent()).updateName(updateCoinDto.getName()).updateSymbol(updateCoinDto.getSymbol()).updateEnglishName(updateCoinDto.getEnglishName());
         return dtoConverter.convertCoinToCoinResponseDto(updatedCoin);
@@ -239,7 +247,8 @@ public class CoinServiceImpl implements CoinService {
 
     @Override
     @Transactional
-    public void deleteCoin(DeleteCoinDto deleteCoinDto) {
+    public void deleteCoin(DeleteCoinVo vo) {
+        DeleteCoinDto deleteCoinDto = vo.getDeleteCoinDto();
         Coin coin = coinDao.findById(deleteCoinDto.getId());
 
         List<CoinExchange> coinExchanges = coinExchangeDao.findCoinExchangeWithExchangeByCoinId(deleteCoinDto.getId());
