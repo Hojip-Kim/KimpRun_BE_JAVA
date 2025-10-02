@@ -48,8 +48,8 @@ public class NoticeServiceImpl implements NoticeService
 
     @Override
     @Transactional
-    public ExchangeNoticeDto<Page<NoticeDto>> getAllNotices(PageRequestDto pageRequestDto) {
-        Pageable pageable = PageRequest.of(pageRequestDto.getPage(), pageRequestDto.getSize());
+    public ExchangeNoticeDto<Page<NoticeDto>> getAllNotices(kimp.notice.vo.GetNoticeByExchangeVo vo) {
+        Pageable pageable = PageRequest.of(vo.getPageRequestDto().getPage(), vo.getPageRequestDto().getSize());
 
         Page<Notice> noticePage = this.noticeDao.findAllByOrderByRegistedAtAsc(pageable);
 

@@ -15,7 +15,7 @@ public interface NoticeService {
 
     public NoticeDto getNoticeByLink(String link);
 
-    public ExchangeNoticeDto<Page<NoticeDto>> getAllNotices(PageRequestDto pageRequestDto);
+    public ExchangeNoticeDto<Page<NoticeDto>> getAllNotices(kimp.notice.vo.GetNoticeByExchangeVo vo);
 
     public NoticeDto createNotice(String title, String link, LocalDateTime date);
 

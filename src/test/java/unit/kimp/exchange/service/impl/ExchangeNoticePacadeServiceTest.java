@@ -189,7 +189,7 @@ public class ExchangeNoticePacadeServiceTest {
         when(dtoConverter.wrappingDtosToExchangeNoticeDto(marketType, noticeDtoPage)).thenReturn(exchangeNoticeDto);
 
         // When
-        ExchangeNoticeDto<Page<NoticeDto>> result = exchangeNoticePacadeService.getNoticeByExchange(marketType, pageRequestDto);
+        ExchangeNoticeDto<Page<NoticeDto>> result = exchangeNoticePacadeService.getNoticeByExchange(new kimp.notice.vo.GetNoticeByExchangeVo(marketType, pageRequestDto));
 
         // Then
         assertThat(result).isEqualTo(exchangeNoticeDto);
@@ -211,7 +211,7 @@ public class ExchangeNoticePacadeServiceTest {
         when(noticeDao.findByExchangeIdOrderByRegistedAtAsc(exchange.getId(), pageable)).thenReturn(emptyNoticePage);
 
         // When & Then
-        assertThatThrownBy(() -> exchangeNoticePacadeService.getNoticeByExchange(marketType, pageRequestDto))
+        assertThatThrownBy(() -> exchangeNoticePacadeService.getNoticeByExchange(new kimp.notice.vo.GetNoticeByExchangeVo(marketType, pageRequestDto)))
                 .isInstanceOf(KimprunException.class)
                 .hasFieldOrPropertyWithValue("message", "Not have data");
 
