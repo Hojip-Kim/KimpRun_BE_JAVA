@@ -48,7 +48,11 @@ public class AuthControllerTest {
         // Arrange
         CustomUserDetails authenticatedUser = mock(CustomUserDetails.class);
         UserWithIdNameEmailDto userWithIdNameEmailDto = new UserWithIdNameEmailDto("test@example.com", "testUser", "USER", 1L);
-        LoginMemberResponseDto mockResponseDto = new LoginMemberResponseDto(true, userWithIdNameEmailDto, "RandomUuid");
+        LoginMemberResponseDto mockResponseDto = LoginMemberResponseDto.builder()
+                .isAuthenticated(true)
+                .member(userWithIdNameEmailDto)
+                .uuid("RandomUuid")
+                .build();
         when(authService.checkAuthStatus(any(CheckAuthStatusVo.class))).thenReturn(mockResponseDto);
 
         // Act

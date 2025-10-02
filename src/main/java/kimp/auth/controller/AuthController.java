@@ -39,7 +39,9 @@ public class AuthController {
                 }
             }
             if (member == null) {
-                return ApiResponse.success(new UnLoginMemberResponseDto(kimprunToken));
+                return ApiResponse.success(UnLoginMemberResponseDto.builder()
+                        .uuid(kimprunToken)
+                        .build());
             }
         }
         
