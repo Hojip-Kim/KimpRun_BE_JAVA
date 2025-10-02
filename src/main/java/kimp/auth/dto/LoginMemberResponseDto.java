@@ -2,27 +2,25 @@ package kimp.auth.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import kimp.user.dto.UserWithIdNameEmailDto;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class LoginMemberResponseDto extends AuthResponseDto {
 
     @JsonProperty("isAuthenticated")
-    public boolean isAuthenticated;
+    private boolean isAuthenticated;
 
     @JsonProperty("uuid")
-    public String uuid;
+    private String uuid;
 
     @JsonProperty("member")
-    public UserWithIdNameEmailDto member;
-
-    public LoginMemberResponseDto(boolean authenticated, UserWithIdNameEmailDto UserWithIdNameEmailDto, String uuid) {
-        this.isAuthenticated = authenticated;
-        this.member = UserWithIdNameEmailDto;
-        this.uuid = uuid;
-    }
+    private UserWithIdNameEmailDto member;
 
     public void setUuid(String uuid){
         this.uuid = uuid;
