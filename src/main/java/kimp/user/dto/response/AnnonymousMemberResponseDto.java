@@ -1,11 +1,17 @@
 package kimp.user.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class AnnonymousMemberResponseDto {
 
     @JsonProperty("uuid")
@@ -24,15 +30,4 @@ public class AnnonymousMemberResponseDto {
     private LocalDateTime banStartTime;
     @JsonProperty("banned_end_time")
     private LocalDateTime banEndTime;
-
-    public AnnonymousMemberResponseDto(String uuid, String ip, Integer applicationBannedCount, Integer cdnBannedCount, Boolean isBanned, String banType, LocalDateTime banStartTime, LocalDateTime banEndTime) {
-        this.uuid = uuid;
-        this.ip = ip;
-        this.applicationBannedCount = applicationBannedCount;
-        this.cdnBannedCount = cdnBannedCount;
-        this.isBanned = isBanned;
-        this.banType = banType;
-        this.banStartTime = banStartTime;
-        this.banEndTime = banEndTime;
-    }
 }

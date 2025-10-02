@@ -41,7 +41,16 @@ public class AnnonyMousServiceImpl implements AnnonyMousService {
         LocalDateTime banStartTime = Instant.ofEpochMilli(annonymousMember.getBannedStartTime()).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime banEndTime = Instant.ofEpochMilli(annonymousMember.getBannedExpiryTime()).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
 
-        return new AnnonymousMemberResponseDto(annonymousMember.getMemberUuid(), annonymousMember.getMemberIp(), annonymousMember.getApplicationBannedCount(), annonymousMember.getCdnBannedCount(), annonymousMember.getIsBanned(), null, banStartTime, banEndTime);
+        return AnnonymousMemberResponseDto.builder()
+                .uuid(annonymousMember.getMemberUuid())
+                .ip(annonymousMember.getMemberIp())
+                .applicationBannedCount(annonymousMember.getApplicationBannedCount())
+                .cdnBannedCount(annonymousMember.getCdnBannedCount())
+                .isBanned(annonymousMember.getIsBanned())
+                .banType(null)
+                .banStartTime(banStartTime)
+                .banEndTime(banEndTime)
+                .build();
     }
 
     @Override
@@ -84,7 +93,16 @@ public class AnnonyMousServiceImpl implements AnnonyMousService {
         LocalDateTime banEndTime = Instant.ofEpochMilli(annonymousMember.getBannedExpiryTime()).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
         String banType = annonymousMember.getBanType() == null ? null : annonymousMember.getBanType().getName();
 
-        return new AnnonymousMemberResponseDto(annonymousMember.getMemberUuid(), annonymousMember.getMemberIp(), annonymousMember.getApplicationBannedCount(), annonymousMember.getCdnBannedCount(), annonymousMember.getIsBanned(), banType ,banStartTime, banEndTime);
+        return AnnonymousMemberResponseDto.builder()
+                .uuid(annonymousMember.getMemberUuid())
+                .ip(annonymousMember.getMemberIp())
+                .applicationBannedCount(annonymousMember.getApplicationBannedCount())
+                .cdnBannedCount(annonymousMember.getCdnBannedCount())
+                .isBanned(annonymousMember.getIsBanned())
+                .banType(banType)
+                .banStartTime(banStartTime)
+                .banEndTime(banEndTime)
+                .build();
     }
 
     @Override

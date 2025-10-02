@@ -1,7 +1,8 @@
-package kimp.user.dto;
+package kimp.user.dto.internal;
 
 import kimp.user.enums.UserRole;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -13,6 +14,7 @@ import lombok.NoArgsConstructor;
 * */
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Getter
 public class UserCopyDto {
     private Long id;
