@@ -24,6 +24,16 @@ body:
     validations:
       required: true
 
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✅ 체크리스트
+      options:
+        - label: A 기능 완료
+        - label: B 기능 완료
+        - label: C 기능 완료
+        - label: D 기능 완료
+
   - type: textarea
     id: expected
     attributes:
