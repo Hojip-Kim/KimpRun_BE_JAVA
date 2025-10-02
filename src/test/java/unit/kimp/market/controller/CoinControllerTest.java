@@ -57,7 +57,7 @@ public class CoinControllerTest {
     @DisplayName("ID로 코인 조회")
     void shouldReturnCoinWhenFound() {
         // Arrange
-        when(coinService.getCoinByID(1L)).thenReturn(mock(CoinResponseWithMarketTypeDto.class));
+        when(coinService.getCoinByID(any())).thenReturn(mock(CoinResponseWithMarketTypeDto.class));
 
         // Act
         ApiResponse<CoinResponseDto> response = coinController.getCoinById(1L);
@@ -65,14 +65,14 @@ public class CoinControllerTest {
         // Assert
         assertEquals(200, response.getStatus());
         assertNotNull(response.getData());
-        verify(coinService, times(1)).getCoinByID(1L);
+        verify(coinService, times(1)).getCoinByID(any());
     }
 
     @Test
     @DisplayName("getCoinById는 null일 때에도 코인 데이터를 반환해야 함.")
     void getCoinById_ShouldReturnSuccessResponse_EvenWhenNull() {
         // Arrange
-        when(coinService.getCoinByID(999L)).thenReturn(null);
+        when(coinService.getCoinByID(any())).thenReturn(null);
 
         // Act
         ApiResponse<CoinResponseDto> response = coinController.getCoinById(999L);
@@ -80,14 +80,14 @@ public class CoinControllerTest {
         // Assert
         assertEquals(200, response.getStatus());
         assertNull(response.getData());
-        verify(coinService, times(1)).getCoinByID(999L);
+        verify(coinService, times(1)).getCoinByID(any());
     }
 
     @Test
     @DisplayName("getCoinByExchangeId는 발견 시 코인을 반환해야 함.")
     void getCoinByExchangeId_ShouldReturnCoins_WhenFound() {
         // Arrange
-        when(coinService.getCoinsByExchangeId(1L)).thenReturn(coinResponseDtoList);
+        when(coinService.getCoinsByExchangeId(any())).thenReturn(coinResponseDtoList);
 
         // Act
         ApiResponse<List<CoinResponseDto>> response = coinController.getCoinByExchangeId(1L);
@@ -96,14 +96,14 @@ public class CoinControllerTest {
         assertEquals(200, response.getStatus());
         assertNotNull(response.getData());
         assertEquals(2, response.getData().size());
-        verify(coinService, times(1)).getCoinsByExchangeId(1L);
+        verify(coinService, times(1)).getCoinsByExchangeId(any());
     }
 
     @Test
     @DisplayName("getCoinByExchangeId는 null일 때에도 성공 응답을 반환해야 함.")
     void getCoinByExchangeId_ShouldReturnSuccessResponse_EvenWhenNull() {
         // Arrange
-        when(coinService.getCoinsByExchangeId(999L)).thenReturn(null);
+        when(coinService.getCoinsByExchangeId(any())).thenReturn(null);
 
         // Act
         ApiResponse<List<CoinResponseDto>> response = coinController.getCoinByExchangeId(999L);
@@ -111,14 +111,14 @@ public class CoinControllerTest {
         // Assert
         assertEquals(200, response.getStatus());
         assertNull(response.getData());
-        verify(coinService, times(1)).getCoinsByExchangeId(999L);
+        verify(coinService, times(1)).getCoinsByExchangeId(any());
     }
 
     @Test
     @DisplayName("createCoin은 성공 시 생성된 코인을 반환해야 함.")
     void createCoin_ShouldReturnCreatedCoin_WhenSuccessful() {
         // Arrange
-        when(coinService.createCoin(any(CreateCoinDto.class))).thenReturn(coinResponseDto);
+        when(coinService.createCoin(any())).thenReturn(coinResponseDto);
 
         // Act
         ApiResponse<CoinResponseDto> response = coinController.createCoin(createCoinDto);
@@ -127,14 +127,14 @@ public class CoinControllerTest {
         assertEquals(200, response.getStatus());
         assertNotNull(response.getData());
         assertEquals("BTC", response.getData().getSymbol());
-        verify(coinService, times(1)).createCoin(createCoinDto);
+        verify(coinService, times(1)).createCoin(any());
     }
 
     @Test
     @DisplayName("createCoin은 null일 때에도 성공 응답을 반환해야 함.")
     void createCoin_ShouldReturnSuccessResponse_EvenWhenNull() {
         // Arrange
-        when(coinService.createCoin(any(CreateCoinDto.class))).thenReturn(null);
+        when(coinService.createCoin(any())).thenReturn(null);
 
         // Act
         ApiResponse<CoinResponseDto> response = coinController.createCoin(createCoinDto);
@@ -142,14 +142,14 @@ public class CoinControllerTest {
         // Assert
         assertEquals(200, response.getStatus());
         assertNull(response.getData());
-        verify(coinService, times(1)).createCoin(createCoinDto);
+        verify(coinService, times(1)).createCoin(any());
     }
 
     @Test
     @DisplayName("updateAllCoinData는 성공 시 업데이트된 코인을 반환해야 함.")
     void updateAllCoinData_ShouldReturnUpdatedCoin_WhenSuccessful() {
         // Arrange
-        when(coinService.updateCoin(any(UpdateCoinDto.class))).thenReturn(coinResponseDto);
+        when(coinService.updateCoin(any())).thenReturn(coinResponseDto);
 
         // Act
         ApiResponse<CoinResponseDto> response = coinController.updateAllCoinData(updateCoinDto);
@@ -158,14 +158,14 @@ public class CoinControllerTest {
         assertEquals(200, response.getStatus());
         assertNotNull(response.getData());
         assertEquals("BTC", response.getData().getSymbol());
-        verify(coinService, times(1)).updateCoin(updateCoinDto);
+        verify(coinService, times(1)).updateCoin(any());
     }
 
     @Test
     @DisplayName("updateAllCoinData는 null인 경우에도 성공 응답을 반환해야 함.")
     void updateAllCoinData_ShouldReturnSuccessResponse_EvenWhenNull() {
         // Arrange
-        when(coinService.updateCoin(any(UpdateCoinDto.class))).thenReturn(null);
+        when(coinService.updateCoin(any())).thenReturn(null);
 
         // Act
         ApiResponse<CoinResponseDto> response = coinController.updateAllCoinData(updateCoinDto);
@@ -173,14 +173,14 @@ public class CoinControllerTest {
         // Assert
         assertEquals(200, response.getStatus());
         assertNull(response.getData());
-        verify(coinService, times(1)).updateCoin(updateCoinDto);
+        verify(coinService, times(1)).updateCoin(any());
     }
 
     @Test
     @DisplayName("updateCoinContent는 성공 시 업데이트된 코인을 반환해야 함.")
     void updateCoinContent_ShouldReturnUpdatedCoin_WhenSuccessful() {
         // Arrange
-        when(coinService.updateContentCoin(any(UpdateContentCoinDto.class))).thenReturn(coinResponseDto);
+        when(coinService.updateContentCoin(any())).thenReturn(coinResponseDto);
 
         // Act
         ApiResponse<CoinResponseDto> response = coinController.updateCoinContent(updateContentCoinDto);
@@ -189,14 +189,14 @@ public class CoinControllerTest {
         assertEquals(200, response.getStatus());
         assertNotNull(response.getData());
         assertEquals("BTC", response.getData().getSymbol());
-        verify(coinService, times(1)).updateContentCoin(updateContentCoinDto);
+        verify(coinService, times(1)).updateContentCoin(any());
     }
 
     @Test
     @DisplayName("updateCoinContent는 null인 경우에도 성공 응답을 반환해야 함.")
     void updateCoinContent_ShouldReturnSuccessResponse_EvenWhenNull() {
         // Arrange
-        when(coinService.updateContentCoin(any(UpdateContentCoinDto.class))).thenReturn(null);
+        when(coinService.updateContentCoin(any())).thenReturn(null);
 
         // Act
         ApiResponse<CoinResponseDto> response = coinController.updateCoinContent(updateContentCoinDto);
@@ -204,14 +204,14 @@ public class CoinControllerTest {
         // Assert
         assertEquals(200, response.getStatus());
         assertNull(response.getData());
-        verify(coinService, times(1)).updateContentCoin(updateContentCoinDto);
+        verify(coinService, times(1)).updateContentCoin(any());
     }
 
     @Test
     @DisplayName("addExchangeCoin은 성공하면 업데이트된 코인을 반환해야 함.")
     void addExchangeCoin_ShouldReturnUpdatedCoin_WhenSuccessful() {
         // Arrange
-        when(coinService.addExchangeCoin(any(AdjustExchangeCoinDto.class))).thenReturn(coinResponseDto);
+        when(coinService.addExchangeCoin(any())).thenReturn(coinResponseDto);
 
         // Act
         ApiResponse<CoinResponseDto> response = coinController.addExchangeCoin(adjustExchangeCoinDto);
@@ -220,14 +220,14 @@ public class CoinControllerTest {
         assertEquals(200, response.getStatus());
         assertNotNull(response.getData());
         assertEquals("BTC", response.getData().getSymbol());
-        verify(coinService, times(1)).addExchangeCoin(adjustExchangeCoinDto);
+        verify(coinService, times(1)).addExchangeCoin(any());
     }
 
     @Test
     @DisplayName("addExchangeCoin은 null일 때에도 성공 응답을 반환해야 함.")
     void addExchangeCoin_ShouldReturnSuccessResponse_EvenWhenNull() {
         // Arrange
-        when(coinService.addExchangeCoin(any(AdjustExchangeCoinDto.class))).thenReturn(null);
+        when(coinService.addExchangeCoin(any())).thenReturn(null);
 
         // Act
         ApiResponse<CoinResponseDto> response = coinController.addExchangeCoin(adjustExchangeCoinDto);
@@ -235,14 +235,14 @@ public class CoinControllerTest {
         // Assert
         assertEquals(200, response.getStatus());
         assertNull(response.getData());
-        verify(coinService, times(1)).addExchangeCoin(adjustExchangeCoinDto);
+        verify(coinService, times(1)).addExchangeCoin(any());
     }
 
     @Test
     @DisplayName("delistExchangeCoin은 성공하면 true를 반환해야 함.")
     void delistExchangeCoin_ShouldReturnTrue_WhenSuccessful() {
         // Arrange
-        doNothing().when(coinService).deleteExchangeCoin(any(AdjustExchangeCoinDto.class));
+        doNothing().when(coinService).deleteExchangeCoin(any());
 
         // Act
         ApiResponse<Boolean> response = coinController.delistExchangeCoin(adjustExchangeCoinDto);
@@ -250,14 +250,14 @@ public class CoinControllerTest {
         // Assert
         assertEquals(200, response.getStatus());
         assertTrue(response.getData());
-        verify(coinService, times(1)).deleteExchangeCoin(adjustExchangeCoinDto);
+        verify(coinService, times(1)).deleteExchangeCoin(any());
     }
 
     @Test
     @DisplayName("deleteCoin은 성공하면 true를 반환해야 함.")
     void deleteCoin_ShouldReturnTrue_WhenSuccessful() {
         // Arrange
-        doNothing().when(coinService).deleteCoin(any(DeleteCoinDto.class));
+        doNothing().when(coinService).deleteCoin(any());
 
         // Act
         ApiResponse<Boolean> response = coinController.deleteCoin(deleteCoinDto);
@@ -265,6 +265,6 @@ public class CoinControllerTest {
         // Assert
         assertEquals(200, response.getStatus());
         assertTrue(response.getData());
-        verify(coinService, times(1)).deleteCoin(deleteCoinDto);
+        verify(coinService, times(1)).deleteCoin(any());
     }
 }

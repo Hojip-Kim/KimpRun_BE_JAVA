@@ -4,6 +4,7 @@ import kimp.auth.controller.AuthController;
 import kimp.auth.dto.AuthResponseDto;
 import kimp.auth.dto.LoginMemberResponseDto;
 import kimp.auth.service.AuthService;
+import kimp.auth.vo.CheckAuthStatusVo;
 import kimp.exception.response.ApiResponse;
 import kimp.security.user.CustomUserDetails;
 import kimp.user.dto.UserWithIdNameEmailDto;
@@ -47,8 +48,12 @@ public class AuthControllerTest {
         // Arrange
         CustomUserDetails authenticatedUser = mock(CustomUserDetails.class);
         UserWithIdNameEmailDto userWithIdNameEmailDto = new UserWithIdNameEmailDto("test@example.com", "testUser", "USER", 1L);
-        LoginMemberResponseDto mockResponseDto = new LoginMemberResponseDto(true, userWithIdNameEmailDto, "RandomUuid");
-        when(authService.checkAuthStatus(authenticatedUser.getId())).thenReturn(mockResponseDto);
+        LoginMemberResponseDto mockResponseDto = LoginMemberResponseDto.builder()
+                .isAuthenticated(true)
+                .member(userWithIdNameEmailDto)
+                .uuid("RandomUuid")
+                .build();
+        when(authService.checkAuthStatus(any(CheckAuthStatusVo.class))).thenReturn(mockResponseDto);
 
         // Act
         ApiResponse<AuthResponseDto> apiResponse = authController.checkMemberStatus(authenticatedUser, request, response);
@@ -58,7 +63,7 @@ public class AuthControllerTest {
         assertTrue(apiResponse.isSuccess());
         assertEquals(200, apiResponse.getStatus());
         assertEquals(mockResponseDto, apiResponse.getData());
-        verify(authService, times(1)).checkAuthStatus(authenticatedUser.getId());
+        verify(authService, times(1)).checkAuthStatus(any(CheckAuthStatusVo.class));
         assertEquals(200, response.getStatus());
     }
 
@@ -81,7 +86,7 @@ public class AuthControllerTest {
         assertTrue(apiResponse.getData() instanceof UnLoginMemberResponseDto); // UnLoginMemberResponseDto가 반환됨
         UnLoginMemberResponseDto unLoginData = (UnLoginMemberResponseDto) apiResponse.getData();
         assertEquals("test-uuid-value", unLoginData.getUuid());
-        verify(authService, never()).checkAuthStatus(any(Long.class));
+        verify(authService, never()).checkAuthStatus(any(CheckAuthStatusVo.class));
     }
     
     @Test
@@ -99,6 +104,6 @@ public class AuthControllerTest {
             authController.checkMemberStatus(unauthenticatedUser, request, response);
         });
         
-        verify(authService, never()).checkAuthStatus(any(Long.class));
+        verify(authService, never()).checkAuthStatus(any(CheckAuthStatusVo.class));
     }
 }

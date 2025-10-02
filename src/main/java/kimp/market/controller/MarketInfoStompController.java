@@ -42,7 +42,7 @@ public class MarketInfoStompController {
         
         // 텔레그램 채널로도 공지사항 전송
         try {
-            telegramService.sendNoticeMessage(noticeDto);
+//            telegramService.sendNoticeMessage(noticeDto);
         } catch (Exception e) {
             log.error("텔레그램 알림 전송 실패: {} - {} (오류: {})", 
                     noticeDto.getExchangeType().name(), noticeDto.getTitle(), e.getMessage());

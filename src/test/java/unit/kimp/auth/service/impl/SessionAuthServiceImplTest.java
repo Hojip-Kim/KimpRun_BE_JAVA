@@ -2,6 +2,7 @@ package unit.kimp.auth.service.impl;
 
 import kimp.auth.dto.LoginMemberResponseDto;
 import kimp.auth.service.serviceImpl.SessionAuthServiceImpl;
+import kimp.auth.vo.CheckAuthStatusVo;
 import kimp.user.service.MemberService;
 import kimp.user.util.NicknameGeneratorUtils;
 import kimp.security.user.CustomUserDetails;
@@ -60,7 +61,8 @@ public class SessionAuthServiceImplTest {
         when(memberService.getMemberEntityById(memberId)).thenReturn(mockMember);
 
         // Act
-        LoginMemberResponseDto result = sessionAuthService.checkAuthStatus(memberId);
+        CheckAuthStatusVo vo = new CheckAuthStatusVo(memberId);
+        LoginMemberResponseDto result = sessionAuthService.checkAuthStatus(vo);
 
         // Assert
         assertTrue(result.isAuthenticated());
@@ -71,10 +73,21 @@ public class SessionAuthServiceImplTest {
     }
 
     @Test
+    @DisplayName("인증 상태 확인: null VO 처리")
+    void shouldHandleNullVoInCheckAuthStatus() {
+        // Act
+        LoginMemberResponseDto result = sessionAuthService.checkAuthStatus(null);
+
+        // Assert
+        assertNull(result);
+    }
+    
+    @Test
     @DisplayName("인증 상태 확인: null memberId 처리")
     void shouldHandleNullMemberIdInCheckAuthStatus() {
         // Act
-        LoginMemberResponseDto result = sessionAuthService.checkAuthStatus(null);
+        CheckAuthStatusVo vo = new CheckAuthStatusVo(null);
+        LoginMemberResponseDto result = sessionAuthService.checkAuthStatus(vo);
 
         // Assert
         assertNull(result);

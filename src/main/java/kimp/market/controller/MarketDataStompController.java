@@ -18,11 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MarketDataStompController {
     
     private final SimpMessagingTemplate messagingTemplate;
-    private final ObjectMapper objectMapper;
 
-    public MarketDataStompController(SimpMessagingTemplate messagingTemplate, ObjectMapper objectMapper) {
+    public MarketDataStompController(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
-        this.objectMapper = objectMapper;
     }
 
     private Map<String, BinanceDto> binanceHashMap = new ConcurrentHashMap<>();

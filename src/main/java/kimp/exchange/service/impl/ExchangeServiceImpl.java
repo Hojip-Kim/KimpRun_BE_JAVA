@@ -7,6 +7,7 @@ import kimp.exchange.dto.exchange.request.ExchangeCreateRequestDto;
 import kimp.exchange.dto.exchange.response.ExchangeDto;
 import kimp.exchange.entity.Exchange;
 import kimp.exchange.service.ExchangeService;
+import kimp.exchange.vo.*;
 import kimp.market.Enum.MarketType;
 import org.springframework.stereotype.Service;
 
@@ -28,13 +29,14 @@ public class ExchangeServiceImpl implements ExchangeService {
         MarketType[] market = MarketType.values();
         for(MarketType type : market){
             ExchangeCreateRequestDto dto = new ExchangeCreateRequestDto(type,type.getMainUrl());
-            this.createExchange(dto);
+            CreateExchangeVo vo = new CreateExchangeVo(dto);
+            this.createExchange(vo);
         }
     }
 
     @Override
-    public ExchangeDto getExchange(Long id) {
-        Exchange exchange = this.exchangeDao.getExchangeById(id);
+    public ExchangeDto getExchange(GetExchangeVo vo) {
+        Exchange exchange = this.exchangeDao.getExchangeById(vo.getId());
 
         return dtoConverter.convertExchangeToExchangeDto(exchange);
     }
@@ -59,9 +61,9 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
 
     @Override
-    public ExchangeDto createExchange(ExchangeCreateRequestDto requestDto) {
-        MarketType exchangeType = requestDto.getExchangeName();
-        String exchangeMainLink = requestDto.getLink();
+    public ExchangeDto createExchange(CreateExchangeVo vo) {
+        MarketType exchangeType = vo.getRequest().getExchangeName();
+        String exchangeMainLink = vo.getRequest().getLink();
 
         Exchange exchange = new Exchange(exchangeType, exchangeMainLink);
 

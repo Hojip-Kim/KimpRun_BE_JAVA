@@ -1,11 +1,15 @@
 package kimp.cdn.component.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class CfCreateAccessRuleReqeustDto {
     @JsonProperty("mode")
     private String mode;
@@ -13,11 +17,4 @@ public class CfCreateAccessRuleReqeustDto {
     private CfConfiguration configurations;
     @JsonProperty("notes")
     private String notes;
-
-    public CfCreateAccessRuleReqeustDto(String mode, CfConfiguration configurations, String notes) {
-        this.mode = mode;
-        this.configurations = configurations;
-        this.notes = notes;
-    }
-
 }

@@ -133,7 +133,9 @@ public class ExchangeNoticePacadeService {
     }
 
     @Transactional
-    public ExchangeNoticeDto<Page<NoticeDto>> getNoticeByExchange(MarketType marketType, PageRequestDto pageRequestDto) {
+    public ExchangeNoticeDto<Page<NoticeDto>> getNoticeByExchange(kimp.notice.vo.GetNoticeByExchangeVo vo) {
+        MarketType marketType = vo.getExchangeType();
+        PageRequestDto pageRequestDto = vo.getPageRequestDto();
         Pageable pageable = PageRequest.of(pageRequestDto.getPage(), pageRequestDto.getSize());
 
         Exchange exchange = exchangeDao.getExchangeByMarketType(marketType);

@@ -1,6 +1,8 @@
 package kimp.auth.service;
 
 import kimp.auth.dto.OAuth2TokenStatusDto;
+import kimp.auth.vo.GetTokenStatusVo;
+import kimp.auth.vo.RefreshMemberTokenVo;
 import kimp.user.entity.Member;
 import kimp.user.entity.Oauth;
 import kimp.user.repository.OauthRepository;
@@ -131,30 +133,30 @@ public class OAuth2TokenRefreshService {
         return oauth.getExpiresAt().isBefore(LocalDateTime.now().plusMinutes(minutesThreshold));
     }
 
-    public OAuth2TokenStatusDto getTokenStatus(Long memberId) {
-        Member member = memberService.getMemberEntityById(memberId);
+    public OAuth2TokenStatusDto getTokenStatus(GetTokenStatusVo vo) {
+        Member member = memberService.getMemberEntityById(vo.getMemberId());
         
         if (member.getOauth() == null) {
-            return new OAuth2TokenStatusDto(false, "OAuth 정보가 없습니다.");
+            return OAuth2TokenStatusDto.ofError(false, "OAuth 정보가 없습니다.");
         }
-        
+
         Oauth oauth = member.getOauth();
         boolean isExpired = isTokenExpired(oauth);
         boolean isExpiringSoon = isTokenExpiringSoon(oauth, 30);
-        
-        return new OAuth2TokenStatusDto(
-            true,
-            isExpired,
-            isExpiringSoon,
-            oauth.getExpiresAt(),
-            oauth.getProvider(),
-            oauth.getRefreshToken() != null,
-            null
-        );
+
+        return OAuth2TokenStatusDto.builder()
+                .hasOAuth(true)
+                .isExpired(isExpired)
+                .isExpiringSoon(isExpiringSoon)
+                .expiresAt(oauth.getExpiresAt())
+                .provider(oauth.getProvider())
+                .hasRefreshToken(oauth.getRefreshToken() != null)
+                .message(null)
+                .build();
     }
 
-    public String refreshMemberToken(Long memberId) {
-        Member member = memberService.getMemberEntityById(memberId);
+    public String refreshMemberToken(RefreshMemberTokenVo vo) {
+        Member member = memberService.getMemberEntityById(vo.getMemberId());
         
         if (member.getOauth() == null) {
             throw new RuntimeException("OAuth 정보가 없습니다.");

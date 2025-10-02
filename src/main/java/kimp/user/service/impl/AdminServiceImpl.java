@@ -5,6 +5,7 @@ import kimp.user.dao.SeedMoneyRangeDao;
 import kimp.user.entity.ActivityRank;
 import kimp.user.entity.SeedMoneyRange;
 import kimp.user.service.AdminService;
+import kimp.user.vo.CreateActivityRankVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +28,8 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public ActivityRank createActivityRank(String grade) {
+    public ActivityRank createActivityRank(CreateActivityRankVo vo) {
+        String grade = vo.getGrade();
         log.info("Creating ActivityRank with grade: {}", grade);
         String rankKey = UUID.randomUUID().toString();
         ActivityRank activityRank = new ActivityRank(rankKey, grade);

@@ -7,6 +7,8 @@ import kimp.user.dto.request.DeclarationMemberRequest;
 import kimp.user.dto.response.DeclarationResponse;
 import kimp.user.entity.Declaration;
 import kimp.user.service.DeclarationService;
+import kimp.user.vo.AddDeclarationVo;
+import kimp.user.vo.GetDeclarationsVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,17 +29,19 @@ public class DeclarationServiceImpl implements DeclarationService {
     }
 
     @Override
-    public Boolean declaration(DeclarationMemberRequest request, String fromIp) {
+    public Boolean declaration(AddDeclarationVo vo) {
+        DeclarationMemberRequest request = vo.getDeclarationMemberRequest();
+        String fromIp = vo.getClientIp();
         // 24시간 이내 중복 신고 확인
         LocalDateTime twentyFourHoursAgo = LocalDateTime.now().minusHours(24);
         Optional<Declaration> recentDeclaration = declarationDao.findRecentDeclarationByFromAndToMember(
             request.getFromMember(), request.getToMember(), twentyFourHoursAgo);
-        
+
         if (recentDeclaration.isPresent()) {
-            log.warn("Duplicate declaration attempt within 24 hours - fromMember: {}, toMember: {}", 
+            log.warn("Duplicate declaration attempt within 24 hours - fromMember: {}, toMember: {}",
                     request.getFromMember(), request.getToMember());
-            throw new KimprunException(KimprunExceptionEnum.INVALID_REQUEST_EXCEPTION, 
-                "24시간 이내에 같은 사용자를 중복으로 신고할 수 없습니다.", 
+            throw new KimprunException(KimprunExceptionEnum.INVALID_REQUEST_EXCEPTION,
+                "24시간 이내에 같은 사용자를 중복으로 신고할 수 없습니다.",
                 HttpStatus.BAD_REQUEST, "DeclarationServiceImpl.declaration");
         }
 
@@ -54,7 +58,8 @@ public class DeclarationServiceImpl implements DeclarationService {
     }
 
     @Override
-    public Page<DeclarationResponse> getDeclarations(Pageable pageable) {
+    public Page<DeclarationResponse> getDeclarations(GetDeclarationsVo vo) {
+        Pageable pageable = vo.getPageable();
         Page<Declaration> declarations = declarationDao.getDeclarationsOrderByRegistedAt(pageable);
 
         return declarations.map(DeclarationResponse::from);

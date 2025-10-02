@@ -1,5 +1,7 @@
 package kimp.cmc.dto.response;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +11,8 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class CmcCoinInfoResponseDto {
     private String symbol;
     private String name;
@@ -32,32 +36,6 @@ public class CmcCoinInfoResponseDto {
     private List<String> platform = new ArrayList<>();
 
     private List<String> explorerUrl = new ArrayList<>();
-
-    // QueryDSL Projection을 위한 생성자
-    public CmcCoinInfoResponseDto(String symbol, String name, String slug, String logo, String rank,
-                                 String description, Double dominance, String maxSupply, String totalSupply,
-                                 String circulatingSupply, String marketCap, String fullyDilutedMarektCap,
-                                 String selfReportedCirculatingSupply, String selfReportedMarketCap,
-                                 LocalDateTime lastUpdated, LocalDateTime dateAdded) {
-        this.symbol = symbol;
-        this.name = name;
-        this.slug = slug;
-        this.logo = logo;
-        this.rank = rank;
-        this.description = description;
-        this.dominance = dominance;
-        this.maxSupply = maxSupply;
-        this.totalSupply = totalSupply;
-        this.circulatingSupply = circulatingSupply;
-        this.marketCap = marketCap;
-        this.fullyDilutedMarektCap = fullyDilutedMarektCap;
-        this.selfReportedCirculatingSupply = selfReportedCirculatingSupply;
-        this.selfReportedMarketCap = selfReportedMarketCap;
-        this.lastUpdated = lastUpdated;
-        this.dateAdded = dateAdded;
-        this.platform = new ArrayList<>();
-        this.explorerUrl = new ArrayList<>();
-    }
 
     // platform과 explorerUrl 설정을 위한 메서드
     public void setPlatform(List<String> platform) {

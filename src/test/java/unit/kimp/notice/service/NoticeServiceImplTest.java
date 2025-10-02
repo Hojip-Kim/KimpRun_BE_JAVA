@@ -146,7 +146,7 @@ public class NoticeServiceImplTest {
         when(dtoConverter.wrappingDtosToExchangeNoticeDto(any(), any())).thenReturn(exchangeNoticeDto);
 
         // When
-        ExchangeNoticeDto<Page<NoticeDto>> result = noticeService.getAllNotices(pageRequestDto);
+        ExchangeNoticeDto<Page<NoticeDto>> result = noticeService.getAllNotices(new kimp.notice.vo.GetNoticeByExchangeVo(MarketType.ALL, pageRequestDto));
 
         // Then
         assertThat(result).isEqualTo(exchangeNoticeDto);
@@ -166,7 +166,7 @@ public class NoticeServiceImplTest {
         when(noticeDao.findAllByOrderByRegistedAtAsc(any(Pageable.class))).thenReturn(emptyNoticePage);
 
         // When & Then
-        assertThatThrownBy(() -> noticeService.getAllNotices(pageRequestDto))
+        assertThatThrownBy(() -> noticeService.getAllNotices(new kimp.notice.vo.GetNoticeByExchangeVo(MarketType.ALL, pageRequestDto)))
                 .isInstanceOf(KimprunException.class)
                 .hasFieldOrPropertyWithValue("exceptionEnum", KimprunExceptionEnum.REQUEST_ACCEPTED)
                 .hasFieldOrPropertyWithValue("message", "Not have data");

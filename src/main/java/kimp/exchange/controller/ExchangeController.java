@@ -3,6 +3,7 @@ package kimp.exchange.controller;
 import kimp.exchange.dto.exchange.request.ExchangeCreateRequestDto;
 import kimp.exchange.dto.exchange.response.ExchangeDto;
 import kimp.exchange.service.ExchangeService;
+import kimp.exchange.vo.*;
 import kimp.exception.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,7 +31,8 @@ public class ExchangeController {
 
     @GetMapping("/{id}")
     public ApiResponse<ExchangeDto> getExchange(@PathVariable("id") Long id) {
-        ExchangeDto exchange = exchangeService.getExchange(id);
+        GetExchangeVo vo = new GetExchangeVo(id);
+        ExchangeDto exchange = exchangeService.getExchange(vo);
         return ApiResponse.success(exchange);
     }
 
@@ -38,7 +40,8 @@ public class ExchangeController {
     @PostMapping("/create")
     public ApiResponse<ExchangeDto> createExchange(@AuthenticationPrincipal UserDetails UserDetails , @RequestBody ExchangeCreateRequestDto request) {
 
-        ExchangeDto exchangeResponseDto = this.exchangeService.createExchange(request);
+        CreateExchangeVo vo = new CreateExchangeVo(request);
+        ExchangeDto exchangeResponseDto = this.exchangeService.createExchange(vo);
         return ApiResponse.success(exchangeResponseDto);
     }
 }

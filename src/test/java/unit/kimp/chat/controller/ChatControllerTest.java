@@ -61,13 +61,13 @@ public class ChatControllerTest {
         // given
         Page<ChatLogResponseDto> mockChatList = new PageImpl<>(new ArrayList<>());
         List<ChatLogResponseDto> mockResponseList = new ArrayList<>();
-        
-        when(chatService.getChatMessages(anyInt(), anyInt())).thenReturn(mockChatList);
+
+        when(chatService.getChatMessages(any())).thenReturn(mockChatList);
 
         // when
         PageRequestDto validDto = new PageRequestDto(0, 10);
         ApiResponse<Page<ChatLogResponseDto>> response = chatController.getChats(validDto, request);
-        
+
         // then
         assertNotNull(response);
         assertEquals(200, response.getStatus());

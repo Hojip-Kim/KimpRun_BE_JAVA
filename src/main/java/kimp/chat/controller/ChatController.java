@@ -4,6 +4,11 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import kimp.chat.dto.request.DeleteAuthChatRequest;
 import kimp.chat.dto.vo.DeleteAnonChatMessage;
+import kimp.chat.vo.DeleteAdminChatVo;
+import kimp.chat.vo.DeleteAnonChatVo;
+import kimp.chat.vo.DeleteAuthChatVo;
+import kimp.chat.vo.GetChatMessagesVo;
+import kimp.chat.vo.GetChatMessagesWithBlockedVo;
 import kimp.common.dto.PageRequestDto;
 import kimp.chat.dto.response.ChatLogResponseDto;
 import kimp.chat.service.ChatService;
@@ -41,7 +46,7 @@ public class ChatController {
 
         List<String> blockedMembers = null;
         List<String> blockedGuests = null;
-        
+
         Cookie[] cookies = req.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
@@ -63,11 +68,13 @@ public class ChatController {
 
         Page<ChatLogResponseDto> chatLog;
         if (blockedMembers != null || blockedGuests != null) {
-            chatLog = chatService.getChatMessagesWithBlocked(requestDto.getPage(), requestDto.getSize(), blockedMembers, blockedGuests);
+            GetChatMessagesWithBlockedVo vo = new GetChatMessagesWithBlockedVo(requestDto.getPage(), requestDto.getSize(), blockedMembers, blockedGuests);
+            chatLog = chatService.getChatMessagesWithBlocked(vo);
         } else {
-            chatLog = chatService.getChatMessages(requestDto.getPage(), requestDto.getSize());
+            GetChatMessagesVo vo = new GetChatMessagesVo(requestDto.getPage(), requestDto.getSize());
+            chatLog = chatService.getChatMessages(vo);
         }
-        
+
         return ApiResponse.success(chatLog);
     }
 
@@ -92,7 +99,8 @@ public class ChatController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_REQUEST_EXCEPTION, "KimprunToken cannot be null", HttpStatus.BAD_REQUEST, "ChatController.deleteAnonChat");
         }
 
-        chatService.softDeleteAnonMessage(kimprunToken,requestDto);
+        DeleteAnonChatVo vo = new DeleteAnonChatVo(kimprunToken, requestDto.getInherenceId());
+        chatService.softDeleteAnonMessage(vo);
         return ApiResponse.success(null);
     }
 
@@ -104,7 +112,8 @@ public class ChatController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_REQUEST_EXCEPTION, "DeleteAuthChatMessage cannot be null", HttpStatus.BAD_REQUEST, "ChatController.deleteAuthChat");
         }
 
-        chatService.softDeleteAuthMessage(customUserDetails.getId(), requestDto);
+        DeleteAuthChatVo vo = new DeleteAuthChatVo(customUserDetails.getId(), requestDto.getInherenceId());
+        chatService.softDeleteAuthMessage(vo);
         return ApiResponse.success(null);
     }
 
@@ -114,7 +123,8 @@ public class ChatController {
         if(requestDto == null || requestDto.getInherenceId() == null) {
             throw new KimprunException(KimprunExceptionEnum.INVALID_REQUEST_EXCEPTION, "DeleteAuthChatMessage cannot be null", HttpStatus.BAD_REQUEST, "ChatController.deleteAuthChat");
         }
-        chatService.softDeleteAdminRole(requestDto);
+        DeleteAdminChatVo vo = new DeleteAdminChatVo(requestDto.getInherenceId());
+        chatService.softDeleteAdminRole(vo);
         return ApiResponse.success(null);
     }
 

@@ -8,6 +8,7 @@ import kimp.community.dto.board.response.BoardWithCommentResponseDto;
 import kimp.community.dto.comment.request.RequestCreateCommentDto;
 import kimp.community.dto.comment.response.ResponseCommentDto;
 import kimp.community.entity.*;
+import kimp.community.vo.*;
 import org.springframework.data.domain.PageImpl;
 import kimp.community.repository.BoardRepository;
 import kimp.community.repository.BoardLikeRepository;
@@ -72,36 +73,51 @@ public class BoardPacadeService {
     // 게시글 조회
     // board를 Id로 찾은 후 comment list와 함께 response
     @Transactional
-    public BoardWithCommentResponseDto getBoardByIdWithCommentPage(long memberId ,Long requestBoardId, int page) {
-        Board board = boardService.getBoardById(requestBoardId);
+    public BoardWithCommentResponseDto getBoardByIdWithCommentPage(GetBoardVo vo) {
+        Board board = boardService.getBoardById(vo.getBoardId());
 
-        if(memberId == -1 || board.getMember().getId() != memberId ) {
+        if(vo.getMemberId() == -1 || board.getMember().getId() != vo.getMemberId() ) {
             board.getViews().viewCount();
         }
         // 삭제된 댓글도 포함하여 모든 댓글 조회
-        Page<Comment> comments = commentPacadeService.getCommentsWithDeleted(requestBoardId, page);
+        Page<Comment> comments = commentPacadeService.getCommentsWithDeleted(vo.getBoardId(), vo.getCommentPage());
 
         List<ResponseCommentDto> commentDtos =  commentService.converCommentsToResponseDtoList(comments.getContent());
 
-        return new BoardWithCommentResponseDto(board.getId(), board.getMember().getId(),board.getCategory().getId(),board.getCategory().getCategoryName(), board.getMember().getNickname(), board.getTitle(), board.getContent(), board.getViews().getViews(), board.getBoardLikeCount().getLikes(), board.getRegistedAt(), board.getUpdatedAt(), commentDtos, board.getCommentCount().getCounts(), board.isPin() );
+        return BoardWithCommentResponseDto.builder()
+                .boardId(board.getId())
+                .memberId(board.getMember().getId())
+                .categoryId(board.getCategory().getId())
+                .categoryName(board.getCategory().getCategoryName())
+                .memberNickName(board.getMember().getNickname())
+                .title(board.getTitle())
+                .content(board.getContent())
+                .boardViewsCount(board.getViews().getViews())
+                .boardLikesCount(board.getBoardLikeCount().getLikes())
+                .createdAt(board.getRegistedAt())
+                .updatedAt(board.getUpdatedAt())
+                .comments(commentDtos)
+                .commentsCount(board.getCommentCount().getCounts())
+                .isPin(board.isPin())
+                .build();
 
     }
 
     @Transactional
-    public BoardResponseDto updateBoard(Long memberId, Long boardId, UpdateBoardRequestDto updateBoardRequestDto) {
-        Board board = boardService.getBoardById(boardId);
-        if(!board.getMember().getId().equals(memberId)) {
-            throw new KimprunException(KimprunExceptionEnum.AUTHENTICATION_REQUIRED_EXCEPTION, "User not authorized to update this board: " + boardId, HttpStatus.UNAUTHORIZED, "BoardPacadeService.updateBoard");
+    public BoardResponseDto updateBoard(UpdateBoardVo vo) {
+        Board board = boardService.getBoardById(vo.getBoardId());
+        if(!board.getMember().getId().equals(vo.getMemberId())) {
+            throw new KimprunException(KimprunExceptionEnum.AUTHENTICATION_REQUIRED_EXCEPTION, "User not authorized to update this board: " + vo.getBoardId(), HttpStatus.UNAUTHORIZED, "BoardPacadeService.updateBoard");
         }
-        boardService.updateBoard(board, updateBoardRequestDto);
+        boardService.updateBoard(board, vo.getUpdateBoardRequestDto());
         return convertBoardToBoardResponseDto(board);
 
     }
 
-    public Boolean deleteBoard(Long memberId, Long boardId){
-        Board board = boardService.getBoardById(boardId);
-        if(!board.getMember().getId().equals(memberId)) {
-            throw new KimprunException(KimprunExceptionEnum.AUTHENTICATION_REQUIRED_EXCEPTION, "User not authorized to delete this board: " + boardId, HttpStatus.UNAUTHORIZED, "BoardPacadeService.deleteBoard");
+    public Boolean deleteBoard(DeleteBoardVo vo){
+        Board board = boardService.getBoardById(vo.getBoardId());
+        if(!board.getMember().getId().equals(vo.getMemberId())) {
+            throw new KimprunException(KimprunExceptionEnum.AUTHENTICATION_REQUIRED_EXCEPTION, "User not authorized to delete this board: " + vo.getBoardId(), HttpStatus.UNAUTHORIZED, "BoardPacadeService.deleteBoard");
         }
 
         return boardService.deleteBoard(board);
@@ -120,24 +136,24 @@ public class BoardPacadeService {
     }
 
     // DTO 직접 조회로 N+1 문제 완전 해결
-    public Page<BoardResponseDto> getBoardDtoPageWithCategoryId(Long categoryId, PageRequestDto pageRequestDto) {
+    public Page<BoardResponseDto> getBoardDtoPageWithCategoryId(GetBoardsPageVo vo) {
         // Category 조회를 피하고 categoryId를 직접 사용하도록 수정
-        PageRequest pageRequest = PageRequest.of(pageRequestDto.getPage()-1, pageRequestDto.getSize());
-        
+        PageRequest pageRequest = PageRequest.of(vo.getPageRequestDto().getPage()-1, vo.getPageRequestDto().getSize());
+
         Page<BoardResponseDto> dtoPage;
-        
+
         // 첫 페이지(page=1)인 경우 공지사항 우선 조회
-        if (pageRequestDto.getPage() == 1) {
-            dtoPage = boardRepository.findBoardDtosByCategoryIdWithPinnedFirstOrderByRegistedAtDesc(categoryId, pageRequest);
+        if (vo.getPageRequestDto().getPage() == 1) {
+            dtoPage = boardRepository.findBoardDtosByCategoryIdWithPinnedFirstOrderByRegistedAtDesc(vo.getCategoryId(), pageRequest);
         } else {
-            dtoPage = boardRepository.findBoardDtosByCategoryIdOrderByRegistedAtDesc(categoryId, pageRequest);
+            dtoPage = boardRepository.findBoardDtosByCategoryIdOrderByRegistedAtDesc(vo.getCategoryId(), pageRequest);
         }
-        
+
         // Content 요약 처리
         List<BoardResponseDto> summarizedDtos = dtoPage.getContent().stream()
                 .map(dto -> createSummarizedBoardDto(dto))
                 .toList();
-        
+
         return new PageImpl<>(summarizedDtos, pageRequest, dtoPage.getTotalElements());
     }
 
@@ -163,27 +179,41 @@ public class BoardPacadeService {
     
     private BoardResponseDto createSummarizedBoardDto(BoardResponseDto original) {
         String summarizedContent = summaryContent(original.getContent());
-        return new BoardResponseDto(
-            original.getBoardId(),
-            original.getMemberId(), 
-            original.getCategoryId(),
-            original.getCategoryName(),
-            original.getMemberNickName(),
-            original.getTitle(),
-            summarizedContent, // 요약된 content
-            original.getBoardViewsCount(),
-            original.getBoardLikesCount(),
-            original.getCreatedAt(),
-            original.getUpdatedAt(),
-            original.getCommentsCount(),
-            original.getIsPin()
-        );
+        return BoardResponseDto.builder()
+                .boardId(original.getBoardId())
+                .memberId(original.getMemberId())
+                .categoryId(original.getCategoryId())
+                .categoryName(original.getCategoryName())
+                .memberNickName(original.getMemberNickName())
+                .title(original.getTitle())
+                .content(summarizedContent)
+                .boardViewsCount(original.getBoardViewsCount())
+                .boardLikesCount(original.getBoardLikesCount())
+                .createdAt(original.getCreatedAt())
+                .updatedAt(original.getUpdatedAt())
+                .commentsCount(original.getCommentsCount())
+                .isPin(original.getIsPin())
+                .build();
     }
 
 
 
     public BoardResponseDto convertBoardToBoardResponseDto(Board board){
-        return new BoardResponseDto(board.getId(), board.getMember().getId(),board.getCategory().getId(),board.getCategory().getCategoryName(), board.getMember().getNickname(), board.getTitle(), board.getContent(),board.getViews().getViews(), board.getBoardLikeCount().getLikes(), board.getRegistedAt(), board.getUpdatedAt(), board.getCommentCount().getCounts(), board.isPin());
+        return BoardResponseDto.builder()
+                .boardId(board.getId())
+                .memberId(board.getMember().getId())
+                .categoryId(board.getCategory().getId())
+                .categoryName(board.getCategory().getCategoryName())
+                .memberNickName(board.getMember().getNickname())
+                .title(board.getTitle())
+                .content(board.getContent())
+                .boardViewsCount(board.getViews().getViews())
+                .boardLikesCount(board.getBoardLikeCount().getLikes())
+                .createdAt(board.getRegistedAt())
+                .updatedAt(board.getUpdatedAt())
+                .commentsCount(board.getCommentCount().getCounts())
+                .isPin(board.isPin())
+                .build();
     }
 
     public String summaryContent(String content) {
@@ -199,7 +229,21 @@ public class BoardPacadeService {
 
         String summaryContent = summaryContent(board.getContent());
 
-        return new BoardResponseDto(board.getId(), board.getMember().getId(),board.getCategory().getId(),board.getCategory().getCategoryName(), board.getMember().getNickname(), board.getTitle(), summaryContent, board.getViews().getViews(), board.getBoardLikeCount().getLikes(), board.getRegistedAt(), board.getUpdatedAt(), board.getCommentCount().getCounts(), board.isPin());
+        return BoardResponseDto.builder()
+                .boardId(board.getId())
+                .memberId(board.getMember().getId())
+                .categoryId(board.getCategory().getId())
+                .categoryName(board.getCategory().getCategoryName())
+                .memberNickName(board.getMember().getNickname())
+                .title(board.getTitle())
+                .content(summaryContent)
+                .boardViewsCount(board.getViews().getViews())
+                .boardLikesCount(board.getBoardLikeCount().getLikes())
+                .createdAt(board.getRegistedAt())
+                .updatedAt(board.getUpdatedAt())
+                .commentsCount(board.getCommentCount().getCounts())
+                .isPin(board.isPin())
+                .build();
     }
 
     public List<BoardResponseDto> convertBoardsToBoardResponseDtos(Page<Board> boards){
@@ -237,82 +281,82 @@ public class BoardPacadeService {
     }
 
     @Transactional
-    public Boolean likeBoardById(Long boardId, Long memberId) {
-        if (boardLikeRepository.existsByBoardIdAndMemberId(boardId, memberId)) {
+    public Boolean likeBoardById(LikeBoardVo vo) {
+        if (boardLikeRepository.existsByBoardIdAndMemberId(vo.getBoardId(), vo.getMemberId())) {
             return false;
         }
-        
-        boardLikeRepository.addLikeIfNotExists(boardId, memberId);
+
+        boardLikeRepository.addLikeIfNotExists(vo.getBoardId(), vo.getMemberId());
         return true;
     }
 
-    public Page<BoardResponseDto> getBoardsByMember(Long memberId, PageRequestDto pageRequestDto) {
-        Member member = memberService.getMemberEntityById(memberId);
-        PageRequest pageRequest = PageRequest.of(pageRequestDto.getPage()-1, pageRequestDto.getSize());
-        
-        Page<BoardResponseDto> dtoPage = boardRepository.findBoardDtosByMemberOrderByRegistedAtDesc(memberId, pageRequest);
-        
+    public Page<BoardResponseDto> getBoardsByMember(GetBoardsByMemberVo vo) {
+        Member member = memberService.getMemberEntityById(vo.getMemberId());
+        PageRequest pageRequest = PageRequest.of(vo.getPageRequestDto().getPage()-1, vo.getPageRequestDto().getSize());
+
+        Page<BoardResponseDto> dtoPage = boardRepository.findBoardDtosByMemberOrderByRegistedAtDesc(vo.getMemberId(), pageRequest);
+
         List<BoardResponseDto> summarizedDtos = dtoPage.getContent().stream()
                 .map(dto -> createSummarizedBoardDto(dto))
                 .toList();
-        
+
         return new PageImpl<>(summarizedDtos, pageRequest, dtoPage.getTotalElements());
     }
 
     @Transactional(readOnly = true)
-    public Page<ResponseCommentDto> getCommentsByMember(Long memberId, PageRequestDto pageRequestDto) {
-        PageRequest pageRequest = PageRequest.of(pageRequestDto.getPage()-1, pageRequestDto.getSize());
-        
-        Page<Comment> comments = commentService.getCommentsByMemberIdWithAllFetch(memberId, pageRequest);
-        
+    public Page<ResponseCommentDto> getCommentsByMember(GetCommentsByMemberVo vo) {
+        PageRequest pageRequest = PageRequest.of(vo.getPageRequestDto().getPage()-1, vo.getPageRequestDto().getSize());
+
+        Page<Comment> comments = commentService.getCommentsByMemberIdWithAllFetch(vo.getMemberId(), pageRequest);
+
         List<ResponseCommentDto> commentDtos = comments.getContent().stream()
-                .map(comment -> new ResponseCommentDto(
-                    comment.getId(),
-                    comment.getBoard().getId(),
-                    comment.getBoard().getTitle(),
-                    comment.getMember().getId(), // comment 작성자 ID
-                    comment.getMember().getNickname(),
-                    comment.getContent(),
-                    comment.getLikeCount() != null ? comment.getLikeCount().getLikes() : 0,
-                    comment.getRegistedAt(),
-                    comment.getUpdatedAt()
-                ))
+                .map(comment -> ResponseCommentDto.builder()
+                    .id(comment.getId())
+                    .boardId(comment.getBoard().getId())
+                    .boardTitle(comment.getBoard().getTitle())
+                    .memberId(comment.getMember().getId())
+                    .nickName(comment.getMember().getNickname())
+                    .content(comment.getContent())
+                    .likes(comment.getLikeCount() != null ? comment.getLikeCount().getLikes() : 0)
+                    .createdAt(comment.getRegistedAt())
+                    .updatedAt(comment.getUpdatedAt())
+                    .build())
                 .toList();
-        
+
         return new PageImpl<>(commentDtos, pageRequest, comments.getTotalElements());
     }
 
     @Transactional
-    public void softDeleteBoard(Long memberId, Long boardId) {
-        Board board = boardService.getBoardById(boardId);
-        if (!board.getMember().getId().equals(memberId)) {
-            throw new KimprunException(KimprunExceptionEnum.AUTHENTICATION_REQUIRED_EXCEPTION, 
-                "User not authorized to delete this board: " + boardId, HttpStatus.UNAUTHORIZED, "BoardPacadeService.softDeleteBoard");
+    public void softDeleteBoard(DeleteBoardVo vo) {
+        Board board = boardService.getBoardById(vo.getBoardId());
+        if (!board.getMember().getId().equals(vo.getMemberId())) {
+            throw new KimprunException(KimprunExceptionEnum.AUTHENTICATION_REQUIRED_EXCEPTION,
+                "User not authorized to delete this board: " + vo.getBoardId(), HttpStatus.UNAUTHORIZED, "BoardPacadeService.softDeleteBoard");
         }
-        
+
         board.softDelete();
         boardRepository.save(board);
     }
 
     // DTO 반환 메소드들 (Controller용)
     @Transactional
-    public BoardResponseDto createBoardDto(Long memberId, Long categoryId, CreateBoardRequestDto createBoardRequestDto) {
-        Board board = createBoard(memberId, categoryId, createBoardRequestDto);
+    public BoardResponseDto createBoardDto(CreateBoardVo vo) {
+        Board board = createBoard(vo.getMemberId(), vo.getCategoryId(), vo.getCreateBoardRequestDto());
         return convertBoardToBoardResponseDto(board);
     }
 
     // CommentController에서 사용하는 DTO 메소드들
-    public Page<ResponseCommentDto> getCommentsDto(Long boardId, int page) {
-        Board board = boardService.getBoardById(boardId);
-        Page<Comment> comments = commentService.getCommentByBoard(board, page);
+    public Page<ResponseCommentDto> getCommentsDto(GetCommentsVo vo) {
+        Board board = boardService.getBoardById(vo.getBoardId());
+        Page<Comment> comments = commentService.getCommentByBoard(board, vo.getPage());
         List<ResponseCommentDto> commentDtos = commentService.converCommentsToResponseDtoList(comments.getContent());
-        PageRequest pageRequest = PageRequest.of(page, 30); // CommentServiceImpl에서 사용하는 페이지 사이즈
+        PageRequest pageRequest = PageRequest.of(vo.getPage(), 30); // CommentServiceImpl에서 사용하는 페이지 사이즈
         return new PageImpl<>(commentDtos, pageRequest, comments.getTotalElements());
     }
 
     @Transactional
-    public ResponseCommentDto createCommentDto(long memberId, Long boardId, RequestCreateCommentDto requestCreateCommentDto) {
-        Comment comment = createComment(memberId, boardId, requestCreateCommentDto);
+    public ResponseCommentDto createCommentDto(CreateCommentVo vo) {
+        Comment comment = createComment(vo.getMemberId(), vo.getBoardId(), vo.getRequestCreateCommentDto());
         return commentService.convertCommentToResponseDto(comment);
     }
 }

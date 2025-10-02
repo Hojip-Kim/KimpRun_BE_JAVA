@@ -16,6 +16,16 @@ body:
     validations:
       required: true
 
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✅ 체크리스트
+      options:
+        - label: 로컬에서 변경 사항 확인 완료
+        - label: CI/CD에서 정상적으로 동작 확인
+        - label: 기능상 영향 없음 확인
+        - label: 릴리즈 노트 작성 불필요
+
   - type: textarea
     id: change
     attributes:

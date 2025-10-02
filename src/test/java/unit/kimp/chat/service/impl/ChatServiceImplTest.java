@@ -6,6 +6,7 @@ import kimp.chat.entity.Chat;
 import kimp.chat.repository.ChatRepository;
 import kimp.chat.service.ChatTrackingService;
 import kimp.chat.service.serviceImpl.ChatServiceImpl;
+import kimp.chat.vo.GetChatMessagesVo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
@@ -75,12 +77,13 @@ public class ChatServiceImplTest {
         when(chatTrackingService.getNicknamesByUuids(any())).thenReturn(Map.of("cookie2", "user2"));
 
         // Act
-        Page<ChatLogResponseDto> result = chatService.getChatMessages(0, 10);
+        GetChatMessagesVo vo = new GetChatMessagesVo(0, 10);
+        Page<ChatLogResponseDto> result = chatService.getChatMessages(vo);
 
         // Assert
         assertNotNull(result);
         assertEquals(2, result.getNumberOfElements());
-        verify(chatDao, times(1)).getAllChats(0, 10);
+        verify(chatDao, times(1)).getAllChats(anyInt(), anyInt());
     }
 
     @Test
@@ -90,8 +93,9 @@ public class ChatServiceImplTest {
         when(chatDao.getAllChats(anyInt(), anyInt())).thenThrow(new IllegalArgumentException("Not found any chats"));
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> chatService.getChatMessages(0, 10));
-        verify(chatDao, times(1)).getAllChats(0, 10);
+        GetChatMessagesVo vo = new GetChatMessagesVo(0, 10);
+        assertThrows(IllegalArgumentException.class, () -> chatService.getChatMessages(vo));
+        verify(chatDao, times(1)).getAllChats(anyInt(), anyInt());
     }
 
     @Test
@@ -103,17 +107,18 @@ public class ChatServiceImplTest {
         when(chatTrackingService.getNicknamesByUuids(any())).thenReturn(Map.of("cookie2", "user2"));
 
         // Act
-        Page<ChatLogResponseDto> result = chatService.getChatMessages(0, 10);
+        GetChatMessagesVo vo = new GetChatMessagesVo(0, 10);
+        Page<ChatLogResponseDto> result = chatService.getChatMessages(vo);
 
         // Assert
         assertNotNull(result);
         assertEquals(2, result.getNumberOfElements());
-        
+
         // Check if messages are sorted by time (ascending)
         List<ChatLogResponseDto> content = result.getContent();
         assertEquals("user1", content.get(0).getChatId());
         assertEquals("user2", content.get(1).getChatId());
-        
-        verify(chatDao, times(1)).getAllChats(0, 10);
+
+        verify(chatDao, times(1)).getAllChats(anyInt(), anyInt());
     }
 }

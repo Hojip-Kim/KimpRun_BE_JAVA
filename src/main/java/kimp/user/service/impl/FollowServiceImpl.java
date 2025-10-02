@@ -8,6 +8,7 @@ import kimp.user.dto.response.FollowResponse;
 import kimp.user.entity.Follow;
 import kimp.user.entity.Member;
 import kimp.user.service.FollowService;
+import kimp.user.vo.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,9 +27,9 @@ public class FollowServiceImpl implements FollowService {
     }
 
     @Override
-    public void followMember(Long followerId, Long followingId) {
-        Member follower = memberDao.findMemberById(followerId);
-        Member following = memberDao.findMemberById(followingId);
+    public void followMember(FollowMemberVo vo) {
+        Member follower = memberDao.findMemberById(vo.getFollowerId());
+        Member following = memberDao.findMemberById(vo.getFollowingId());
         
         if (follower == null) {
             throw new KimprunException(
@@ -52,9 +53,9 @@ public class FollowServiceImpl implements FollowService {
     }
 
     @Override
-    public void unfollowMember(Long followerId, Long followingId) {
-        Member follower = memberDao.findMemberById(followerId);
-        Member following = memberDao.findMemberById(followingId);
+    public void unfollowMember(FollowMemberVo vo) {
+        Member follower = memberDao.findMemberById(vo.getFollowerId());
+        Member following = memberDao.findMemberById(vo.getFollowingId());
         
         if (follower == null) {
             throw new KimprunException(
@@ -78,8 +79,8 @@ public class FollowServiceImpl implements FollowService {
     }
 
     @Override
-    public Page<FollowResponse> getFollowers(Long memberId, int page, int size) {
-        Member member = memberDao.findMemberById(memberId);
+    public Page<FollowResponse> getFollowers(GetFollowersVo vo) {
+        Member member = memberDao.findMemberById(vo.getMemberId());
         if (member == null) {
             throw new KimprunException(
                 KimprunExceptionEnum.RESOURCE_NOT_FOUND_EXCEPTION,
@@ -89,7 +90,7 @@ public class FollowServiceImpl implements FollowService {
             );
         }
 
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(vo.getPage(), vo.getSize());
         Page<Follow> followers = followDao.getFollowersByMember(member, pageable);
         
         return followers.map(follow -> new FollowResponse(
@@ -101,8 +102,8 @@ public class FollowServiceImpl implements FollowService {
     }
 
     @Override
-    public Page<FollowResponse> getFollowing(Long memberId, int page, int size) {
-        Member member = memberDao.findMemberById(memberId);
+    public Page<FollowResponse> getFollowing(GetFollowingVo vo) {
+        Member member = memberDao.findMemberById(vo.getMemberId());
         if (member == null) {
             throw new KimprunException(
                 KimprunExceptionEnum.RESOURCE_NOT_FOUND_EXCEPTION,
@@ -112,7 +113,7 @@ public class FollowServiceImpl implements FollowService {
             );
         }
 
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(vo.getPage(), vo.getSize());
         Page<Follow> following = followDao.getFollowingByMember(member, pageable);
         
         return following.map(follow -> new FollowResponse(
@@ -124,9 +125,9 @@ public class FollowServiceImpl implements FollowService {
     }
 
     @Override
-    public boolean isFollowing(Long followerId, Long followingId) {
-        Member follower = memberDao.findMemberById(followerId);
-        Member following = memberDao.findMemberById(followingId);
+    public boolean isFollowing(GetFollowStatusVo vo) {
+        Member follower = memberDao.findMemberById(vo.getFollowerId());
+        Member following = memberDao.findMemberById(vo.getFollowingId());
         
         if (follower == null || following == null) {
             return false;

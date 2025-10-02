@@ -1,12 +1,14 @@
 package kimp.auth.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
+@Builder
 public class OAuth2TokenStatusDto {
     private boolean hasOAuth;
     private boolean isExpired;
@@ -16,13 +18,16 @@ public class OAuth2TokenStatusDto {
     private boolean hasRefreshToken;
     private String message;
 
-    public OAuth2TokenStatusDto(boolean hasOAuth, String message) {
-        this.hasOAuth = hasOAuth;
-        this.message = message;
-        this.isExpired = false;
-        this.isExpiringSoon = false;
-        this.expiresAt = null;
-        this.provider = null;
-        this.hasRefreshToken = false;
+    // 간단한 에러 응답용 정적 팩토리 메서드
+    public static OAuth2TokenStatusDto ofError(boolean hasOAuth, String message) {
+        return OAuth2TokenStatusDto.builder()
+                .hasOAuth(hasOAuth)
+                .message(message)
+                .isExpired(false)
+                .isExpiringSoon(false)
+                .expiresAt(null)
+                .provider(null)
+                .hasRefreshToken(false)
+                .build();
     }
 }

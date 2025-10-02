@@ -11,6 +11,7 @@ import kimp.cmc.dto.response.CmcExchangeInfoResponseDto;
 import kimp.cmc.entity.exchange.CmcExchange;
 import kimp.cmc.repository.exchange.CmcExchangeRepository;
 import kimp.cmc.service.CmcExchangeManageService;
+import kimp.cmc.vo.GetAllExchangeInfoPageDataVo;
 import kimp.common.dto.PageRequestDto;
 import kimp.exchange.service.ExchangeService;
 import org.springframework.data.domain.Page;
@@ -65,10 +66,10 @@ public class CmcExchangeManageServiceImpl implements CmcExchangeManageService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<CmcExchangeInfoResponseDto> findAllExchangesOrderBySpotVolume(PageRequestDto pageRequestDto) {
+    public Page<CmcExchangeInfoResponseDto> findAllExchangesOrderBySpotVolume(GetAllExchangeInfoPageDataVo vo) {
         // 페이지 정보 설정 (0-based 인덱스)
-        int page = (pageRequestDto.getPage() != null) ? Math.max(0, pageRequestDto.getPage() - 1) : 0;
-        int size = (pageRequestDto.getSize() != null) ? pageRequestDto.getSize() : 15;
+        int page = Math.max(0, vo.getPage() - 1);
+        int size = vo.getSize();
         Pageable pageable = PageRequest.of(page, size);
 
         // SpotVolume 기준으로 정렬된 Exchange 페이지 조회 (fetch join으로 N+1 방지)
@@ -117,9 +118,19 @@ public class CmcExchangeManageServiceImpl implements CmcExchangeManageService {
             url = cmcExchange.getCmcExchangeUrl().getWebsite();
         }
         
-        return new CmcExchangeInfoResponseDto(name, slug, fiats, description, logo, 
-                                            fee, spotVolumeUsd, url, isSupported, 
-                                            dateLaunched, updatedAt);
+        return CmcExchangeInfoResponseDto.builder()
+                .name(name)
+                .slug(slug)
+                .fiats(fiats)
+                .description(description)
+                .logo(logo)
+                .fee(fee)
+                .spotVolumeUsd(spotVolumeUsd)
+                .url(url)
+                .isSupported(isSupported)
+                .dateLaunched(dateLaunched)
+                .updatedAt(updatedAt)
+                .build();
     }
 
 }

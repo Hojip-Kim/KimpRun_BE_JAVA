@@ -30,17 +30,17 @@ public class SaveChatMessage {
     }
 
     public ChatMessageResponse toResponse() {
-        return new ChatMessageResponse(
-                getPing(),
-                getChatID(),
-                getContent(),
-                getAuthenticated(),
-                getUserIp(),
-                getUuid(),
-                getInherienceId(),
-                getIsDeleted(),
-                getMemberId()
-        );
+        return ChatMessageResponse.builder()
+                .ping(getPing())
+                .chatId(getChatID())
+                .content(getContent())
+                .authenticated(getAuthenticated())
+                .userIp(getUserIp())
+                .uuid(getUuid())
+                .chatInherenceId(getInherienceId())
+                .isDeleted(getIsDeleted())
+                .memberId(getMemberId())
+                .build();
     }
 
 }
