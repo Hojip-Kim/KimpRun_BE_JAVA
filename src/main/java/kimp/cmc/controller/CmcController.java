@@ -6,6 +6,10 @@ import kimp.cmc.dto.response.CmcCoinResponseDto;
 import kimp.cmc.dto.response.CmcExchangeInfoResponseDto;
 import kimp.cmc.service.CmcCoinManageService;
 import kimp.cmc.service.CmcExchangeManageService;
+import kimp.cmc.vo.GetAllCoinInfoPageDataVo;
+import kimp.cmc.vo.GetAllExchangeInfoPageDataVo;
+import kimp.cmc.vo.GetCoinDataByCoinIdVo;
+import kimp.cmc.vo.GetCoinsBySymbolContainingVo;
 import kimp.common.dto.PageRequestDto;
 import kimp.exception.response.ApiResponse;
 import org.springframework.data.domain.Page;
@@ -30,7 +34,8 @@ public class CmcController {
     public ApiResponse<CmcCoinResponseDto> getCoinDataByCoinId(
             @RequestParam("coinId") Long coinId
     ) {
-        CmcCoinResponseDto result = this.cmcCoinManageService.findCmcCoinDataByCoinId(coinId);
+        GetCoinDataByCoinIdVo vo = new GetCoinDataByCoinIdVo(coinId);
+        CmcCoinResponseDto result = this.cmcCoinManageService.findCmcCoinDataByCoinId(vo);
         return ApiResponse.success(result);
     }
 
@@ -38,7 +43,8 @@ public class CmcController {
     public ApiResponse<Page<CmcCoinInfoResponseDto>> getAllCoinInfoPageData(
             @ModelAttribute PageRequestDto pageRequestDto
     ) {
-        Page<CmcCoinInfoResponseDto> result = this.cmcCoinManageService.findAllCoinInfoDtosOrderByRank(pageRequestDto);
+        GetAllCoinInfoPageDataVo vo = new GetAllCoinInfoPageDataVo(pageRequestDto.getPage(), pageRequestDto.getSize());
+        Page<CmcCoinInfoResponseDto> result = this.cmcCoinManageService.findAllCoinInfoDtosOrderByRank(vo);
         return ApiResponse.success(result);
     }
 
@@ -46,7 +52,8 @@ public class CmcController {
     public ApiResponse<Page<CmcExchangeInfoResponseDto>> getAllExchangeInfoPageData(
             @ModelAttribute PageRequestDto pageRequestDto
     ) {
-        Page<CmcExchangeInfoResponseDto> result = this.cmcExchangeManageService.findAllExchangesOrderBySpotVolume(pageRequestDto);
+        GetAllExchangeInfoPageDataVo vo = new GetAllExchangeInfoPageDataVo(pageRequestDto.getPage(), pageRequestDto.getSize());
+        Page<CmcExchangeInfoResponseDto> result = this.cmcExchangeManageService.findAllExchangesOrderBySpotVolume(vo);
         return ApiResponse.success(result);
     }
     
@@ -55,7 +62,8 @@ public class CmcController {
             @PathVariable("symbol") String symbol,
             @ModelAttribute PageRequestDto pageRequestDto
     ) {
-        Page<CmcCoinInfoResponseDto> result = this.cmcCoinManageService.findCoinsBySymbolContaining(symbol, pageRequestDto);
+        GetCoinsBySymbolContainingVo vo = new GetCoinsBySymbolContainingVo(symbol, pageRequestDto.getPage(), pageRequestDto.getSize());
+        Page<CmcCoinInfoResponseDto> result = this.cmcCoinManageService.findCoinsBySymbolContaining(vo);
         return ApiResponse.success(result);
     }
 

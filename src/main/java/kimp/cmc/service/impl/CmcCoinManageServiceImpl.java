@@ -17,6 +17,9 @@ import kimp.cmc.entity.coin.CmcMainnet;
 import kimp.cmc.entity.coin.CmcPlatform;
 import kimp.cmc.repository.coin.CmcCoinRepository;
 import kimp.cmc.service.CmcCoinManageService;
+import kimp.cmc.vo.GetAllCoinInfoPageDataVo;
+import kimp.cmc.vo.GetCoinDataByCoinIdVo;
+import kimp.cmc.vo.GetCoinsBySymbolContainingVo;
 import kimp.common.dto.PageRequestDto;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
@@ -74,9 +77,9 @@ public class CmcCoinManageServiceImpl implements CmcCoinManageService {
 
     @Override
     @Transactional(readOnly = true)
-    public CmcCoinResponseDto findCmcCoinDataByCoinId(Long coinId) {
+    public CmcCoinResponseDto findCmcCoinDataByCoinId(GetCoinDataByCoinIdVo vo) {
         // 1번째 쿼리: CmcCoin과 OneToOne 관계 엔티티들을 fetch join으로 조회
-        CmcCoin cmcCoin = this.cmcDao.findCmcCoinByIdWithOneToOneRelations(coinId);
+        CmcCoin cmcCoin = this.cmcDao.findCmcCoinByIdWithOneToOneRelations(vo.getCoinId());
         if(cmcCoin == null){
              throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "코인 Id에 해당하는 cmc Coin이 없음.", HttpStatus.BAD_REQUEST, "CmcCoinManageService.findCmcCoinDataByCoinId");
         }
@@ -137,75 +140,35 @@ public class CmcCoinManageServiceImpl implements CmcCoinManageService {
             lastUpdated = cmcCoin.getCmcCoinInfo().getLastUpdated();
         }
         
-        return new CmcCoinResponseDto(
-                symbol,
-                name,
-                logo,
-                maxSupply,
-                totalSupply,
-                circulatingSupply,
-                marketCap,
-                explorerUrls,
-                platformStrings,
-                rank,
-                lastUpdated
-        );
+        return CmcCoinResponseDto.builder()
+                .symbol(symbol)
+                .name(name)
+                .logo(logo)
+                .maxSupply(maxSupply)
+                .totalSupply(totalSupply)
+                .circulatingSupply(circulatingSupply)
+                .marketCap(marketCap)
+                .explorerUrl(explorerUrls)
+                .platforms(platformStrings)
+                .rank(rank)
+                .lastUpdated(lastUpdated)
+                .build();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<CmcCoinResponseDto> findAllCoinsOrderByRank(PageRequestDto pageRequestDto) {
-        // QueryDSL을 사용하여 rank 순으로 정렬된 CmcCoin 페이지 조회 (fetch join으로 N+1 방지)
-        Page<CmcCoin> cmcCoinPage = cmcCoinRepository.findAllOrderByRankWithFetchJoin(pageRequestDto);
-        
-        // CmcCoin 목록에서 cmcCoinId를 추출하여 OneToMany 컬렉션들을 일괄 조회
-        List<Long> cmcCoinIds = cmcCoinPage.getContent().stream()
-                .map(CmcCoin::getCmcCoinId)
-                .toList();
-        
-        // 2번째 쿼리: 모든 코인의 Mainnet 정보를 일괄 조회
-        List<CmcMainnet> allMainnets = cmcCoinIds.isEmpty() ? 
-                new ArrayList<>() : 
-                cmcDao.findMainnetsByCmcCoinIds(cmcCoinIds);
-        
-        // 3번째 쿼리: 모든 코인의 Platform 정보를 일괄 조회
-        List<CmcPlatform> allPlatforms = cmcCoinIds.isEmpty() ? 
-                new ArrayList<>() : 
-                cmcDao.findPlatformsByCmcCoinIds(cmcCoinIds);
-        
-        // Mainnet과 Platform을 cmcCoinId별로 그룹핑 (lazy loading 방지)
-        Map<Long, List<CmcMainnet>> mainnetsByCoinId = allMainnets.stream()
-                .collect(Collectors.groupingBy(mainnet -> mainnet.getCmcCoin().getCmcCoinId()));
-        
-        Map<Long, List<CmcPlatform>> platformsByCoinId = allPlatforms.stream()
-                .collect(Collectors.groupingBy(platform -> platform.getCmcCoin().getCmcCoinId()));
-        
-        // 각 CmcCoin에 해당하는 DTO를 생성 (애플리케이션에서 조립)
-        List<CmcCoinResponseDto> responseDtos = cmcCoinPage.getContent().stream()
-                .map(cmcCoin -> {
-                    Long coinId = cmcCoin.getCmcCoinId();
-                    List<CmcMainnet> coinMainnets = mainnetsByCoinId.getOrDefault(coinId, new ArrayList<>());
-                    List<CmcPlatform> coinPlatforms = platformsByCoinId.getOrDefault(coinId, new ArrayList<>());
-                    
-                    return buildCmcCoinResponseDto(cmcCoin, coinMainnets, coinPlatforms);
-                })
-                .toList();
-        
-        return new PageImpl<>(responseDtos, cmcCoinPage.getPageable(), cmcCoinPage.getTotalElements());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<CmcCoinInfoResponseDto> findAllCoinInfoDtosOrderByRank(PageRequestDto pageRequestDto) {
+    public Page<CmcCoinInfoResponseDto> findAllCoinInfoDtosOrderByRank(GetAllCoinInfoPageDataVo vo) {
         // QueryDSL DTO 직접 조회로 완전한 N+1 방지
+        PageRequestDto pageRequestDto = new PageRequestDto(vo.getPage(), vo.getSize());
         return cmcCoinRepository.findAllCoinInfoDtosOrderByRank(pageRequestDto);
     }
     
     @Override
     @Transactional(readOnly = true)
-    public Page<CmcCoinInfoResponseDto> findCoinsBySymbolContaining(String symbol, PageRequestDto pageRequestDto) {
+    public Page<CmcCoinInfoResponseDto> findCoinsBySymbolContaining(GetCoinsBySymbolContainingVo vo) {
         // QueryDSL을 사용하여 symbol을 포함하는 코인들을 검색 (대소문자 구분 없음)
         // N+1 문제를 방지하기 위해 DTO 직접 조회와 batch loading 사용
-        return cmcCoinRepository.findCoinInfoDtosBySymbolContaining(symbol, pageRequestDto);
+        PageRequestDto pageRequestDto = new PageRequestDto(vo.getPage(), vo.getSize());
+        return cmcCoinRepository.findCoinInfoDtosBySymbolContaining(vo.getSymbol(), pageRequestDto);
     }
 }
