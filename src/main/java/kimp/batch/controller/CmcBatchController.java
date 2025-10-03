@@ -18,7 +18,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import kimp.batch.dto.*;
+import kimp.batch.dto.internal.JobExecutionInfo;
+import kimp.batch.dto.internal.StepExecutionInfo;
+import kimp.batch.dto.response.*;
 
 @Slf4j
 @RestController
@@ -56,13 +58,13 @@ public class CmcBatchController {
                 }
             });
             
-            CmcBatchSyncResponse response = new CmcBatchSyncResponse(
-                "CMC 데이터 동기화가 비동기로 시작되었습니다",
-                mode,
-                LocalDateTime.now(),
-                true,
-                true
-            );
+            CmcBatchSyncResponse response = CmcBatchSyncResponse.builder()
+                .message("CMC 데이터 동기화가 비동기로 시작되었습니다")
+                .mode(mode)
+                .timestamp(LocalDateTime.now())
+                .distributedLockApplied(true)
+                .asyncExecution(true)
+                .build();
             
             return ApiResponse.success(response);
             
@@ -88,10 +90,10 @@ public class CmcBatchController {
         try {
             String usageStatus = cmcBatchScheduler.getCmcApiUsageStatus();
             
-            CmcApiStatusResponse response = new CmcApiStatusResponse(
-                usageStatus,
-                LocalDateTime.now()
-            );
+            CmcApiStatusResponse response = CmcApiStatusResponse.builder()
+                .status(usageStatus)
+                .timestamp(LocalDateTime.now())
+                .build();
             
             return ApiResponse.success(response);
             
@@ -133,7 +135,9 @@ public class CmcBatchController {
                 stepExecutions.put(stepExecution.getStepName(), stepInfo);
             }
             
-            JobExecutionStatusResponse response = new JobExecutionStatusResponse(stepExecutions);
+            JobExecutionStatusResponse response = JobExecutionStatusResponse.builder()
+                .stepExecutions(stepExecutions)
+                .build();
             
             return ApiResponse.success(response);
             
@@ -177,10 +181,10 @@ public class CmcBatchController {
                 })
                 .toList();
             
-            JobHistoryResponse response = new JobHistoryResponse(
-                executionHistory.size(),
-                executionHistory
-            );
+            JobHistoryResponse response = JobHistoryResponse.builder()
+                .totalCount(executionHistory.size())
+                .executions(executionHistory)
+                .build();
             
             return ApiResponse.success(response);
             
@@ -220,10 +224,10 @@ public class CmcBatchController {
                 })
                 .toList();
             
-            RunningJobsResponse response = new RunningJobsResponse(
-                runningJobs.size(),
-                runningJobs
-            );
+            RunningJobsResponse response = RunningJobsResponse.builder()
+                .runningJobsCount(runningJobs.size())
+                .runningJobs(runningJobs)
+                .build();
             
             return ApiResponse.success(response);
             
@@ -243,13 +247,13 @@ public class CmcBatchController {
             List<String> jobNames = jobExplorer.getJobNames();
             boolean hasTargetJob = jobNames.contains("cmcDataSyncJob");
             
-            BatchHealthResponse response = new BatchHealthResponse(
-                "배치 시스템이 정상 작동 중입니다",
-                true,
-                hasTargetJob,
-                jobNames,
-                LocalDateTime.now()
-            );
+            BatchHealthResponse response = BatchHealthResponse.builder()
+                .message("배치 시스템이 정상 작동 중입니다")
+                .jobRepositoryConnected(true)
+                .targetJobExists(hasTargetJob)
+                .availableJobs(jobNames)
+                .timestamp(LocalDateTime.now())
+                .build();
             
             return ApiResponse.success(response);
             
@@ -285,12 +289,12 @@ public class CmcBatchController {
                 "CMC 배치 분산 락이 성공적으로 해제되었습니다" : 
                 "분산 락 해제에 실패했습니다 (락이 존재하지 않거나 해제 불가)";
             
-            UnlockResponse response = new UnlockResponse(
-                message,
-                LocalDateTime.now(),
-                lockKey,
-                clientIp
-            );
+            UnlockResponse response = UnlockResponse.builder()
+                .message(message)
+                .unlockTime(LocalDateTime.now())
+                .lockKey(lockKey)
+                .executorIp(clientIp)
+                .build();
             
             if (unlocked) {
                 return ApiResponse.success(response);
@@ -314,12 +318,12 @@ public class CmcBatchController {
         try {
             long currentUsage = distributedRateLimiter.getCurrentUsage("cmc-api", 60);
             
-            RateLimitStatusResponse response = new RateLimitStatusResponse(
-                currentUsage,
-                30,
-                60,
-                LocalDateTime.now()
-            );
+            RateLimitStatusResponse response = RateLimitStatusResponse.builder()
+                .currentUsage(currentUsage)
+                .limit(30)
+                .windowSeconds(60)
+                .timestamp(LocalDateTime.now())
+                .build();
             
             return ApiResponse.success(response);
             
@@ -354,13 +358,13 @@ public class CmcBatchController {
             // 리셋 후 현재 상태 확인
             long currentUsage = distributedRateLimiter.getCurrentUsage("cmc-api", 60);
             
-            RateLimitResetResponse response = new RateLimitResetResponse(
-                "CMC API Rate Limit이 성공적으로 리셋되었습니다",
-                LocalDateTime.now(),
-                currentUsage,
-                30,
-                60
-            );
+            RateLimitResetResponse response = RateLimitResetResponse.builder()
+                .message("CMC API Rate Limit이 성공적으로 리셋되었습니다")
+                .resetTime(LocalDateTime.now())
+                .currentUsage(currentUsage)
+                .limit(30)
+                .windowSeconds(60)
+                .build();
 
             return ApiResponse.success(response);
             

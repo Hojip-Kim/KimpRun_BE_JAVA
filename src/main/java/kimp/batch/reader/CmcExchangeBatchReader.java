@@ -2,9 +2,9 @@ package kimp.batch.reader;
 
 import kimp.cmc.component.CoinMarketCapComponent;
 import kimp.cmc.dao.CmcBatchDao;
-import kimp.cmc.dto.common.exchange.CmcExchangeDetailDto;
-import kimp.cmc.dto.common.exchange.CmcExchangeDetailMapDto;
-import kimp.cmc.dto.common.exchange.CmcExchangeDto;
+import kimp.cmc.dto.internal.exchange.CmcExchangeDetailDto;
+import kimp.cmc.dto.internal.exchange.CmcExchangeDetailMapDto;
+import kimp.cmc.dto.internal.exchange.CmcExchangeDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;

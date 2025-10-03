@@ -1,7 +1,7 @@
 package kimp.batch.processor;
 
-import kimp.cmc.dto.common.exchange.CmcExchangeDetailDto;
-import kimp.cmc.dto.common.exchange.CmcExchangeDto;
+import kimp.cmc.dto.internal.exchange.CmcExchangeDetailDto;
+import kimp.cmc.dto.internal.exchange.CmcExchangeDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;

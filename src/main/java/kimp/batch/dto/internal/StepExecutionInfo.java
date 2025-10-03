@@ -1,4 +1,4 @@
-package kimp.batch.dto;
+package kimp.batch.dto.internal;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
