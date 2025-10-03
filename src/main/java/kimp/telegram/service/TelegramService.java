@@ -1,6 +1,6 @@
 package kimp.telegram.service;
 
-import kimp.notice.dto.notice.NoticeDto;
+import kimp.notice.dto.response.NoticeDto;
 
 public interface TelegramService {
     

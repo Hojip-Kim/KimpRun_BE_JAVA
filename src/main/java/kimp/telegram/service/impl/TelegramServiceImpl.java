@@ -1,6 +1,6 @@
 package kimp.telegram.service.impl;
 
-import kimp.notice.dto.notice.NoticeDto;
+import kimp.notice.dto.response.NoticeDto;
 import kimp.telegram.dto.TelegramMessageRequest;
 import kimp.telegram.service.TelegramService;
 import lombok.extern.slf4j.Slf4j;
