@@ -1,4 +1,4 @@
-package kimp.scrap.dto.upbit;
+package kimp.scrap.dto.internal.upbit;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
