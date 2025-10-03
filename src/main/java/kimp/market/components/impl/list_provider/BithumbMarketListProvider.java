@@ -2,7 +2,7 @@ package kimp.market.components.impl.list_provider;
 
 import kimp.market.common.MarketCommonMethod;
 import kimp.market.components.MarketListProvider;
-import kimp.market.dto.market.common.BithumbMarketNameData;
+import kimp.market.dto.market.internal.BithumbMarketNameData;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

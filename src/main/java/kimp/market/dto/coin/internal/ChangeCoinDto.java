@@ -1,4 +1,4 @@
-package kimp.market.dto.coin.common;
+package kimp.market.dto.coin.internal;
 
 import kimp.market.Enum.MarketType;
 import lombok.Getter;

@@ -1,6 +1,6 @@
-package kimp.market.dto.market.common;
+package kimp.market.dto.market.internal;
 
-import kimp.market.dto.coin.common.crypto.CryptoDto;
+import kimp.market.dto.coin.internal.crypto.CryptoDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

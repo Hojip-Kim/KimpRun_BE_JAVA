@@ -3,7 +3,7 @@ package unit.kimp.market.components.impl.list_provider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.market.common.MarketCommonMethod;
 import kimp.market.components.impl.list_provider.UpbitMarketListProvider;
-import kimp.market.dto.market.common.UpbitMarketNameData;
+import kimp.market.dto.market.internal.UpbitMarketNameData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

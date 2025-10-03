@@ -1,4 +1,4 @@
-package kimp.market.dto.coin.common.market;
+package kimp.market.dto.coin.internal.market;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

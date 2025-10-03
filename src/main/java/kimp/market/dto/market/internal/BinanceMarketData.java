@@ -1,4 +1,4 @@
-package kimp.market.dto.market.common;
+package kimp.market.dto.market.internal;
 
 import lombok.Getter;
 import java.math.BigDecimal;

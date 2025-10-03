@@ -1,9 +1,9 @@
 package kimp.market.service;
 
 import kimp.market.Enum.MarketType;
-import kimp.market.dto.coin.common.ServiceCoinWrapperDto;
+import kimp.market.dto.coin.internal.ServiceCoinWrapperDto;
 import kimp.market.dto.coin.response.CoinMarketDto;
-import kimp.market.dto.market.common.MarketList;
+import kimp.market.dto.market.internal.MarketList;
 import kimp.market.dto.market.response.CombinedMarketList;
 import kimp.market.dto.market.response.CombinedMarketDataList;
 import kimp.market.dto.market.response.MarketDataList;

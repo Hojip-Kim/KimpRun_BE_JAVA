@@ -4,7 +4,7 @@ import kimp.exception.KimprunException;
 import kimp.exception.response.ApiResponse;
 import kimp.market.Enum.MarketType;
 import kimp.market.controller.MarketController;
-import kimp.market.dto.coin.common.market.MarketDto;
+import kimp.market.dto.coin.internal.market.MarketDto;
 import kimp.market.dto.coin.response.CoinMarketDto;
 import kimp.market.dto.market.response.CombinedMarketDataList;
 import kimp.market.dto.market.response.CombinedMarketList;
