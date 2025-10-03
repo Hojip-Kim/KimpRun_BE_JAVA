@@ -1,6 +1,6 @@
 package kimp.notice.vo;
 
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import kimp.market.Enum.MarketType;
 
 public class GetNoticeByExchangeVo {

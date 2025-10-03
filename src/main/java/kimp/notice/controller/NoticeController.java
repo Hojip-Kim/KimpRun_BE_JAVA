@@ -1,10 +1,10 @@
 package kimp.notice.controller;
 
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import kimp.exception.response.ApiResponse;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
-import kimp.notice.dto.notice.ExchangeNoticeDto;
+import kimp.notice.dto.response.ExchangeNoticeDto;
 import kimp.notice.service.NoticeService;
 import kimp.notice.vo.*;
 import kimp.exchange.service.ScrapService;

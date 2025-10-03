@@ -1,14 +1,14 @@
 package kimp.exchange.service.impl;
 
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import kimp.common.method.DtoConverter;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import kimp.exchange.dao.ExchangeDao;
 import kimp.notice.dao.NoticeDao;
-import kimp.notice.dto.notice.ExchangeNoticeDto;
-import kimp.notice.dto.notice.NoticeDto;
-import kimp.notice.dto.notice.NoticeParsedData;
+import kimp.notice.dto.response.ExchangeNoticeDto;
+import kimp.notice.dto.response.NoticeDto;
+import kimp.notice.dto.response.NoticeParsedData;
 import kimp.exchange.entity.Exchange;
 import kimp.notice.entity.Notice;
 import kimp.market.Enum.MarketType;

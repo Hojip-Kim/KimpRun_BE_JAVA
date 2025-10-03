@@ -1,8 +1,8 @@
 package kimp.exchange.service.impl;
 
-import kimp.scrap.dto.python.PythonNoticeResponseDto;
+import kimp.scrap.dto.internal.python.PythonNoticeResponseDto;
 import kimp.exchange.service.PythonScrapService;
-import kimp.notice.dto.notice.NoticeParsedData;
+import kimp.notice.dto.response.NoticeParsedData;
 import kimp.market.Enum.MarketType;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;

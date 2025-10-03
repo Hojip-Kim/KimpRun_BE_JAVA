@@ -1,8 +1,8 @@
 package kimp.notice.service;
 
-import kimp.common.dto.PageRequestDto;
-import kimp.notice.dto.notice.ExchangeNoticeDto;
-import kimp.notice.dto.notice.NoticeDto;
+import kimp.common.dto.request.PageRequestDto;
+import kimp.notice.dto.response.ExchangeNoticeDto;
+import kimp.notice.dto.response.NoticeDto;
 import kimp.market.Enum.MarketType;
 import org.springframework.data.domain.Page;
 

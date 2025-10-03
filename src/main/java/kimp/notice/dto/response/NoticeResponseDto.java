@@ -1,4 +1,4 @@
-package kimp.notice.dto.notice;
+package kimp.notice.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import kimp.market.Enum.MarketType;

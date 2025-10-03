@@ -1,4 +1,4 @@
-package kimp.exchange.dto.common.response;
+package kimp.exchange.dto.internal.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
