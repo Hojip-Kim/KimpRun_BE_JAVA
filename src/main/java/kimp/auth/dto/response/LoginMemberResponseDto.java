@@ -1,7 +1,7 @@
-package kimp.auth.dto;
+package kimp.auth.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import kimp.user.dto.UserWithIdNameEmailDto;
+import kimp.user.dto.response.UserWithIdNameEmailDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
