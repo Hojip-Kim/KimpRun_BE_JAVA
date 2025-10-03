@@ -1,6 +1,6 @@
 package kimp.chat.service;
 
-import kimp.chat.dto.vo.SaveChatMessage;
+import kimp.chat.vo.SaveChatMessage;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 

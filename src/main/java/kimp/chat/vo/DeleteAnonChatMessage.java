@@ -1,4 +1,4 @@
-package kimp.chat.dto.vo;
+package kimp.chat.vo;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

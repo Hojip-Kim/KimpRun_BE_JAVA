@@ -1,4 +1,4 @@
-package kimp.chat.dto.vo;
+package kimp.chat.vo;
 
 import kimp.chat.dto.response.ChatMessageResponse;
 import lombok.Getter;

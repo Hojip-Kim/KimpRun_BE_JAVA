@@ -1,7 +1,7 @@
 package kimp.chat.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kimp.chat.dto.vo.SaveChatMessage;
+import kimp.chat.vo.SaveChatMessage;
 import kimp.chat.dto.request.ChatMessage;
 import kimp.chat.dto.response.ChatMessageResponse;
 import kimp.chat.service.ChatStompService;

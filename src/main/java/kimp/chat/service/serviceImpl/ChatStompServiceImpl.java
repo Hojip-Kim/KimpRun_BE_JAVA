@@ -1,7 +1,7 @@
 package kimp.chat.service.serviceImpl;
 
 import kimp.chat.dao.ChatDao;
-import kimp.chat.dto.vo.SaveChatMessage;
+import kimp.chat.vo.SaveChatMessage;
 import kimp.chat.service.ChatStompService;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;

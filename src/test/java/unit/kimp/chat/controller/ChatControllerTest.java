@@ -4,7 +4,7 @@ import kimp.chat.controller.ChatController;
 import kimp.chat.dto.response.ChatLogResponseDto;
 import kimp.chat.entity.Chat;
 import kimp.chat.service.ChatService;
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import kimp.exception.KimprunException;
 import kimp.exception.response.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
