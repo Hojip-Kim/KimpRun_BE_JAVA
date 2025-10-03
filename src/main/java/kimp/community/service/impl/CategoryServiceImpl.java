@@ -3,7 +3,7 @@ package kimp.community.service.impl;
 import kimp.community.dao.BoardCountDao;
 import kimp.community.dao.CategoryDao;
 
-import kimp.community.dto.category.CategoryDto;
+import kimp.community.dto.category.response.CategoryDto;
 import kimp.community.dto.category.request.CreateCategoryRequestDto;
 import kimp.community.dto.category.request.UpdateCategoryRequestDto;
 import kimp.community.entity.BoardCount;

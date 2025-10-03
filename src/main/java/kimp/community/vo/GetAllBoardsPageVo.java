@@ -1,6 +1,6 @@
 package kimp.community.vo;
 
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

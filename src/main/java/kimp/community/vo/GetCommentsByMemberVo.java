@@ -1,6 +1,6 @@
 package kimp.community.vo;
 
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 
 public class GetCommentsByMemberVo {
 

@@ -1,7 +1,7 @@
 package kimp.community.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import kimp.community.dto.category.CategoryDto;
+import kimp.community.dto.category.response.CategoryDto;
 import kimp.community.dto.category.request.CreateCategoryRequestDto;
 import kimp.community.dto.category.request.UpdateCategoryRequestDto;
 import kimp.community.service.CategoryPacadeService;

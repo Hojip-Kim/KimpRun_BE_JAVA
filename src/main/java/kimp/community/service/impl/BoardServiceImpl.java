@@ -1,6 +1,6 @@
 package kimp.community.service.impl;
 
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import kimp.community.dao.BoardDao;
 import kimp.community.dao.BoardLikeCountDao;
 import kimp.community.dao.BoardViewDao;

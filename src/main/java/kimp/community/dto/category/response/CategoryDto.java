@@ -1,4 +1,4 @@
-package kimp.community.dto.category;
+package kimp.community.dto.category.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

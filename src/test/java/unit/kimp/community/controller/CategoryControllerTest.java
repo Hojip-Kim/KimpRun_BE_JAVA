@@ -1,7 +1,7 @@
 package unit.kimp.community.controller;
 
 import kimp.community.controller.CategoryController;
-import kimp.community.dto.category.CategoryDto;
+import kimp.community.dto.category.response.CategoryDto;
 import kimp.community.dto.category.request.CreateCategoryRequestDto;
 import kimp.community.dto.category.request.UpdateCategoryRequestDto;
 import kimp.community.entity.Category;
