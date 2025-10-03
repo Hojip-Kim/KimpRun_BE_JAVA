@@ -1,4 +1,4 @@
-package kimp.common.dto;
+package kimp.common.dto.request;
 
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
