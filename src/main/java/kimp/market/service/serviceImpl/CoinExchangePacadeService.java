@@ -2,8 +2,8 @@ package kimp.market.service.serviceImpl;
 
 import kimp.exchange.service.ExchangeService;
 import kimp.market.Enum.MarketType;
-import kimp.market.dto.coin.common.ServiceCoinDto;
-import kimp.market.dto.coin.common.ServiceCoinWrapperDto;
+import kimp.market.dto.coin.internal.ServiceCoinDto;
+import kimp.market.dto.coin.internal.ServiceCoinWrapperDto;
 import kimp.market.dto.coin.request.CreateCoinDto;
 import kimp.market.dto.coin.response.CoinResponseDto;
 import kimp.market.service.CoinService;

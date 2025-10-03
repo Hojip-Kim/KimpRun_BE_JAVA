@@ -1,9 +1,9 @@
 package unit.kimp.auth.service.impl;
 
-import kimp.auth.dto.OauthProcessDTO;
+import kimp.auth.dto.internal.OauthProcessDTO;
 import kimp.auth.service.OAuth2TokenRefreshService;
 import kimp.auth.service.serviceImpl.OAuth2ServiceImpl;
-import kimp.user.dto.UserCopyDto;
+import kimp.user.dto.internal.UserCopyDto;
 import kimp.user.dto.request.CreateUserDTO;
 import kimp.user.entity.Member;
 import kimp.user.enums.Oauth;

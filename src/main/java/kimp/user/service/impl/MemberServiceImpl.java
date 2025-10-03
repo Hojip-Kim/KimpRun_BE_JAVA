@@ -10,9 +10,9 @@ import kimp.user.dao.MemberWithDrawDao;
 import kimp.user.dao.ProfileDao;
 import kimp.user.dao.UserAgentDao;
 import kimp.user.service.MemberRoleService;
-import kimp.user.dto.UserCopyDto;
-import kimp.user.dto.UserDto;
-import kimp.user.dto.UserWithIdNameEmailDto;
+import kimp.user.dto.internal.UserCopyDto;
+import kimp.user.dto.response.UserDto;
+import kimp.user.dto.response.UserWithIdNameEmailDto;
 import kimp.user.dto.request.*;
 import kimp.user.entity.*;
 import kimp.user.enums.UserRole;
@@ -349,7 +349,11 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public UserDto convertUserToUserDto(Member member) {
 
-        return new UserDto(member.getEmail(), member.getNickname(), member.getRole().getRoleName());
+        return UserDto.builder()
+                .email(member.getEmail())
+                .nickname(member.getNickname())
+                .role(member.getRole().getRoleName())
+                .build();
     }
 
     @Override

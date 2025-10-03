@@ -10,7 +10,7 @@ import kimp.cmc.vo.GetAllCoinInfoPageDataVo;
 import kimp.cmc.vo.GetAllExchangeInfoPageDataVo;
 import kimp.cmc.vo.GetCoinDataByCoinIdVo;
 import kimp.cmc.vo.GetCoinsBySymbolContainingVo;
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import kimp.exception.response.ApiResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;

@@ -1,11 +1,11 @@
 package kimp.auth.service.serviceImpl;
 
-import kimp.auth.dto.OauthProcessDTO;
+import kimp.auth.dto.internal.OauthProcessDTO;
 import kimp.auth.service.OAuth2Service;
 import kimp.auth.service.OAuth2TokenRefreshService;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
-import kimp.user.dto.UserCopyDto;
+import kimp.user.dto.internal.UserCopyDto;
 import kimp.user.dto.request.CreateUserDTO;
 import kimp.user.entity.Member;
 import kimp.user.enums.Oauth;
@@ -111,7 +111,13 @@ public class OAuth2ServiceImpl implements OAuth2Service {
             }
         }
 
-        return new UserCopyDto(member.getId(), member.getEmail(), member.getPassword(), member.getNickname(), member.getRole().getRoleName());
+        return UserCopyDto.builder()
+                .id(member.getId())
+                .email(member.getEmail())
+                .password(member.getPassword())
+                .nickname(member.getNickname())
+                .role(member.getRole().getRoleName())
+                .build();
     }
 
 }

@@ -70,22 +70,22 @@ public class ProfileServiceImpl implements ProfileService {
         
         long followerCount = followDao.getFollowerCount(member);
         long followingCount = followDao.getFollowingCount(member);
-        
+
         // 신고당한 횟수 조회 (toMember가 해당 멤버의 ID)
         long declarationCount = declarationDao.getDeclarationCountByToMember(member.getId().toString());
-        
-        return new ProfileInfoResponse(
-            member.getId(),
-            member.getNickname(),
-            member.getEmail(),
-            member.getRole() != null ? member.getRole().getRoleName().name() : "USER",
-            profile != null ? profile.getImageUrl() : null,
-            profile != null && profile.getSeedRange() != null ? profile.getSeedRange().getRange() : "미설정",
-            profile != null && profile.getActivityRank() != null ? profile.getActivityRank().getGrade() : "미설정",
-            member.getRegistedAt(),
-            (int) declarationCount,
-            (int) followerCount,
-            (int) followingCount
-        );
+
+        return ProfileInfoResponse.builder()
+                .memberId(member.getId())
+                .nickname(member.getNickname())
+                .email(member.getEmail())
+                .role(member.getRole() != null ? member.getRole().getRoleName().name() : "USER")
+                .profileImageUrl(profile != null ? profile.getImageUrl() : null)
+                .seedMoneyRange(profile != null && profile.getSeedRange() != null ? profile.getSeedRange().getRange() : "미설정")
+                .activityRankGrade(profile != null && profile.getActivityRank() != null ? profile.getActivityRank().getGrade() : "미설정")
+                .joinedAt(member.getRegistedAt())
+                .declarationCount((int) declarationCount)
+                .followerCount((int) followerCount)
+                .followingCount((int) followingCount)
+                .build();
     }
 }

@@ -2,7 +2,7 @@ package kimp.websocket.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.market.components.impl.market.Binance;
-import kimp.market.dto.coin.common.market.BinanceDto;
+import kimp.market.dto.coin.internal.market.BinanceDto;
 import kimp.market.controller.MarketDataStompController;
 import kimp.market.service.MarketInfoService;
 import kimp.websocket.dto.response.BinanceReceiveDto;

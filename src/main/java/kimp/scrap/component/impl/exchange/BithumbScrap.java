@@ -1,8 +1,8 @@
 package kimp.scrap.component.impl.exchange;
 
-import kimp.scrap.dto.bithumb.BithumbNoticeDto;
-import kimp.scrap.dto.python.PythonNoticeResponseDto;
-import kimp.notice.dto.notice.NoticeParsedData;
+import kimp.scrap.dto.internal.bithumb.BithumbNoticeDto;
+import kimp.scrap.dto.internal.python.PythonNoticeResponseDto;
+import kimp.notice.dto.response.NoticeParsedData;
 import kimp.market.Enum.MarketType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

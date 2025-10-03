@@ -1,6 +1,6 @@
 package kimp.community.service;
 
-import kimp.community.dto.category.CategoryDto;
+import kimp.community.dto.category.response.CategoryDto;
 import kimp.community.dto.category.request.CreateCategoryRequestDto;
 import kimp.community.dto.category.request.UpdateCategoryRequestDto;
 import kimp.community.entity.BoardCount;

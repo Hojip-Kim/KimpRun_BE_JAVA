@@ -1,8 +1,8 @@
 package kimp.user.service;
 
-import kimp.user.dto.UserCopyDto;
-import kimp.user.dto.UserDto;
-import kimp.user.dto.UserWithIdNameEmailDto;
+import kimp.user.dto.internal.UserCopyDto;
+import kimp.user.dto.response.UserDto;
+import kimp.user.dto.response.UserWithIdNameEmailDto;
 import kimp.user.dto.request.*;
 import kimp.user.entity.Member;
 import kimp.user.enums.UserRole;

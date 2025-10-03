@@ -1,7 +1,7 @@
 package kimp.market.service;
 
 import kimp.market.Enum.MarketType;
-import kimp.market.dto.coin.common.ChangeCoinDto;
+import kimp.market.dto.coin.internal.ChangeCoinDto;
 import kimp.market.dto.coin.request.*;
 import kimp.market.dto.coin.response.CoinMarketDto;
 import kimp.market.dto.coin.response.CoinResponseDto;

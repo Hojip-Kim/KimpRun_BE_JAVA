@@ -2,7 +2,7 @@ package kimp.websocket.client;
 
 import jakarta.annotation.PostConstruct;
 import kimp.market.components.impl.market.Coinone;
-import kimp.market.dto.coin.common.market.CoinoneDto;
+import kimp.market.dto.coin.internal.market.CoinoneDto;
 import kimp.market.dto.market.response.MarketDataList;
 import kimp.market.controller.MarketDataStompController;
 import lombok.extern.slf4j.Slf4j;

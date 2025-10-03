@@ -1,8 +1,7 @@
 package kimp.auth.service;
 
-import kimp.auth.dto.LoginMemberResponseDto;
+import kimp.auth.dto.response.LoginMemberResponseDto;
 import kimp.auth.vo.CheckAuthStatusVo;
-import kimp.security.user.CustomUserDetails;
 
 public interface AuthService {
 

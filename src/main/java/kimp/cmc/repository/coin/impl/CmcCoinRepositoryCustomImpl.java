@@ -15,7 +15,7 @@ import kimp.cmc.entity.coin.QCmcPlatform;
 import kimp.cmc.entity.coin.QCmcRank;
 import kimp.market.entity.QCoin;
 import kimp.cmc.repository.coin.CmcCoinRepositoryCustom;
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;

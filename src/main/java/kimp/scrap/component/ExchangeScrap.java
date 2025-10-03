@@ -1,7 +1,7 @@
 package kimp.scrap.component;
 
-import kimp.notice.dto.notice.NoticeParsedData;
-import kimp.notice.dto.notice.NoticeResponseDto;
+import kimp.notice.dto.response.NoticeParsedData;
+import kimp.notice.dto.response.NoticeResponseDto;
 import kimp.market.Enum.MarketType;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;

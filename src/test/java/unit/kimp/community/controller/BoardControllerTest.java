@@ -10,7 +10,7 @@ import kimp.community.dto.board.response.BoardWithCommentResponseDto;
 import kimp.community.entity.Board;
 import kimp.community.service.BoardService;
 import kimp.community.service.BoardPacadeService;
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import kimp.exception.KimprunException;
 import kimp.exception.response.ApiResponse;
 import kimp.security.user.CustomUserDetails;

@@ -1,9 +1,9 @@
 package kimp.auth.service.serviceImpl;
 
-import kimp.auth.dto.LoginMemberResponseDto;
+import kimp.auth.dto.response.LoginMemberResponseDto;
 import kimp.auth.service.AuthService;
 import kimp.auth.vo.CheckAuthStatusVo;
-import kimp.user.dto.UserWithIdNameEmailDto;
+import kimp.user.dto.response.UserWithIdNameEmailDto;
 import kimp.user.entity.Member;
 import kimp.user.service.MemberService;
 import kimp.user.util.NicknameGeneratorUtils;
@@ -36,9 +36,16 @@ public class SessionAuthServiceImpl implements AuthService {
         String UserRole = member.getRole().getRoleName().getName();
         Long memberIdFromEntity = member.getId();
 
+        UserWithIdNameEmailDto userDto = UserWithIdNameEmailDto.builder()
+                .email(memberEmail)
+                .name(memberNickname)
+                .role(UserRole)
+                .memberId(memberIdFromEntity)
+                .build();
+
         return LoginMemberResponseDto.builder()
                 .isAuthenticated(true)
-                .member(new UserWithIdNameEmailDto(memberEmail, memberNickname, UserRole, memberIdFromEntity))
+                .member(userDto)
                 .uuid(null)
                 .build();
 

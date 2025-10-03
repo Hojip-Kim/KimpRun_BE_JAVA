@@ -5,8 +5,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import kimp.exception.response.ApiResponse;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
-import kimp.user.dto.UserDto;
-import kimp.user.dto.UserWithIdNameEmailDto;
+import kimp.user.dto.response.UserDto;
+import kimp.user.dto.response.UserWithIdNameEmailDto;
 import kimp.user.dto.request.*;
 import kimp.user.dto.response.AdminResponse;
 import kimp.user.dto.response.EmailVerifyCodeResponseDTO;
@@ -200,7 +200,9 @@ public class MemberController {
     @GetMapping("/admin")
     public ApiResponse<AdminResponse> redirectAdmin(@AuthenticationPrincipal UserDetails UserDetails, HttpServletResponse response) throws IOException {
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
-        AdminResponse result = new AdminResponse(adminUrl);
+        AdminResponse result = AdminResponse.builder()
+                .response(adminUrl)
+                .build();
         return ApiResponse.success(result);
     }
 

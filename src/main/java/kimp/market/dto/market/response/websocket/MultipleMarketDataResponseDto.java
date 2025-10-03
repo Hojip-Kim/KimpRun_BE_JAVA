@@ -1,10 +1,10 @@
 package kimp.market.dto.market.response.websocket;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import kimp.market.dto.coin.common.market.BinanceDto;
-import kimp.market.dto.coin.common.market.BithumbDto;
-import kimp.market.dto.coin.common.market.CoinoneDto;
-import kimp.market.dto.coin.common.market.UpbitDto;
+import kimp.market.dto.coin.internal.market.BinanceDto;
+import kimp.market.dto.coin.internal.market.BithumbDto;
+import kimp.market.dto.coin.internal.market.CoinoneDto;
+import kimp.market.dto.coin.internal.market.UpbitDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

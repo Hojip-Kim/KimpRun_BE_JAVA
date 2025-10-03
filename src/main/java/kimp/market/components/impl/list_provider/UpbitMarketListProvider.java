@@ -3,7 +3,7 @@ package kimp.market.components.impl.list_provider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.market.common.MarketCommonMethod;
 import kimp.market.components.MarketListProvider;
-import kimp.market.dto.market.common.UpbitMarketNameData;
+import kimp.market.dto.market.internal.UpbitMarketNameData;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

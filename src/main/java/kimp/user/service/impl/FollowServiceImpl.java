@@ -92,13 +92,13 @@ public class FollowServiceImpl implements FollowService {
 
         Pageable pageable = PageRequest.of(vo.getPage(), vo.getSize());
         Page<Follow> followers = followDao.getFollowersByMember(member, pageable);
-        
-        return followers.map(follow -> new FollowResponse(
-            follow.getFollower().getId(),
-            follow.getFollower().getNickname(),
-            follow.getFollower().getProfile() != null ? follow.getFollower().getProfile().getImageUrl() : null,
-            follow.getRegistedAt()
-        ));
+
+        return followers.map(follow -> FollowResponse.builder()
+                .memberId(follow.getFollower().getId())
+                .nickname(follow.getFollower().getNickname())
+                .profileImageUrl(follow.getFollower().getProfile() != null ? follow.getFollower().getProfile().getImageUrl() : null)
+                .followedAt(follow.getRegistedAt())
+                .build());
     }
 
     @Override
@@ -115,13 +115,13 @@ public class FollowServiceImpl implements FollowService {
 
         Pageable pageable = PageRequest.of(vo.getPage(), vo.getSize());
         Page<Follow> following = followDao.getFollowingByMember(member, pageable);
-        
-        return following.map(follow -> new FollowResponse(
-            follow.getFollowing().getId(),
-            follow.getFollowing().getNickname(),
-            follow.getFollowing().getProfile() != null ? follow.getFollowing().getProfile().getImageUrl() : null,
-            follow.getRegistedAt()
-        ));
+
+        return following.map(follow -> FollowResponse.builder()
+                .memberId(follow.getFollowing().getId())
+                .nickname(follow.getFollowing().getNickname())
+                .profileImageUrl(follow.getFollowing().getProfile() != null ? follow.getFollowing().getProfile().getImageUrl() : null)
+                .followedAt(follow.getRegistedAt())
+                .build());
     }
 
     @Override

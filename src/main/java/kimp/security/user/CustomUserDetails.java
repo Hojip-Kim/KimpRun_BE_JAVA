@@ -1,6 +1,6 @@
 package kimp.security.user;
 
-import kimp.user.dto.UserCopyDto;
+import kimp.user.dto.internal.UserCopyDto;
 import kimp.user.enums.UserRole;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;

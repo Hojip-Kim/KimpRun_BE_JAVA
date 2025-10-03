@@ -1,13 +1,13 @@
 package kimp.exchange.service.impl;
 
 import kimp.common.lock.DistributedLockService;
-import kimp.notice.dto.notice.NoticeDto;
-import kimp.notice.dto.notice.NoticeParsedData;
+import kimp.notice.dto.response.NoticeDto;
+import kimp.notice.dto.response.NoticeParsedData;
 import kimp.scrap.component.ExchangeScrap;
-import kimp.scrap.dto.binance.BinanceNoticeDto;
-import kimp.scrap.dto.bithumb.BithumbNoticeDto;
-import kimp.scrap.dto.coinone.CoinoneNoticeDto;
-import kimp.scrap.dto.upbit.UpbitNoticeDto;
+import kimp.scrap.dto.internal.binance.BinanceNoticeDto;
+import kimp.scrap.dto.internal.bithumb.BithumbNoticeDto;
+import kimp.scrap.dto.internal.coinone.CoinoneNoticeDto;
+import kimp.scrap.dto.internal.upbit.UpbitNoticeDto;
 import kimp.notice.service.NoticeService;
 import kimp.exchange.service.ScrapService;
 import kimp.market.controller.MarketInfoStompController;
