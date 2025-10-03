@@ -1,7 +1,7 @@
 package kimp.user.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import kimp.exception.response.ApiResponse;
 import kimp.user.dto.request.DeclarationMemberRequest;
 import kimp.user.dto.response.DeclarationResponse;

@@ -2,13 +2,17 @@ package kimp.user.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import kimp.user.entity.Declaration;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
+@Builder
 public class DeclarationResponse {
     @JsonProperty
     private String fromMember;
@@ -21,21 +25,13 @@ public class DeclarationResponse {
     @JsonProperty
     private LocalDateTime updatedAt;
 
-    public DeclarationResponse(String fromMember, String toMember, String reason, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.fromMember = fromMember;
-        this.toMember = toMember;
-        this.reason = reason;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
-
     public static DeclarationResponse from(Declaration declaration) {
-        return new DeclarationResponse(
-                declaration.getFromMember(),
-                declaration.getToMember(),
-                declaration.getReason(),
-                declaration.getRegistedAt(),
-                declaration.getUpdatedAt()
-        );
+        return DeclarationResponse.builder()
+                .fromMember(declaration.getFromMember())
+                .toMember(declaration.getToMember())
+                .reason(declaration.getReason())
+                .createdAt(declaration.getRegistedAt())
+                .updatedAt(declaration.getUpdatedAt())
+                .build();
     }
 }
