@@ -2,12 +2,12 @@ package kimp.cmc.dao.mybatis.impl;
 
 import kimp.cmc.dao.CmcBatchDao;
 import kimp.cmc.dao.mybatis.CmcBatchMapper;
-import kimp.cmc.dto.common.coin.CmcApiDataDto;
-import kimp.cmc.dto.common.coin.CmcCoinInfoDataDto;
-import kimp.cmc.dto.common.coin.CmcCoinMapDataDto;
-import kimp.cmc.dto.common.coin.CmcDataPlatformDto;
-import kimp.cmc.dto.common.exchange.CmcExchangeDto;
-import kimp.cmc.dto.common.exchange.CmcExchangeDetailDto;
+import kimp.cmc.dto.internal.coin.CmcApiDataDto;
+import kimp.cmc.dto.internal.coin.CmcCoinInfoDataDto;
+import kimp.cmc.dto.internal.coin.CmcCoinMapDataDto;
+import kimp.cmc.dto.internal.coin.CmcDataPlatformDto;
+import kimp.cmc.dto.internal.exchange.CmcExchangeDto;
+import kimp.cmc.dto.internal.exchange.CmcExchangeDetailDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;

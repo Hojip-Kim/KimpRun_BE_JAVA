@@ -1,4 +1,4 @@
-package kimp.cmc.dto.common.coin;
+package kimp.cmc.dto.internal.coin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;

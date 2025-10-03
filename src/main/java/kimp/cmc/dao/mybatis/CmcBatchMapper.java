@@ -1,10 +1,10 @@
 package kimp.cmc.dao.mybatis;
 
-import kimp.cmc.dto.common.coin.CmcApiDataDto;
-import kimp.cmc.dto.common.coin.CmcCoinInfoDataDto;
-import kimp.cmc.dto.common.coin.CmcCoinMapDataDto;
-import kimp.cmc.dto.common.exchange.CmcExchangeDto;
-import kimp.cmc.dto.common.exchange.CmcExchangeDetailDto;
+import kimp.cmc.dto.internal.coin.CmcApiDataDto;
+import kimp.cmc.dto.internal.coin.CmcCoinInfoDataDto;
+import kimp.cmc.dto.internal.coin.CmcCoinMapDataDto;
+import kimp.cmc.dto.internal.exchange.CmcExchangeDto;
+import kimp.cmc.dto.internal.exchange.CmcExchangeDetailDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

@@ -4,7 +4,7 @@ import kimp.cmc.dto.response.CmcCoinInfoResponseDto;
 import kimp.cmc.entity.coin.CmcCoin;
 import kimp.cmc.entity.coin.CmcMainnet;
 import kimp.cmc.entity.coin.CmcPlatform;
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import org.springframework.data.domain.Page;
 
 import java.util.List;

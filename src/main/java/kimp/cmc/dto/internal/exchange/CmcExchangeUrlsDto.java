@@ -1,4 +1,4 @@
-package kimp.cmc.dto.common.exchange;
+package kimp.cmc.dto.internal.exchange;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

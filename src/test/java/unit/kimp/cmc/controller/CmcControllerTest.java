@@ -2,11 +2,11 @@ package unit.kimp.cmc.controller;
 
 import kimp.cmc.component.CoinMarketCapComponent;
 import kimp.cmc.controller.CmcController;
-import kimp.cmc.dto.common.coin.CmcApiDataDto;
-import kimp.cmc.dto.common.coin.CmcCoinInfoDataMapDto;
-import kimp.cmc.dto.common.coin.CmcCoinMapDataDto;
-import kimp.cmc.dto.common.exchange.CmcExchangeDetailMapDto;
-import kimp.cmc.dto.common.exchange.CmcExchangeDto;
+import kimp.cmc.dto.internal.coin.CmcApiDataDto;
+import kimp.cmc.dto.internal.coin.CmcCoinInfoDataMapDto;
+import kimp.cmc.dto.internal.coin.CmcCoinMapDataDto;
+import kimp.cmc.dto.internal.exchange.CmcExchangeDetailMapDto;
+import kimp.cmc.dto.internal.exchange.CmcExchangeDto;
 import kimp.cmc.dto.response.CmcCoinResponseDto;
 import kimp.cmc.service.CmcCoinManageService;
 import kimp.cmc.vo.GetCoinDataByCoinIdVo;

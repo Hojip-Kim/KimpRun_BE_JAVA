@@ -81,7 +81,7 @@
     </update>
     
     <!-- 코인 상세 정보 UPSERT (중복 방지) -->
-    <insert id="insertCmcCoinInfo" parameterType="kimp.cmc.dto.common.coin.CmcCoinInfoDataDto">
+    <insert id="insertCmcCoinInfo" parameterType="kimp.cmc.dto.internal.coin.CmcCoinInfoDataDto">
         INSERT INTO cmc_coin_info (cmc_coin_id, description, infinite_supply, is_fiat, last_updated, registed_at, updated_at)
         VALUES (
             #{coinInfo.id},
@@ -160,7 +160,7 @@
         SELECT cmc_exchange_meta_id FROM cmc_exchange WHERE cmc_exchange_id = #{exchangeId}
     </select>
     
-    <insert id="insertCmcExchangeMeta" parameterType="kimp.cmc.dto.common.exchange.CmcExchangeDetailDto">
+    <insert id="insertCmcExchangeMeta" parameterType="kimp.cmc.dto.internal.exchange.CmcExchangeDetailDto">
         INSERT INTO cmc_exchange_meta (cmc_exchange_id, market_fee, taker_fee, spot_volume_usd, spot_volume_last_updated, weekly_visits, registed_at, updated_at)
         VALUES (#{exchangeDetail.id}, COALESCE(#{exchangeDetail.marketFee}, 0.0), COALESCE(#{exchangeDetail.takerFee}, 0.0), COALESCE(#{exchangeDetail.spotVolumeUsd}, 0.0), 
                 NOW(), COALESCE(#{exchangeDetail.weeklyVisited}, 0), NOW(), NOW())
@@ -173,7 +173,7 @@
             updated_at = NOW()
     </insert>
     
-    <update id="updateCmcExchangeMeta" parameterType="kimp.cmc.dto.common.exchange.CmcExchangeDetailDto">
+    <update id="updateCmcExchangeMeta" parameterType="kimp.cmc.dto.internal.exchange.CmcExchangeDetailDto">
         UPDATE cmc_exchange_meta 
         SET market_fee = COALESCE(#{exchangeDetail.marketFee}, 0.0),
             taker_fee = COALESCE(#{exchangeDetail.takerFee}, 0.0),
@@ -270,7 +270,7 @@
     </select>
     
     <!-- 코인 메타 정보 UPSERT (중복 방지) -->
-    <insert id="insertCmcCoinMeta" parameterType="kimp.cmc.dto.common.coin.CmcApiDataDto">
+    <insert id="insertCmcCoinMeta" parameterType="kimp.cmc.dto.internal.coin.CmcApiDataDto">
         INSERT INTO cmc_coin_meta (cmc_coin_id, market_cap, market_cap_dominance, fully_diluted_market_cap,
                                   circulating_supply, total_supply, max_supply, 
                                   self_reported_circulating_supply, self_reported_market_cap,
@@ -337,7 +337,7 @@
     </delete>
     
     <!-- CMC Platform 데이터 UPSERT -->
-    <insert id="insertCmcPlatform" parameterType="kimp.cmc.dto.common.coin.CmcCoinInfoDataDto">
+    <insert id="insertCmcPlatform" parameterType="kimp.cmc.dto.internal.coin.CmcCoinInfoDataDto">
         INSERT INTO cmc_platform (name, symbol, cmc_coin_id, registed_at, updated_at)
         VALUES (#{coinInfo.platform.name}, #{coinInfo.platform.symbol}, #{coinInfo.id}, NOW(), NOW())
         ON CONFLICT (cmc_coin_id) DO UPDATE SET

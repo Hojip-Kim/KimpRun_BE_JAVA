@@ -1,4 +1,4 @@
-package kimp.cmc.dto.common.exchange;
+package kimp.cmc.dto.internal.exchange;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import lombok.Getter;
