@@ -1,4 +1,4 @@
-package kimp.scrap.dto.binance;
+package kimp.scrap.dto.internal.binance;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

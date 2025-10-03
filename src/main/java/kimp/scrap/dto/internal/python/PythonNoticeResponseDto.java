@@ -1,4 +1,4 @@
-package kimp.scrap.dto.python;
+package kimp.scrap.dto.internal.python;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

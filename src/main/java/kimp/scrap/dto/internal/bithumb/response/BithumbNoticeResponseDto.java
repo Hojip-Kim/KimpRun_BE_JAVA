@@ -1,7 +1,7 @@
-package kimp.scrap.dto.bithumb.response;
+package kimp.scrap.dto.internal.bithumb.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import kimp.exchange.dto.common.response.NoticeServerResponseDto;
+import kimp.exchange.dto.internal.response.NoticeServerResponseDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

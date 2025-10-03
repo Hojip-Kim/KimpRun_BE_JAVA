@@ -1,4 +1,4 @@
-package kimp.scrap.dto.bithumb;
+package kimp.scrap.dto.internal.bithumb;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;

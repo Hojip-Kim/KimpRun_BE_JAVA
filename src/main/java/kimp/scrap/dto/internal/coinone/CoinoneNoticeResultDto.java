@@ -1,4 +1,4 @@
-package kimp.scrap.dto.coinone;
+package kimp.scrap.dto.internal.coinone;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;

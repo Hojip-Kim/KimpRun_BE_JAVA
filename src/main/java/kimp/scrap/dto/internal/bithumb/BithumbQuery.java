@@ -1,4 +1,4 @@
-package kimp.scrap.dto.bithumb;
+package kimp.scrap.dto.internal.bithumb;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
