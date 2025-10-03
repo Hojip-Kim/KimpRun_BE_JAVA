@@ -1,4 +1,4 @@
-package kimp.auth.dto;
+package kimp.auth.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
