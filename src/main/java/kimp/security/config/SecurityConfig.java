@@ -9,7 +9,7 @@ import kimp.security.hanlder.CustomLogoutSuccessHandler;
 import kimp.security.hanlder.OAuth2AuthenticationSuccessHandler;
 import kimp.security.user.service.CustomOAuth2UserService;
 import kimp.security.user.service.CustomUserDetailService;
-import kimp.user.service.MemberService;
+import kimp.user.service.member.MemberService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -103,9 +103,18 @@ public class SecurityConfig {
                         .failureHandler((request, response, exception) -> {
                             log.error("OAuth 로그인 실패: ", exception);
                             String origin = request.getHeader("Origin");
-                            String redirectUrl = (origin != null && origin.startsWith("http://localhost:3000")) 
-                                ? "http://localhost:3000/login?error=true"
-                                : "https://kimprun.com/login?error=true";
+                            String redirectUrl;
+
+                            if (origin != null && (origin.contains("localhost") || origin.contains("127.0.0.1"))) {
+                                // localhost, www.localhost, 127.0.0.1 등 모든 로컬 개발 환경
+                                redirectUrl = origin + "/login?error=true";
+                            } else if (origin != null && origin.contains("kimprun.com")) {
+                                // origin에서 도메인을 추출하여 리다이렉트 (www, api 등 서브도메인 지원)
+                                redirectUrl = origin + "/login?error=true";
+                            } else {
+                                redirectUrl = "https://kimprun.com/login?error=true";
+                            }
+
                             response.sendRedirect(redirectUrl);
                         })
                 )
@@ -136,22 +145,30 @@ public class SecurityConfig {
         repository.setCookieMaxAge(-1); // 세션 쿠키
         repository.setSecure(false); // HTTPS가 아닌 환경에서도 작동
 
+        // 프로덕션 환경에서만 쿠키 도메인 설정
+        if (cookieDomain != null && !cookieDomain.isEmpty()) {
+            repository.setCookieDomain(cookieDomain);
+        }
+
         return repository;
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(
-            "https://kimp-run-fe-jvmn-dev.vercel.app", 
-            "http://localhost:3000",
-            "http://127.0.0.1:3000"
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+            "https://*.kimprun.com",
+            "https://kimprun.com",
+            "https://kimp-run-fe-jvmn-dev.vercel.app",
+            "http://localhost:*",
+            "http://*.localhost:*",
+            "http://127.0.0.1:*"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Set-Cookie"));
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
