@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -23,9 +24,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 @Slf4j
+@Component
 public class UpbitWebsocketClient extends WebSocketClient {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final MarketDataStompController marketDataStompController;
     private final Upbit upbit;
 
@@ -35,8 +37,9 @@ public class UpbitWebsocketClient extends WebSocketClient {
     private static volatile boolean isConnected = false;
     private static volatile boolean isReconnecting = false;
 
-    public UpbitWebsocketClient(String serverUri, MarketDataStompController marketDataStompController, Upbit upbit) throws URISyntaxException {
+    public UpbitWebsocketClient(String serverUri, ObjectMapper objectMapper, MarketDataStompController marketDataStompController, Upbit upbit) throws URISyntaxException {
         super(new URI(serverUri));
+        this.objectMapper = objectMapper;
         this.marketDataStompController = marketDataStompController;
         this.upbit = upbit;
     }
