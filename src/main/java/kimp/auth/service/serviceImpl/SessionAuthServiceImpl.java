@@ -5,7 +5,7 @@ import kimp.auth.service.AuthService;
 import kimp.auth.vo.CheckAuthStatusVo;
 import kimp.user.dto.response.UserWithIdNameEmailDto;
 import kimp.user.entity.Member;
-import kimp.user.service.MemberService;
+import kimp.user.service.member.MemberService;
 import kimp.user.util.NicknameGeneratorUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

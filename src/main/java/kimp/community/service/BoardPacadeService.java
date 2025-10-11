@@ -2,7 +2,6 @@ package kimp.community.service;
 
 import kimp.common.dto.request.PageRequestDto;
 import kimp.community.dto.board.request.CreateBoardRequestDto;
-import kimp.community.dto.board.request.UpdateBoardRequestDto;
 import kimp.community.dto.board.response.BoardResponseDto;
 import kimp.community.dto.board.response.BoardWithCommentResponseDto;
 import kimp.community.dto.comment.request.RequestCreateCommentDto;
@@ -16,7 +15,7 @@ import kimp.community.service.impl.CategoryServiceImpl;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import kimp.user.entity.Member;
-import kimp.user.service.MemberService;
+import kimp.user.service.member.MemberService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;

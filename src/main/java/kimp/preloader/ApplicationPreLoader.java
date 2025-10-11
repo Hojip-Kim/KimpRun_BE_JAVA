@@ -15,7 +15,7 @@ import kimp.exchange.service.impl.ExchangeNoticePacadeService;
 import kimp.market.Enum.MarketType;
 import kimp.market.dto.coin.internal.ServiceCoinDto;
 import kimp.market.service.serviceImpl.CoinExchangePacadeService;
-import kimp.user.service.AdminService;
+import kimp.user.service.member.AdminService;
 import kimp.cmc.service.CmcEntityPreloaderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;

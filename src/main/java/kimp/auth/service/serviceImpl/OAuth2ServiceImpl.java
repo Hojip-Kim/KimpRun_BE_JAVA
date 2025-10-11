@@ -9,7 +9,7 @@ import kimp.user.dto.internal.UserCopyDto;
 import kimp.user.dto.request.CreateUserDTO;
 import kimp.user.entity.Member;
 import kimp.user.enums.Oauth;
-import kimp.user.service.MemberService;
+import kimp.user.service.member.MemberService;
 import kimp.user.util.NicknameGeneratorUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

@@ -9,7 +9,7 @@ import kimp.user.entity.Member;
 import kimp.user.enums.Oauth;
 import kimp.user.enums.UserRole;
 import kimp.user.entity.MemberRole;
-import kimp.user.service.MemberService;
+import kimp.user.service.member.MemberService;
 import kimp.user.util.NicknameGeneratorUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
