@@ -1,10 +1,10 @@
-package kimp.user.service.impl;
+package kimp.user.service.member.impl;
 
 import kimp.user.dao.ActivityRankDao;
 import kimp.user.dao.SeedMoneyRangeDao;
 import kimp.user.entity.ActivityRank;
 import kimp.user.entity.SeedMoneyRange;
-import kimp.user.service.AdminService;
+import kimp.user.service.member.AdminService;
 import kimp.user.vo.CreateActivityRankVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

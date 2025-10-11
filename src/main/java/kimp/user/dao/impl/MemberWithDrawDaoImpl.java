@@ -3,7 +3,7 @@ package kimp.user.dao.impl;
 import kimp.user.dao.MemberWithDrawDao;
 import kimp.user.entity.Member;
 import kimp.user.entity.MemberWithdraw;
-import kimp.user.repository.MemberWithDrawRepository;
+import kimp.user.repository.user.MemberWithDrawRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository

@@ -4,7 +4,7 @@ import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import kimp.user.dao.AnnonyMousMemberDao;
 import kimp.user.entity.AnnonyMousMember;
-import kimp.user.repository.AnnonyMousMemberRepository;
+import kimp.user.repository.user.AnnonyMousMemberRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,4 +1,4 @@
-package kimp.user.repository;
+package kimp.user.repository.user;
 
 import kimp.user.entity.MemberRole;
 import kimp.user.enums.UserRole;

@@ -1,4 +1,4 @@
-package kimp.user.service.impl;
+package kimp.user.service.member.impl;
 
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
@@ -6,7 +6,7 @@ import kimp.user.dao.DeclarationDao;
 import kimp.user.dto.request.DeclarationMemberRequest;
 import kimp.user.dto.response.DeclarationResponse;
 import kimp.user.entity.Declaration;
-import kimp.user.service.DeclarationService;
+import kimp.user.service.member.DeclarationService;
 import kimp.user.vo.AddDeclarationVo;
 import kimp.user.vo.GetDeclarationsVo;
 import lombok.extern.slf4j.Slf4j;

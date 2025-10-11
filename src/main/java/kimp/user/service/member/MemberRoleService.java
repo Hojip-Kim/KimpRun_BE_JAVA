@@ -1,4 +1,4 @@
-package kimp.user.service;
+package kimp.user.service.member;
 
 import kimp.user.dto.response.MemberRoleResponseDto;
 import kimp.user.entity.MemberRole;

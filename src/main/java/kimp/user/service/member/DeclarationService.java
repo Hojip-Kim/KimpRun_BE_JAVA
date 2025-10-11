@@ -1,11 +1,9 @@
-package kimp.user.service;
+package kimp.user.service.member;
 
-import kimp.user.dto.request.DeclarationMemberRequest;
 import kimp.user.dto.response.DeclarationResponse;
 import kimp.user.vo.AddDeclarationVo;
 import kimp.user.vo.GetDeclarationsVo;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 public interface DeclarationService {
 

@@ -1,4 +1,4 @@
-package kimp.user.service.impl;
+package kimp.user.service.member.impl;
 
 import kimp.cdn.component.Cdn;
 import kimp.exception.KimprunException;
@@ -8,7 +8,7 @@ import kimp.user.dto.request.*;
 import kimp.user.dto.response.AnnonymousMemberResponseDto;
 import kimp.user.entity.AnnonyMousMember;
 import kimp.user.enums.BanType;
-import kimp.user.service.AnnonyMousService;
+import kimp.user.service.member.AnnonyMousService;
 import kimp.user.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;

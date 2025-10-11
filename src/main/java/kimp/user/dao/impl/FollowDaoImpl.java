@@ -5,7 +5,7 @@ import kimp.exception.KimprunExceptionEnum;
 import kimp.user.dao.FollowDao;
 import kimp.user.entity.Follow;
 import kimp.user.entity.Member;
-import kimp.user.repository.FollowRepository;
+import kimp.user.repository.user.FollowRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;

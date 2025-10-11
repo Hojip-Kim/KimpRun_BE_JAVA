@@ -1,4 +1,4 @@
-package kimp.user.service.impl;
+package kimp.user.service.member.impl;
 
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
@@ -7,7 +7,7 @@ import kimp.user.dao.MemberDao;
 import kimp.user.dto.response.FollowResponse;
 import kimp.user.entity.Follow;
 import kimp.user.entity.Member;
-import kimp.user.service.FollowService;
+import kimp.user.service.member.FollowService;
 import kimp.user.vo.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

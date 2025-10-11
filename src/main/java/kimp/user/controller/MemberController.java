@@ -11,7 +11,7 @@ import kimp.user.dto.request.*;
 import kimp.user.dto.response.AdminResponse;
 import kimp.user.dto.response.EmailVerifyCodeResponseDTO;
 import kimp.user.dto.response.EmailVerifyResponseDTO;
-import kimp.user.service.MemberService;
+import kimp.user.service.member.MemberService;
 import kimp.user.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

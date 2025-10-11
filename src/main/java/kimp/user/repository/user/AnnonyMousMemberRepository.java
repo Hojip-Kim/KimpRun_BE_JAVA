@@ -1,4 +1,4 @@
-package kimp.user.repository;
+package kimp.user.repository.user;
 
 import kimp.user.entity.AnnonyMousMember;
 import org.springframework.data.jpa.repository.JpaRepository;

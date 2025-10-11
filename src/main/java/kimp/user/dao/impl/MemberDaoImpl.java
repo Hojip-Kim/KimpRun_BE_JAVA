@@ -3,7 +3,7 @@ package kimp.user.dao.impl;
 import kimp.user.dao.MemberDao;
 import kimp.user.entity.Member;
 import kimp.user.entity.MemberRole;
-import kimp.user.repository.MemberRepository;
+import kimp.user.repository.user.MemberRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,4 +1,4 @@
-package kimp.user.service.impl;
+package kimp.user.service.member.impl;
 
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
@@ -6,7 +6,7 @@ import kimp.user.dao.MemberRoleDao;
 import kimp.user.dto.response.MemberRoleResponseDto;
 import kimp.user.entity.MemberRole;
 import kimp.user.enums.UserRole;
-import kimp.user.service.MemberRoleService;
+import kimp.user.service.member.MemberRoleService;
 import kimp.user.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

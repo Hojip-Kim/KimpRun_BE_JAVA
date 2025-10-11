@@ -5,7 +5,7 @@ import kimp.common.dto.request.PageRequestDto;
 import kimp.exception.response.ApiResponse;
 import kimp.user.dto.request.DeclarationMemberRequest;
 import kimp.user.dto.response.DeclarationResponse;
-import kimp.user.service.DeclarationService;
+import kimp.user.service.member.DeclarationService;
 import kimp.user.vo.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

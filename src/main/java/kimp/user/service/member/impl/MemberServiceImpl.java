@@ -1,4 +1,4 @@
-package kimp.user.service.impl;
+package kimp.user.service.member.impl;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -9,14 +9,14 @@ import kimp.user.dao.MemberDao;
 import kimp.user.dao.MemberWithDrawDao;
 import kimp.user.dao.ProfileDao;
 import kimp.user.dao.UserAgentDao;
-import kimp.user.service.MemberRoleService;
+import kimp.user.service.member.MemberRoleService;
 import kimp.user.dto.internal.UserCopyDto;
 import kimp.user.dto.response.UserDto;
 import kimp.user.dto.response.UserWithIdNameEmailDto;
 import kimp.user.dto.request.*;
 import kimp.user.entity.*;
 import kimp.user.enums.UserRole;
-import kimp.user.service.MemberService;
+import kimp.user.service.member.MemberService;
 import kimp.user.vo.*;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;

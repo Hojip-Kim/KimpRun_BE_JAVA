@@ -1,4 +1,4 @@
-package kimp.user.repository.impl;
+package kimp.user.repository.user.impl;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -11,7 +11,7 @@ import kimp.user.entity.QProfile;
 import kimp.user.entity.QActivityRank;
 import kimp.user.entity.QSeedMoneyRange;
 import kimp.user.entity.QOauth;
-import kimp.user.repository.MemberRepositoryCustom;
+import kimp.user.repository.user.MemberRepositoryCustom;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;

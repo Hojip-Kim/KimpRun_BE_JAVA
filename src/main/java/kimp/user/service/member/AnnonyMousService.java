@@ -1,6 +1,5 @@
-package kimp.user.service;
+package kimp.user.service.member;
 
-import kimp.user.dto.request.*;
 import kimp.user.dto.response.AnnonymousMemberResponseDto;
 import kimp.user.vo.*;
 

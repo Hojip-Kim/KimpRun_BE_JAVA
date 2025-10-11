@@ -1,12 +1,10 @@
-package kimp.user.service;
+package kimp.user.service.member;
 
 import kimp.user.dto.internal.UserCopyDto;
 import kimp.user.dto.response.UserDto;
 import kimp.user.dto.response.UserWithIdNameEmailDto;
 import kimp.user.dto.request.*;
 import kimp.user.entity.Member;
-import kimp.user.enums.UserRole;
-import kimp.user.enums.Oauth;
 import kimp.user.vo.*;
 
 public interface MemberService {
