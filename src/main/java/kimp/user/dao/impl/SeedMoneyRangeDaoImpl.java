@@ -4,7 +4,7 @@ import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import kimp.user.dao.SeedMoneyRangeDao;
 import kimp.user.entity.SeedMoneyRange;
-import kimp.user.repository.SeedMoneyRangeRepository;
+import kimp.user.repository.user.SeedMoneyRangeRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
