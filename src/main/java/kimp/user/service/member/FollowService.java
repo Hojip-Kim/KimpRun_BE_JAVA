@@ -1,4 +1,4 @@
-package kimp.user.service;
+package kimp.user.service.member;
 
 import kimp.user.dto.response.FollowResponse;
 import kimp.user.vo.*;
