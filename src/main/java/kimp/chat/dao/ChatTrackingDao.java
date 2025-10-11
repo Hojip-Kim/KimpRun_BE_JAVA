@@ -14,7 +14,9 @@ public interface ChatTrackingDao {
     Optional<ChatTracking> findByUuid(String uuid);
     
     Optional<ChatTracking> findByUuidAndIsAuthenticated(String uuid, Boolean isAuthenticated);
-    
+
+    Optional<ChatTracking> findByNickname(String nickname);
+
     ChatTracking createOrUpdateChatTracking(String uuid, String nickname, Long memberId, Boolean isAuthenticated);
     
     void updateNicknameByMemberId(Long memberId, String newNickname);
