@@ -1,11 +1,12 @@
 package kimp.user.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import kimp.exception.response.ApiResponse;
 import kimp.user.dto.request.DeclarationMemberRequest;
 import kimp.user.dto.response.DeclarationResponse;
 import kimp.user.service.DeclarationService;
+import kimp.user.vo.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,14 +27,16 @@ public class DeclarationController {
     @GetMapping
     public ApiResponse<Page<DeclarationResponse>> getDeclarationResponsePage(@ModelAttribute PageRequestDto pageRequestDto) {
         Pageable pageable = PageRequest.of(pageRequestDto.getPage(), pageRequestDto.getSize());
-        Page<DeclarationResponse> declarations = declarationService.getDeclarations(pageable);
+        GetDeclarationsVo vo = new GetDeclarationsVo(pageable);
+        Page<DeclarationResponse> declarations = declarationService.getDeclarations(vo);
 
         return ApiResponse.success(declarations);
     }
 
     @PostMapping
     public ApiResponse<Void> addDeclaration(@RequestBody DeclarationMemberRequest declarationMemberRequest, HttpServletRequest req) {
-        declarationService.declaration(declarationMemberRequest, getClientIp(req));
+        AddDeclarationVo vo = new AddDeclarationVo(declarationMemberRequest, getClientIp(req));
+        declarationService.declaration(vo);
         return ApiResponse.success(null);
     }
 

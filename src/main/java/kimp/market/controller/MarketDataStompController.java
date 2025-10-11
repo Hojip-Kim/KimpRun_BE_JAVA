@@ -1,7 +1,7 @@
 package kimp.market.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kimp.market.dto.coin.common.market.*;
+import kimp.market.dto.coin.internal.market.*;
 import kimp.market.dto.market.response.websocket.MultipleMarketDataResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -18,11 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MarketDataStompController {
     
     private final SimpMessagingTemplate messagingTemplate;
-    private final ObjectMapper objectMapper;
 
-    public MarketDataStompController(SimpMessagingTemplate messagingTemplate, ObjectMapper objectMapper) {
+    public MarketDataStompController(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
-        this.objectMapper = objectMapper;
     }
 
     private Map<String, BinanceDto> binanceHashMap = new ConcurrentHashMap<>();

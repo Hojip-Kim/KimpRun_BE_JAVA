@@ -1,10 +1,10 @@
 package kimp.auth.service;
 
-import kimp.auth.dto.LoginMemberResponseDto;
-import kimp.security.user.CustomUserDetails;
+import kimp.auth.dto.response.LoginMemberResponseDto;
+import kimp.auth.vo.CheckAuthStatusVo;
 
 public interface AuthService {
 
-    public LoginMemberResponseDto checkAuthStatus(Long memberId);
+    public LoginMemberResponseDto checkAuthStatus(CheckAuthStatusVo vo);
 
 }

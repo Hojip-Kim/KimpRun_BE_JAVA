@@ -1,7 +1,7 @@
 package kimp.auth.service;
 
-import kimp.auth.dto.OauthProcessDTO;
-import kimp.user.dto.UserCopyDto;
+import kimp.auth.dto.internal.OauthProcessDTO;
+import kimp.user.dto.internal.UserCopyDto;
 
 public interface OAuth2Service {
 

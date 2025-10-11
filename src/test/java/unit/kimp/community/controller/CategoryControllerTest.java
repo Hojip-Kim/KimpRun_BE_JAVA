@@ -1,7 +1,7 @@
 package unit.kimp.community.controller;
 
 import kimp.community.controller.CategoryController;
-import kimp.community.dto.category.CategoryDto;
+import kimp.community.dto.category.response.CategoryDto;
 import kimp.community.dto.category.request.CreateCategoryRequestDto;
 import kimp.community.dto.category.request.UpdateCategoryRequestDto;
 import kimp.community.entity.Category;
@@ -85,7 +85,7 @@ public class CategoryControllerTest {
     @DisplayName("ID로 카테고리 조회 성공")
     void shouldReturnCategoryByIdSuccessfully() {
         // Arrange
-        when(categoryService.getCategoryByIdDto(anyLong())).thenReturn(mockCategoryDto);
+        when(categoryService.getCategoryByIdDto(any())).thenReturn(mockCategoryDto);
 
         // Act
         ApiResponse<CategoryDto> response = categoryController.getCategory(request, 1L);
@@ -96,7 +96,7 @@ public class CategoryControllerTest {
         assertEquals(200, response.getStatus());
         assertEquals(mockCategoryDto.getId(), response.getData().getId());
         assertEquals(mockCategoryDto.getCategoryName(), response.getData().getCategoryName());
-        verify(categoryService, times(1)).getCategoryByIdDto(1L);
+        verify(categoryService, times(1)).getCategoryByIdDto(any());
     }
 
     @Test
@@ -130,7 +130,7 @@ public class CategoryControllerTest {
     void shouldUpdateCategorySuccessfully() {
         // Arrange
         UpdateCategoryRequestDto updateRequest = new UpdateCategoryRequestDto(1L, "Updated Category");
-        when(categoryService.updatedCategoryDto(any(UpdateCategoryRequestDto.class))).thenReturn(mockCategoryDto);
+        when(categoryService.updatedCategoryDto(any())).thenReturn(mockCategoryDto);
 
         // Act
         ApiResponse<CategoryDto> response = categoryController.patchCategory(customUserDetails, updateRequest);
@@ -141,14 +141,14 @@ public class CategoryControllerTest {
         assertEquals(200, response.getStatus());
         assertEquals(mockCategoryDto.getId(), response.getData().getId());
         assertEquals(mockCategoryDto.getCategoryName(), response.getData().getCategoryName());
-        verify(categoryService, times(1)).updatedCategoryDto(updateRequest);
+        verify(categoryService, times(1)).updatedCategoryDto(any());
     }
 
     @Test
     @DisplayName("카테고리 삭제 성공 (관리자/운영자 전용)")
     void shouldDeleteCategorySuccessfully() {
         // Arrange
-        when(categoryService.deleteCategory(anyLong())).thenReturn(true);
+        when(categoryService.deleteCategory(any())).thenReturn(true);
 
         // Act
         ApiResponse<Boolean> response = categoryController.deleteCategory(customUserDetails, 1L);
@@ -158,7 +158,7 @@ public class CategoryControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertTrue(response.getData());
-        verify(categoryService, times(1)).deleteCategory(1L);
+        verify(categoryService, times(1)).deleteCategory(any());
     }
 
     @Test

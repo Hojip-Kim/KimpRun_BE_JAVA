@@ -1,6 +1,6 @@
 package kimp.community.service.impl;
 
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import kimp.community.dao.BoardDao;
 import kimp.community.dao.BoardLikeCountDao;
 import kimp.community.dao.BoardViewDao;
@@ -134,7 +134,21 @@ public class BoardServiceImpl implements BoardService {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Board object cannot be null", HttpStatus.BAD_REQUEST, "BoardServiceImpl.convertBoardToBoardResponseDto");
         }
 
-        return new BoardResponseDto(board.getId(), board.getMember().getId(), board.getCategory().getId(),board.getCategory().getCategoryName(), board.getMember().getNickname(), board.getTitle(), board.getContent(), board.getViews().getViews(), board.getBoardLikeCount().getLikes(),board.getRegistedAt(), board.getUpdatedAt(), board.getCommentCount().getCounts(), board.isPin());
+        return BoardResponseDto.builder()
+                .boardId(board.getId())
+                .memberId(board.getMember().getId())
+                .categoryId(board.getCategory().getId())
+                .categoryName(board.getCategory().getCategoryName())
+                .memberNickName(board.getMember().getNickname())
+                .title(board.getTitle())
+                .content(board.getContent())
+                .boardViewsCount(board.getViews().getViews())
+                .boardLikesCount(board.getBoardLikeCount().getLikes())
+                .createdAt(board.getRegistedAt())
+                .updatedAt(board.getUpdatedAt())
+                .commentsCount(board.getCommentCount().getCounts())
+                .isPin(board.isPin())
+                .build();
     }
 
     @Override
@@ -142,7 +156,10 @@ public class BoardServiceImpl implements BoardService {
         List<BoardResponseDto> boardResponseDto =  boardPages.stream()
                 .map(this::convertBoardToBoardResponseDto)
                 .collect(Collectors.toList());
-        return new AllBoardResponseDto(boardResponseDto, boardCount);
+        return AllBoardResponseDto.builder()
+                .boards(boardResponseDto)
+                .boardCount(boardCount)
+                .build();
     }
 
 }

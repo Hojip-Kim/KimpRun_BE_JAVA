@@ -3,6 +3,7 @@ package kimp.user.controller;
 import kimp.exception.response.ApiResponse;
 import kimp.user.dto.request.CreateActivityRankRequestDto;
 import kimp.user.service.AdminService;
+import kimp.user.vo.CreateActivityRankVo;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,7 +31,8 @@ public class AdminController {
     // activityRank create
     @PostMapping("/activityRank")
     public ApiResponse<Void> createActivityRank(@RequestBody CreateActivityRankRequestDto requestBody) {
-        adminService.createActivityRank(requestBody.getGrade());
+        CreateActivityRankVo vo = new CreateActivityRankVo(requestBody.getGrade());
+        adminService.createActivityRank(vo);
         return ApiResponse.success(null);
     }
 

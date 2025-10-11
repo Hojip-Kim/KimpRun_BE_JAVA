@@ -3,10 +3,11 @@ package kimp.auth.controller;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kimp.auth.dto.AuthResponseDto;
-import kimp.auth.dto.LoginMemberResponseDto;
-import kimp.auth.dto.UnLoginMemberResponseDto;
+import kimp.auth.dto.response.AuthResponseDto;
+import kimp.auth.dto.response.LoginMemberResponseDto;
+import kimp.auth.dto.response.UnLoginMemberResponseDto;
 import kimp.auth.service.AuthService;
+import kimp.auth.vo.CheckAuthStatusVo;
 import kimp.exception.response.ApiResponse;
 import kimp.security.user.CustomUserDetails;
 import lombok.extern.slf4j.Slf4j;
@@ -38,12 +39,15 @@ public class AuthController {
                 }
             }
             if (member == null) {
-                return ApiResponse.success(new UnLoginMemberResponseDto(kimprunToken));
+                return ApiResponse.success(UnLoginMemberResponseDto.builder()
+                        .uuid(kimprunToken)
+                        .build());
             }
         }
         
         CustomUserDetails customUserDetails = (CustomUserDetails) member;
-        LoginMemberResponseDto result = authService.checkAuthStatus(customUserDetails.getId());
+        CheckAuthStatusVo vo = new CheckAuthStatusVo(customUserDetails.getId());
+        LoginMemberResponseDto result = authService.checkAuthStatus(vo);
         result.setUuid(kimprunToken);
         return ApiResponse.success(result);
     }

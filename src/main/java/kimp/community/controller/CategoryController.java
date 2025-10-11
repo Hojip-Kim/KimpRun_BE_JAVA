@@ -1,11 +1,14 @@
 package kimp.community.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import kimp.community.dto.category.CategoryDto;
+import kimp.community.dto.category.response.CategoryDto;
 import kimp.community.dto.category.request.CreateCategoryRequestDto;
 import kimp.community.dto.category.request.UpdateCategoryRequestDto;
 import kimp.community.service.CategoryPacadeService;
 import kimp.community.service.CategoryService;
+import kimp.community.vo.DeleteCategoryVo;
+import kimp.community.vo.GetCategoryVo;
+import kimp.community.vo.UpdateCategoryVo;
 import kimp.exception.response.ApiResponse;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
@@ -43,7 +46,8 @@ public class CategoryController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, "Category ID must be greater than or equal to 0", HttpStatus.BAD_REQUEST, "CategoryController.getCategory");
         }
 
-        CategoryDto result = categoryService.getCategoryByIdDto(id);
+        GetCategoryVo vo = new GetCategoryVo(id);
+        CategoryDto result = categoryService.getCategoryByIdDto(vo);
         return ApiResponse.success(result);
     }
 
@@ -61,7 +65,8 @@ public class CategoryController {
     @PatchMapping
     public ApiResponse<CategoryDto> patchCategory(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody UpdateCategoryRequestDto updateCategoryRequestDto){
 
-        CategoryDto result = categoryService.updatedCategoryDto(updateCategoryRequestDto);
+        UpdateCategoryVo vo = new UpdateCategoryVo(updateCategoryRequestDto);
+        CategoryDto result = categoryService.updatedCategoryDto(vo);
         return ApiResponse.success(result);
     }
 
@@ -71,7 +76,8 @@ public class CategoryController {
         if(id < 0){
             throw new KimprunException(KimprunExceptionEnum.INVALID_ID_PARAMETER_EXCEPTION, "Category ID must be greater than or equal to 0", HttpStatus.BAD_REQUEST, "CategoryController.deleteCategory");
         }
-        boolean deleted = categoryService.deleteCategory(id);
+        DeleteCategoryVo vo = new DeleteCategoryVo(id);
+        boolean deleted = categoryService.deleteCategory(vo);
         return ApiResponse.success(deleted);
     }
 

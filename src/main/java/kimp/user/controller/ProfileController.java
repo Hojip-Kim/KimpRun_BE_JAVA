@@ -7,6 +7,7 @@ import kimp.user.dto.response.FollowResponse;
 import kimp.user.dto.response.ProfileInfoResponse;
 import kimp.user.service.FollowService;
 import kimp.user.service.ProfileService;
+import kimp.user.vo.*;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,7 +27,8 @@ public class ProfileController {
 
     @GetMapping("/{memberId}")
     public ApiResponse<ProfileInfoResponse> getProfileInfo(@PathVariable Long memberId) {
-        ProfileInfoResponse profile = profileService.getProfileInfo(memberId);
+        GetProfileInfoVo vo = new GetProfileInfoVo(memberId);
+        ProfileInfoResponse profile = profileService.getProfileInfo(vo);
         return ApiResponse.success(profile);
     }
 
@@ -36,7 +38,8 @@ public class ProfileController {
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody FollowRequest request) {
         CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
-        followService.followMember(customUserDetails.getId(), request.getFollowingId());
+        FollowMemberVo vo = new FollowMemberVo(customUserDetails.getId(), request.getFollowingId());
+        followService.followMember(vo);
         return ApiResponse.success("팔로우 완료");
     }
 
@@ -46,7 +49,8 @@ public class ProfileController {
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long followingId) {
         CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
-        followService.unfollowMember(customUserDetails.getId(), followingId);
+        FollowMemberVo vo = new FollowMemberVo(customUserDetails.getId(), followingId);
+        followService.unfollowMember(vo);
         return ApiResponse.success("언팔로우 완료");
     }
 
@@ -55,7 +59,8 @@ public class ProfileController {
             @PathVariable Long memberId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "15") int size) {
-        Page<FollowResponse> followers = followService.getFollowers(memberId, page, size);
+        GetFollowersVo vo = new GetFollowersVo(memberId, page, size);
+        Page<FollowResponse> followers = followService.getFollowers(vo);
         return ApiResponse.success(followers);
     }
 
@@ -64,7 +69,8 @@ public class ProfileController {
             @PathVariable Long memberId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "15") int size) {
-        Page<FollowResponse> following = followService.getFollowing(memberId, page, size);
+        GetFollowingVo vo = new GetFollowingVo(memberId, page, size);
+        Page<FollowResponse> following = followService.getFollowing(vo);
         return ApiResponse.success(following);
     }
 
@@ -74,7 +80,8 @@ public class ProfileController {
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long followingId) {
         CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
-        boolean isFollowing = followService.isFollowing(customUserDetails.getId(), followingId);
+        GetFollowStatusVo vo = new GetFollowStatusVo(customUserDetails.getId(), followingId);
+        boolean isFollowing = followService.isFollowing(vo);
         return ApiResponse.success(isFollowing);
     }
 }

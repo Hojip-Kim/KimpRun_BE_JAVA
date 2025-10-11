@@ -3,7 +3,7 @@ package unit.kimp.market.components.impl.list_provider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.market.common.MarketCommonMethod;
 import kimp.market.components.impl.list_provider.BinanceMarketListProvider;
-import kimp.market.dto.market.common.BinanceMarketData;
+import kimp.market.dto.market.internal.BinanceMarketData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

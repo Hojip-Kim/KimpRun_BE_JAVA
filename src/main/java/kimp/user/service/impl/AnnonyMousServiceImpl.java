@@ -9,6 +9,7 @@ import kimp.user.dto.response.AnnonymousMemberResponseDto;
 import kimp.user.entity.AnnonyMousMember;
 import kimp.user.enums.BanType;
 import kimp.user.service.AnnonyMousService;
+import kimp.user.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -40,12 +41,23 @@ public class AnnonyMousServiceImpl implements AnnonyMousService {
         LocalDateTime banStartTime = Instant.ofEpochMilli(annonymousMember.getBannedStartTime()).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime banEndTime = Instant.ofEpochMilli(annonymousMember.getBannedExpiryTime()).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
 
-        return new AnnonymousMemberResponseDto(annonymousMember.getMemberUuid(), annonymousMember.getMemberIp(), annonymousMember.getApplicationBannedCount(), annonymousMember.getCdnBannedCount(), annonymousMember.getIsBanned(), null, banStartTime, banEndTime);
+        return AnnonymousMemberResponseDto.builder()
+                .uuid(annonymousMember.getMemberUuid())
+                .ip(annonymousMember.getMemberIp())
+                .applicationBannedCount(annonymousMember.getApplicationBannedCount())
+                .cdnBannedCount(annonymousMember.getCdnBannedCount())
+                .isBanned(annonymousMember.getIsBanned())
+                .banType(null)
+                .banStartTime(banStartTime)
+                .banEndTime(banEndTime)
+                .build();
     }
 
     @Override
     @Transactional
-    public AnnonymousMemberResponseDto updateAnnonymousMemberIp(String uuid, String ip) {
+    public AnnonymousMemberResponseDto updateAnnonymousMemberIp(UpdateAnonNicknameVo vo) {
+        String uuid = vo.getUuid();
+        String ip = vo.getNickname();
         AnnonyMousMember annonymousMember = annonyMousMemberDao.getAnnonymousMemberByUuid(uuid);
         if(annonymousMember == null){
             throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "not have matched Uuid annonymousMember.", HttpStatus.INTERNAL_SERVER_ERROR, "AnnonyMousServiceImpl.updateAnnonymousMemberIp");
@@ -56,7 +68,8 @@ public class AnnonyMousServiceImpl implements AnnonyMousService {
     }
 
     @Override
-    public AnnonymousMemberResponseDto getAnnonymousMemberByUuidOrIp(AnnonymousMemberInfoRequestDto request) {
+    public AnnonymousMemberResponseDto getAnnonymousMemberByUuidOrIp(GetAnnonymousMemberInfoVo vo) {
+        AnnonymousMemberInfoRequestDto request = vo.getRequest();
         String memberIp = request.getIp();
         String memberUuid = request.getUuid();
 
@@ -80,12 +93,22 @@ public class AnnonyMousServiceImpl implements AnnonyMousService {
         LocalDateTime banEndTime = Instant.ofEpochMilli(annonymousMember.getBannedExpiryTime()).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
         String banType = annonymousMember.getBanType() == null ? null : annonymousMember.getBanType().getName();
 
-        return new AnnonymousMemberResponseDto(annonymousMember.getMemberUuid(), annonymousMember.getMemberIp(), annonymousMember.getApplicationBannedCount(), annonymousMember.getCdnBannedCount(), annonymousMember.getIsBanned(), banType ,banStartTime, banEndTime);
+        return AnnonymousMemberResponseDto.builder()
+                .uuid(annonymousMember.getMemberUuid())
+                .ip(annonymousMember.getMemberIp())
+                .applicationBannedCount(annonymousMember.getApplicationBannedCount())
+                .cdnBannedCount(annonymousMember.getCdnBannedCount())
+                .isBanned(annonymousMember.getIsBanned())
+                .banType(banType)
+                .banStartTime(banStartTime)
+                .banEndTime(banEndTime)
+                .build();
     }
 
     @Override
     @Transactional
-    public void applicationBanMember(ApplicationBanMemberRequestDto request) {
+    public void applicationBanMember(ApplicationBanMemberVo vo) {
+        ApplicationBanMemberRequestDto request = vo.getRequest();
         AnnonyMousMember annonyMousMember = annonyMousMemberDao.getAnnonymousMemberByUuid(request.getUuid());
         if(annonyMousMember == null) {
             throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "not have matched Uuid annonymousMember.", HttpStatus.INTERNAL_SERVER_ERROR, "AnnonyMousServiceImpl.applicationBanMember");
@@ -95,7 +118,8 @@ public class AnnonyMousServiceImpl implements AnnonyMousService {
 
     @Override
     @Transactional
-    public void applicationUnBanMember(ApplicationUnBanMemberRequestDto request) {
+    public void applicationUnBanMember(ApplicationUnBanMemberVo vo) {
+        ApplicationUnBanMemberRequestDto request = vo.getRequest();
         AnnonyMousMember annonyMousMember = annonyMousMemberDao.getAnnonymousMemberByUuid(request.getUuid());
         if(annonyMousMember == null) {
             throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "not have matched Uuid annonymousMember.", HttpStatus.INTERNAL_SERVER_ERROR, "AnnonyMousServiceImpl.applicationUnBanMember");
@@ -105,7 +129,8 @@ public class AnnonyMousServiceImpl implements AnnonyMousService {
 
     @Override
     @Transactional
-    public void cdnBanMember(CdnBanMemberRequestDto request) {
+    public void cdnBanMember(CdnBanMemberVo vo) {
+        CdnBanMemberRequestDto request = vo.getRequest();
         AnnonyMousMember annonyMousMember = annonyMousMemberDao.getAnnonymousMemberByUuid(request.getUuid());
         if(annonyMousMember == null) {
             throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "not have matched Uuid annonymousMember.", HttpStatus.INTERNAL_SERVER_ERROR, "AnnonyMousServiceImpl.cdnBanMember");
@@ -117,7 +142,8 @@ public class AnnonyMousServiceImpl implements AnnonyMousService {
 
     @Override
     @Transactional
-    public void cdnUnBanMember(CdnUnbanMemberRequestDto request) {
+    public void cdnUnBanMember(CdnUnbanMemberVo vo) {
+        CdnUnbanMemberRequestDto request = vo.getRequest();
         AnnonyMousMember annonyMousMember = annonyMousMemberDao.getAnnonymousMemberByUuid(request.getUuid());
         if(annonyMousMember == null) {
             throw new KimprunException(KimprunExceptionEnum.DATA_PROCESSING_EXCEPTION, "not have matched Uuid annonymousMember.", HttpStatus.INTERNAL_SERVER_ERROR, "AnnonyMousServiceImpl.cdnUnBanMember");

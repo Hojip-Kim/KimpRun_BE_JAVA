@@ -3,12 +3,15 @@ package kimp.community.service.impl;
 import kimp.community.dao.BoardCountDao;
 import kimp.community.dao.CategoryDao;
 
-import kimp.community.dto.category.CategoryDto;
+import kimp.community.dto.category.response.CategoryDto;
 import kimp.community.dto.category.request.CreateCategoryRequestDto;
 import kimp.community.dto.category.request.UpdateCategoryRequestDto;
 import kimp.community.entity.BoardCount;
 import kimp.community.entity.Category;
 import kimp.community.service.CategoryService;
+import kimp.community.vo.DeleteCategoryVo;
+import kimp.community.vo.GetCategoryVo;
+import kimp.community.vo.UpdateCategoryVo;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -82,21 +85,27 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Boolean deleteCategory(Long id) {
+    public Boolean deleteCategory(DeleteCategoryVo vo) {
 
-        return categoryDao.deleteCategoryById(id);
+        return categoryDao.deleteCategoryById(vo.getCategoryId());
     }
 
     @Override
     public CategoryDto convertCategoryToDto(Category category) {
-        return new CategoryDto(category.getId(),category.getCategoryName());
+        return CategoryDto.builder()
+                .id(category.getId())
+                .categoryName(category.getCategoryName())
+                .build();
     }
 
     @Override
     public List<CategoryDto> convertCategoryListToDto(List<Category> categories) {
 
         List<CategoryDto> categoryDtoList = categories.stream()
-                .map(category -> new CategoryDto(category.getId(), category.getCategoryName()))
+                .map(category -> CategoryDto.builder()
+                .id(category.getId())
+                .categoryName(category.getCategoryName())
+                .build())
                 .collect(Collectors.toList());
 
         return categoryDtoList;
@@ -114,14 +123,14 @@ public class CategoryServiceImpl implements CategoryService {
     }
     
     @Override
-    public CategoryDto getCategoryByIdDto(Long id) {
-        Category category = getCategoryByID(id);
+    public CategoryDto getCategoryByIdDto(GetCategoryVo vo) {
+        Category category = getCategoryByID(vo.getCategoryId());
         return convertCategoryToDto(category);
     }
-    
+
     @Override
-    public CategoryDto updatedCategoryDto(UpdateCategoryRequestDto updateCategoryRequestDto) {
-        Category category = updatedCategory(updateCategoryRequestDto);
+    public CategoryDto updatedCategoryDto(UpdateCategoryVo vo) {
+        Category category = updatedCategory(vo.getUpdateCategoryRequestDto());
         return convertCategoryToDto(category);
     }
     

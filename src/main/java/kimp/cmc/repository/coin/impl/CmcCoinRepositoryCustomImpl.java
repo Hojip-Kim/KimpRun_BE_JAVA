@@ -15,7 +15,7 @@ import kimp.cmc.entity.coin.QCmcPlatform;
 import kimp.cmc.entity.coin.QCmcRank;
 import kimp.market.entity.QCoin;
 import kimp.cmc.repository.coin.CmcCoinRepositoryCustom;
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -178,24 +178,24 @@ public class CmcCoinRepositoryCustomImpl implements CmcCoinRepositoryCustom {
         List<Long> cmcCoinIds = new ArrayList<>();
         
         for (com.querydsl.core.Tuple tuple : tupleResults) {
-            CmcCoinInfoResponseDto dto = new CmcCoinInfoResponseDto(
-                    tuple.get(cmcCoin.symbol),
-                    tuple.get(cmcCoin.name),
-                    tuple.get(cmcCoin.slug),
-                    tuple.get(cmcCoin.logo),
-                    tuple.get(cmcRank.rank.stringValue()),
-                    tuple.get(cmcCoinInfo.description),
-                    tuple.get(cmcCoinMeta.marketCapDominance),
-                    tuple.get(cmcCoinMeta.maxSupply),
-                    tuple.get(cmcCoinMeta.totalSupply),
-                    tuple.get(cmcCoinMeta.circulatingSupply),
-                    tuple.get(cmcCoinMeta.marketCap),
-                    tuple.get(cmcCoinMeta.fullyDilutedMarketCap),
-                    tuple.get(cmcCoinMeta.selfReportedCirculatingSupply),
-                    tuple.get(cmcCoinMeta.selfReportedMarketCap),
-                    tuple.get(cmcCoinInfo.lastUpdated),
-                    tuple.get(cmcCoin.firstHistoricalData)
-            );
+            CmcCoinInfoResponseDto dto = CmcCoinInfoResponseDto.builder()
+                    .symbol(tuple.get(cmcCoin.symbol))
+                    .name(tuple.get(cmcCoin.name))
+                    .slug(tuple.get(cmcCoin.slug))
+                    .logo(tuple.get(cmcCoin.logo))
+                    .rank(tuple.get(cmcRank.rank.stringValue()))
+                    .description(tuple.get(cmcCoinInfo.description))
+                    .dominance(tuple.get(cmcCoinMeta.marketCapDominance))
+                    .maxSupply(tuple.get(cmcCoinMeta.maxSupply))
+                    .totalSupply(tuple.get(cmcCoinMeta.totalSupply))
+                    .circulatingSupply(tuple.get(cmcCoinMeta.circulatingSupply))
+                    .marketCap(tuple.get(cmcCoinMeta.marketCap))
+                    .fullyDilutedMarektCap(tuple.get(cmcCoinMeta.fullyDilutedMarketCap))
+                    .selfReportedCirculatingSupply(tuple.get(cmcCoinMeta.selfReportedCirculatingSupply))
+                    .selfReportedMarketCap(tuple.get(cmcCoinMeta.selfReportedMarketCap))
+                    .lastUpdated(tuple.get(cmcCoinInfo.lastUpdated))
+                    .dateAdded(tuple.get(cmcCoin.firstHistoricalData))
+                    .build();
             results.add(dto);
             cmcCoinIds.add(tuple.get(cmcCoin.cmcCoinId));
         }
@@ -296,24 +296,24 @@ public class CmcCoinRepositoryCustomImpl implements CmcCoinRepositoryCustom {
         List<Long> cmcCoinIds = new ArrayList<>();
         
         for (com.querydsl.core.Tuple tuple : tupleResults) {
-            CmcCoinInfoResponseDto dto = new CmcCoinInfoResponseDto(
-                    tuple.get(cmcCoin.symbol),
-                    tuple.get(cmcCoin.name),
-                    tuple.get(cmcCoin.slug),
-                    tuple.get(cmcCoin.logo),
-                    tuple.get(cmcRank.rank.stringValue()),
-                    tuple.get(cmcCoinInfo.description),
-                    tuple.get(cmcCoinMeta.marketCapDominance),
-                    tuple.get(cmcCoinMeta.maxSupply),
-                    tuple.get(cmcCoinMeta.totalSupply),
-                    tuple.get(cmcCoinMeta.circulatingSupply),
-                    tuple.get(cmcCoinMeta.marketCap),
-                    tuple.get(cmcCoinMeta.fullyDilutedMarketCap),
-                    tuple.get(cmcCoinMeta.selfReportedCirculatingSupply),
-                    tuple.get(cmcCoinMeta.selfReportedMarketCap),
-                    tuple.get(cmcCoinInfo.lastUpdated),
-                    tuple.get(cmcCoin.firstHistoricalData)
-            );
+            CmcCoinInfoResponseDto dto = CmcCoinInfoResponseDto.builder()
+                    .symbol(tuple.get(cmcCoin.symbol))
+                    .name(tuple.get(cmcCoin.name))
+                    .slug(tuple.get(cmcCoin.slug))
+                    .logo(tuple.get(cmcCoin.logo))
+                    .rank(tuple.get(cmcRank.rank.stringValue()))
+                    .description(tuple.get(cmcCoinInfo.description))
+                    .dominance(tuple.get(cmcCoinMeta.marketCapDominance))
+                    .maxSupply(tuple.get(cmcCoinMeta.maxSupply))
+                    .totalSupply(tuple.get(cmcCoinMeta.totalSupply))
+                    .circulatingSupply(tuple.get(cmcCoinMeta.circulatingSupply))
+                    .marketCap(tuple.get(cmcCoinMeta.marketCap))
+                    .fullyDilutedMarektCap(tuple.get(cmcCoinMeta.fullyDilutedMarketCap))
+                    .selfReportedCirculatingSupply(tuple.get(cmcCoinMeta.selfReportedCirculatingSupply))
+                    .selfReportedMarketCap(tuple.get(cmcCoinMeta.selfReportedMarketCap))
+                    .lastUpdated(tuple.get(cmcCoinInfo.lastUpdated))
+                    .dateAdded(tuple.get(cmcCoin.firstHistoricalData))
+                    .build();
             results.add(dto);
             cmcCoinIds.add(tuple.get(cmcCoin.cmcCoinId));
         }

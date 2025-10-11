@@ -9,6 +9,7 @@ import kimp.user.dto.request.*;
 import kimp.user.dto.response.AnnonymousMemberResponseDto;
 import kimp.user.dto.response.UpdateAnonNicknameResponse;
 import kimp.user.service.AnnonyMousService;
+import kimp.user.vo.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -36,7 +37,8 @@ public class AnnonyMousMemberController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "AnnonymousMemberInfoRequestDto cannot be null", HttpStatus.BAD_REQUEST, "AnnonyMousMemberController.getAnnonymousMemberInfo");
         }
 
-        AnnonymousMemberResponseDto annonymousMemberResponseDto = annonyMousService.getAnnonymousMemberByUuidOrIp(request);
+        GetAnnonymousMemberInfoVo vo = new GetAnnonymousMemberInfoVo(request);
+        AnnonymousMemberResponseDto annonymousMemberResponseDto = annonyMousService.getAnnonymousMemberByUuidOrIp(vo);
 
 
         return ApiResponse.success(annonymousMemberResponseDto);
@@ -51,7 +53,8 @@ public class AnnonyMousMemberController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "ApplicationBanMemberRequestDto cannot be null", HttpStatus.BAD_REQUEST, "AnnonyMousMemberController.applicationBanMember");
         }
 
-        annonyMousService.applicationBanMember(request);
+        ApplicationBanMemberVo vo = new ApplicationBanMemberVo(request);
+        annonyMousService.applicationBanMember(vo);
         return ApiResponse.success(null);
     }
 
@@ -64,7 +67,8 @@ public class AnnonyMousMemberController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "ApplicationUnBanMemberRequestDto cannot be null", HttpStatus.BAD_REQUEST, "AnnonyMousMemberController.applicationUnBanMember");
         }
 
-        annonyMousService.applicationUnBanMember(request);
+        ApplicationUnBanMemberVo vo = new ApplicationUnBanMemberVo(request);
+        annonyMousService.applicationUnBanMember(vo);
         return ApiResponse.success(null);
     }
 
@@ -77,7 +81,8 @@ public class AnnonyMousMemberController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "ApplicationBanMemberRequestDto cannot be null", HttpStatus.BAD_REQUEST, "AnnonyMousMemberController.cdnBanMember");
         }
 
-        annonyMousService.cdnBanMember(request);
+        CdnBanMemberVo vo = new CdnBanMemberVo(request);
+        annonyMousService.cdnBanMember(vo);
         return ApiResponse.success(null);
     }
 
@@ -90,7 +95,8 @@ public class AnnonyMousMemberController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "ApplicationBanMemberRequestDto cannot be null", HttpStatus.BAD_REQUEST, "AnnonyMousMemberController.cdnUnBanMember");
         }
 
-        annonyMousService.cdnUnBanMember(request);
+        CdnUnbanMemberVo vo = new CdnUnbanMemberVo(request);
+        annonyMousService.cdnUnBanMember(vo);
         return ApiResponse.success(null);
     }
 

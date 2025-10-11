@@ -1,9 +1,9 @@
 package kimp.batch.writer;
 
 import kimp.cmc.dao.CmcBatchDao;
-import kimp.cmc.dto.common.coin.CmcApiDataDto;
-import kimp.cmc.dto.common.coin.CmcCoinInfoDataDto;
-import kimp.cmc.dto.common.coin.CmcCoinMapDataDto;
+import kimp.cmc.dto.internal.coin.CmcApiDataDto;
+import kimp.cmc.dto.internal.coin.CmcCoinInfoDataDto;
+import kimp.cmc.dto.internal.coin.CmcCoinMapDataDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;

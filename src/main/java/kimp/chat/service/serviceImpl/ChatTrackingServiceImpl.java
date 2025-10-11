@@ -43,7 +43,12 @@ public class ChatTrackingServiceImpl implements ChatTrackingService {
 
         ChatTracking chatTracking = chatTrackingDao.createOrUpdateChatTracking(uuid, nickname, memberId, isAuthenticated);
 
-        return new UpdateAnonNicknameResponse(null, chatTracking.getNickname(), "GUEST", null);
+        return UpdateAnonNicknameResponse.builder()
+                .email(null)
+                .name(chatTracking.getNickname())
+                .role("GUEST")
+                .number(null)
+                .build();
     }
 
     @Override

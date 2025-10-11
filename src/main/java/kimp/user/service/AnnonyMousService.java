@@ -2,22 +2,23 @@ package kimp.user.service;
 
 import kimp.user.dto.request.*;
 import kimp.user.dto.response.AnnonymousMemberResponseDto;
+import kimp.user.vo.*;
 
 public interface AnnonyMousService {
 
     public AnnonymousMemberResponseDto createAnnonymousMember(String uuid, String ip);
 
-    public AnnonymousMemberResponseDto updateAnnonymousMemberIp(String uuid, String ip);
+    public AnnonymousMemberResponseDto updateAnnonymousMemberIp(UpdateAnonNicknameVo vo);
 
-    public AnnonymousMemberResponseDto getAnnonymousMemberByUuidOrIp(AnnonymousMemberInfoRequestDto request);
+    public AnnonymousMemberResponseDto getAnnonymousMemberByUuidOrIp(GetAnnonymousMemberInfoVo vo);
 
-    public void applicationBanMember(ApplicationBanMemberRequestDto request);
+    public void applicationBanMember(ApplicationBanMemberVo vo);
 
-    public void applicationUnBanMember(ApplicationUnBanMemberRequestDto request);
+    public void applicationUnBanMember(ApplicationUnBanMemberVo vo);
 
-    public void cdnBanMember(CdnBanMemberRequestDto request);
+    public void cdnBanMember(CdnBanMemberVo vo);
 
-    public void cdnUnBanMember(CdnUnbanMemberRequestDto request);
+    public void cdnUnBanMember(CdnUnbanMemberVo vo);
 
     public void deleteAnnonymousMember(String uuid);
 

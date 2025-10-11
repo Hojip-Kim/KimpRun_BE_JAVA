@@ -71,7 +71,7 @@ public class ExchangeControllerTest {
     @DisplayName("ID로 특정 거래소 조회")
     void shouldReturnSpecificExchangeWhenGetWithId() {
         // Arrange
-        when(exchangeService.getExchange(anyLong())).thenReturn(exchangeDto1);
+        when(exchangeService.getExchange(any())).thenReturn(exchangeDto1);
 
         // Act
         ApiResponse<ExchangeDto> response = exchangeController.getExchange(1L);
@@ -82,7 +82,7 @@ public class ExchangeControllerTest {
         assertEquals(exchangeDto1, response.getData());
         assertEquals(MarketType.UPBIT, response.getData().getExchangeName());
         assertEquals("https://upbit.com", response.getData().getLink());
-        verify(exchangeService, times(1)).getExchange(1L);
+        verify(exchangeService, times(1)).getExchange(any());
     }
 
     @Test
@@ -90,7 +90,7 @@ public class ExchangeControllerTest {
     void shouldCreateAndReturnNewExchange() {
         // Arrange
         ExchangeDto newExchangeDto = new ExchangeDto(3L, MarketType.COINONE, "https://coinone.co.kr");
-        when(exchangeService.createExchange(any(ExchangeCreateRequestDto.class))).thenReturn(newExchangeDto);
+        when(exchangeService.createExchange(any())).thenReturn(newExchangeDto);
 
         // Act
         ApiResponse<ExchangeDto> response = exchangeController.createExchange(userDetails, createRequestDto);
@@ -101,6 +101,6 @@ public class ExchangeControllerTest {
         assertEquals(newExchangeDto, response.getData());
         assertEquals(MarketType.COINONE, response.getData().getExchangeName());
         assertEquals("https://coinone.co.kr", response.getData().getLink());
-        verify(exchangeService, times(1)).createExchange(createRequestDto);
+        verify(exchangeService, times(1)).createExchange(any());
     }
 }

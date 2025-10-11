@@ -1,8 +1,8 @@
 package kimp.notice.service;
 
-import kimp.common.dto.PageRequestDto;
-import kimp.notice.dto.notice.ExchangeNoticeDto;
-import kimp.notice.dto.notice.NoticeDto;
+import kimp.common.dto.request.PageRequestDto;
+import kimp.notice.dto.response.ExchangeNoticeDto;
+import kimp.notice.dto.response.NoticeDto;
 import kimp.market.Enum.MarketType;
 import org.springframework.data.domain.Page;
 
@@ -15,7 +15,7 @@ public interface NoticeService {
 
     public NoticeDto getNoticeByLink(String link);
 
-    public ExchangeNoticeDto<Page<NoticeDto>> getAllNotices(PageRequestDto pageRequestDto);
+    public ExchangeNoticeDto<Page<NoticeDto>> getAllNotices(kimp.notice.vo.GetNoticeByExchangeVo vo);
 
     public NoticeDto createNotice(String title, String link, LocalDateTime date);
 

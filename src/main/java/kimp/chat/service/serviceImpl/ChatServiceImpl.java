@@ -1,14 +1,17 @@
 package kimp.chat.service.serviceImpl;
 
 import kimp.chat.dao.ChatDao;
-import kimp.chat.dto.request.DeleteAuthChatRequest;
 import kimp.chat.dto.response.ChatLogResponseDto;
-import kimp.chat.dto.vo.DeleteAnonChatMessage;
 import kimp.chat.entity.Chat;
 import kimp.chat.repository.ChatRepository;
 import kimp.chat.service.ChatService;
 import kimp.chat.service.ChatTrackingService;
 
+import kimp.chat.vo.DeleteAdminChatVo;
+import kimp.chat.vo.DeleteAnonChatVo;
+import kimp.chat.vo.DeleteAuthChatVo;
+import kimp.chat.vo.GetChatMessagesVo;
+import kimp.chat.vo.GetChatMessagesWithBlockedVo;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import kimp.util.IpMaskUtil;
@@ -37,8 +40,8 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public Page<ChatLogResponseDto> getChatMessages(int page, int size) {
-        Page<Chat> chats = chatDao.getAllChats(page, size);
+    public Page<ChatLogResponseDto> getChatMessages(GetChatMessagesVo vo) {
+        Page<Chat> chats = chatDao.getAllChats(vo.getPage(), vo.getSize());
         if (chats == null || chats.isEmpty()) {
             throw new KimprunException(
                     KimprunExceptionEnum.INTERNAL_SERVER_ERROR,
@@ -78,18 +81,18 @@ public class ChatServiceImpl implements ChatService {
                         nickname = guestNicknames.get(chat.getCookiePayload());
                     }
                     
-                    return new ChatLogResponseDto(
-                            chat.getId(),
-                            chat.getChatID(),
-                            chat.getContent(),
-                            chat.getAuthenticated(),
-                            chat.getCookiePayload(),
-                            IpMaskUtil.mask(chat.getUserIp()),
-                            chat.getRegistedAt(),
-                            chat.getInherenceId(),
-                            chat.getUserId(),
-                            nickname
-                    );
+                    return ChatLogResponseDto.builder()
+                            .id(chat.getId())
+                            .chatId(chat.getChatID())
+                            .content(chat.getContent())
+                            .authenticated(chat.getAuthenticated())
+                            .uuid(chat.getCookiePayload())
+                            .userIp(IpMaskUtil.mask(chat.getUserIp()))
+                            .registedAt(chat.getRegistedAt())
+                            .inherenceId(chat.getInherenceId())
+                            .memberId(chat.getUserId())
+                            .nickname(nickname)
+                            .build();
                 })
                 .toList();
 
@@ -97,24 +100,24 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public Page<ChatLogResponseDto> getChatMessagesWithBlocked(int page, int size, List<String> blockedMembers, List<String> blockedGuests) {
+    public Page<ChatLogResponseDto> getChatMessagesWithBlocked(GetChatMessagesWithBlockedVo vo) {
         List<Long> blockedMemberIds = null;
         List<String> blockedGuestUuids = null;
-        
-        if (blockedMembers != null && !blockedMembers.isEmpty()) {
-            blockedMemberIds = blockedMembers.stream()
+
+        if (vo.getBlockedMembers() != null && !vo.getBlockedMembers().isEmpty()) {
+            blockedMemberIds = vo.getBlockedMembers().stream()
                 .filter(id -> id != null && !id.trim().isEmpty())
                 .map(Long::valueOf)
                 .collect(Collectors.toList());
         }
-        
-        if (blockedGuests != null && !blockedGuests.isEmpty()) {
-            blockedGuestUuids = blockedGuests.stream()
+
+        if (vo.getBlockedGuests() != null && !vo.getBlockedGuests().isEmpty()) {
+            blockedGuestUuids = vo.getBlockedGuests().stream()
                 .filter(uuid -> uuid != null && !uuid.trim().isEmpty())
                 .collect(Collectors.toList());
         }
-        
-        Page<Chat> chats = chatDao.getAllChatsWithBlocked(page, size, blockedMemberIds, blockedGuestUuids);
+
+        Page<Chat> chats = chatDao.getAllChatsWithBlocked(vo.getPage(), vo.getSize(), blockedMemberIds, blockedGuestUuids);
         if (chats == null || chats.isEmpty()) {
             throw new KimprunException(
                     KimprunExceptionEnum.INTERNAL_SERVER_ERROR,
@@ -152,18 +155,18 @@ public class ChatServiceImpl implements ChatService {
                         nickname = guestNicknames.get(chat.getCookiePayload());
                     }
                     
-                    return new ChatLogResponseDto(
-                            chat.getId(),
-                            chat.getChatID(),
-                            chat.getContent(),
-                            chat.getAuthenticated(),
-                            chat.getCookiePayload(),
-                            IpMaskUtil.mask(chat.getUserIp()),
-                            chat.getRegistedAt(),
-                            chat.getInherenceId(),
-                            chat.getUserId(),
-                            nickname
-                    );
+                    return ChatLogResponseDto.builder()
+                            .id(chat.getId())
+                            .chatId(chat.getChatID())
+                            .content(chat.getContent())
+                            .authenticated(chat.getAuthenticated())
+                            .uuid(chat.getCookiePayload())
+                            .userIp(IpMaskUtil.mask(chat.getUserIp()))
+                            .registedAt(chat.getRegistedAt())
+                            .inherenceId(chat.getInherenceId())
+                            .memberId(chat.getUserId())
+                            .nickname(nickname)
+                            .build();
                 })
                 .toList();
 
@@ -171,11 +174,9 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public void softDeleteAnonMessage(String kimprunToken, DeleteAnonChatMessage deleteChatMessage) {
-        String inherenceId = deleteChatMessage.getInherenceId();
-
-        Chat foundChat = chatDao.findByInherenceId(inherenceId);
-        if(!foundChat.getCookiePayload().equals(kimprunToken)){
+    public void softDeleteAnonMessage(DeleteAnonChatVo vo) {
+        Chat foundChat = chatDao.findByInherenceId(vo.getInherenceId());
+        if(!foundChat.getCookiePayload().equals(vo.getKimprunToken())){
             throw new KimprunException(KimprunExceptionEnum.INVALID_REQUEST_EXCEPTION, "Not matched kimprun-token with chat",  HttpStatus.BAD_REQUEST, "ChatStompServiceImpl.softDeleteAnonMessage");
         }
 
@@ -184,18 +185,18 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public void softDeleteAuthMessage(Long userId, DeleteAuthChatRequest deleteChatMessage) {
-        Chat foundByInherenceId = chatDao.findByInherenceId(deleteChatMessage.getInherenceId());
-        if(!foundByInherenceId.getUserId().equals(userId)){
-            throw new KimprunException(KimprunExceptionEnum.INVALID_REQUEST_EXCEPTION, "찾은 chat의 작성 유저 : " + foundByInherenceId.getUserId() + "요청한 유저 : " + userId, HttpStatus.BAD_REQUEST, "ChatStompServiceImpl.softDeleteAuthMessage");
+    public void softDeleteAuthMessage(DeleteAuthChatVo vo) {
+        Chat foundByInherenceId = chatDao.findByInherenceId(vo.getInherenceId());
+        if(!foundByInherenceId.getUserId().equals(vo.getUserId())){
+            throw new KimprunException(KimprunExceptionEnum.INVALID_REQUEST_EXCEPTION, "찾은 chat의 작성 유저 : " + foundByInherenceId.getUserId() + "요청한 유저 : " + vo.getUserId(), HttpStatus.BAD_REQUEST, "ChatStompServiceImpl.softDeleteAuthMessage");
         }
         foundByInherenceId.softDeleteChat();
         chatRepository.save(foundByInherenceId);
     }
 
     @Override
-    public void softDeleteAdminRole(DeleteAuthChatRequest deleteChatMessage) {
-        Chat foundChat = chatDao.findByInherenceId(deleteChatMessage.getInherenceId());
+    public void softDeleteAdminRole(DeleteAdminChatVo vo) {
+        Chat foundChat = chatDao.findByInherenceId(vo.getInherenceId());
         foundChat.softDeleteChat();
         chatRepository.save(foundChat);
     }

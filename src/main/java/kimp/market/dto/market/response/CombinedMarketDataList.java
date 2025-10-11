@@ -1,7 +1,7 @@
 package kimp.market.dto.market.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import kimp.market.dto.coin.common.market.MarketDto;
+import kimp.market.dto.coin.internal.market.MarketDto;
 import lombok.Getter;
 
 import java.util.List;

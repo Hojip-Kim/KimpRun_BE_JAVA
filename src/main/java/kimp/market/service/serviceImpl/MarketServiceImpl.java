@@ -4,9 +4,9 @@ import kimp.market.components.impl.market.Binance;
 import kimp.market.components.MarketListProvider;
 import kimp.market.components.impl.market.Bithumb;
 import kimp.market.components.impl.market.Coinone;
-import kimp.market.dto.coin.common.ServiceCoinWrapperDto;
+import kimp.market.dto.coin.internal.ServiceCoinWrapperDto;
 import kimp.market.dto.coin.response.CoinMarketDto;
-import kimp.market.dto.market.common.MarketList;
+import kimp.market.dto.market.internal.MarketList;
 import kimp.market.dto.market.response.CombinedMarketList;
 import kimp.market.Enum.MarketType;
 import kimp.market.components.impl.Market;
@@ -15,7 +15,10 @@ import kimp.market.dto.market.response.CombinedMarketDataList;
 import kimp.market.dto.market.response.MarketDataList;
 import kimp.market.service.CoinService;
 import kimp.market.service.MarketService;
-import kimp.market.dto.coin.common.market.MarketDto;
+import kimp.market.dto.coin.internal.market.MarketDto;
+import kimp.market.vo.GetCombinedMarketDataListVo;
+import kimp.market.vo.GetMarketDataListVo;
+import kimp.market.vo.GetMarketListVo;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -89,9 +92,9 @@ public class MarketServiceImpl implements MarketService {
     }
 
     @Override
-    public CombinedMarketDataList getCombinedMarketDataList(MarketType firstMarket, MarketType secondMarket) {
-        Market first = marketMap.get(firstMarket);
-        Market second = marketMap.get(secondMarket);
+    public CombinedMarketDataList getCombinedMarketDataList(GetCombinedMarketDataListVo vo) {
+        Market first = marketMap.get(vo.getFirst());
+        Market second = marketMap.get(vo.getSecond());
 
         // 공통의 marketData만 추출할 수 있도록 pair 추출
         List<String> marketPair = getCombineMarketList(first.getMarketList(), second.getMarketList());
@@ -130,10 +133,10 @@ public class MarketServiceImpl implements MarketService {
 
 
     @Override
-    public MarketDataList getMarketDataList(MarketType marketType) throws IOException {
-        Market market = marketMap.get(marketType);
+    public MarketDataList getMarketDataList(GetMarketDataListVo vo) throws IOException {
+        Market market = marketMap.get(vo.getMarket());
         if(market == null){
-            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Unsupported market type: " + marketType.toString(), HttpStatus.BAD_REQUEST, "MarketServiceImpl.getMarketDataList");
+            throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Unsupported market type: " + vo.getMarket().toString(), HttpStatus.BAD_REQUEST, "MarketServiceImpl.getMarketDataList");
         }
         return market.getMarketDataList();
     }
@@ -164,13 +167,13 @@ public class MarketServiceImpl implements MarketService {
     }
     
     @Override
-    public CombinedMarketList getMarketListFromDatabase(MarketType firstMarket, MarketType secondMarket) {
-        List<CoinMarketDto> firstMarketList = coinService.getCoinsByMarketType(firstMarket);
-        List<CoinMarketDto> secondMarketList = coinService.getCoinsByMarketType(secondMarket);
-        
+    public CombinedMarketList getMarketListFromDatabase(GetMarketListVo vo) {
+        List<CoinMarketDto> firstMarketList = coinService.getCoinsByMarketType(vo.getFirst());
+        List<CoinMarketDto> secondMarketList = coinService.getCoinsByMarketType(vo.getSecond());
+
         // 공통 코인 계산
 //        List<CoinMarketDto> commonCoins = getCombineMarketListFromDatabase(firstMarketList, secondMarketList);
-        
+
         return new CombinedMarketList(firstMarketList, secondMarketList);
     }
     

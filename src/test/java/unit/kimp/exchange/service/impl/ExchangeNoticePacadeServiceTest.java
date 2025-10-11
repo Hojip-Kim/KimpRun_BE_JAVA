@@ -1,6 +1,6 @@
 package unit.kimp.exchange.service.impl;
 
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import kimp.common.method.DtoConverter;
 import kimp.exception.KimprunException;
 import kimp.exchange.dao.ExchangeDao;
@@ -8,9 +8,9 @@ import kimp.exchange.entity.Exchange;
 import kimp.exchange.service.impl.ExchangeNoticePacadeService;
 import kimp.market.Enum.MarketType;
 import kimp.notice.dao.NoticeDao;
-import kimp.notice.dto.notice.ExchangeNoticeDto;
-import kimp.notice.dto.notice.NoticeDto;
-import kimp.notice.dto.notice.NoticeParsedData;
+import kimp.notice.dto.response.ExchangeNoticeDto;
+import kimp.notice.dto.response.NoticeDto;
+import kimp.notice.dto.response.NoticeParsedData;
 import kimp.notice.entity.Notice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -189,7 +189,7 @@ public class ExchangeNoticePacadeServiceTest {
         when(dtoConverter.wrappingDtosToExchangeNoticeDto(marketType, noticeDtoPage)).thenReturn(exchangeNoticeDto);
 
         // When
-        ExchangeNoticeDto<Page<NoticeDto>> result = exchangeNoticePacadeService.getNoticeByExchange(marketType, pageRequestDto);
+        ExchangeNoticeDto<Page<NoticeDto>> result = exchangeNoticePacadeService.getNoticeByExchange(new kimp.notice.vo.GetNoticeByExchangeVo(marketType, pageRequestDto));
 
         // Then
         assertThat(result).isEqualTo(exchangeNoticeDto);
@@ -211,7 +211,7 @@ public class ExchangeNoticePacadeServiceTest {
         when(noticeDao.findByExchangeIdOrderByRegistedAtAsc(exchange.getId(), pageable)).thenReturn(emptyNoticePage);
 
         // When & Then
-        assertThatThrownBy(() -> exchangeNoticePacadeService.getNoticeByExchange(marketType, pageRequestDto))
+        assertThatThrownBy(() -> exchangeNoticePacadeService.getNoticeByExchange(new kimp.notice.vo.GetNoticeByExchangeVo(marketType, pageRequestDto)))
                 .isInstanceOf(KimprunException.class)
                 .hasFieldOrPropertyWithValue("message", "Not have data");
 

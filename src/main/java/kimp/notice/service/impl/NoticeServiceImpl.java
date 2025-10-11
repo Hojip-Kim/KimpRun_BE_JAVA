@@ -1,12 +1,12 @@
 package kimp.notice.service.impl;
 
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import kimp.common.method.DtoConverter;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import kimp.notice.dao.NoticeDao;
-import kimp.notice.dto.notice.ExchangeNoticeDto;
-import kimp.notice.dto.notice.NoticeDto;
+import kimp.notice.dto.response.ExchangeNoticeDto;
+import kimp.notice.dto.response.NoticeDto;
 import kimp.notice.entity.Notice;
 import kimp.notice.service.NoticeService;
 import kimp.market.Enum.MarketType;
@@ -48,8 +48,8 @@ public class NoticeServiceImpl implements NoticeService
 
     @Override
     @Transactional
-    public ExchangeNoticeDto<Page<NoticeDto>> getAllNotices(PageRequestDto pageRequestDto) {
-        Pageable pageable = PageRequest.of(pageRequestDto.getPage(), pageRequestDto.getSize());
+    public ExchangeNoticeDto<Page<NoticeDto>> getAllNotices(kimp.notice.vo.GetNoticeByExchangeVo vo) {
+        Pageable pageable = PageRequest.of(vo.getPageRequestDto().getPage(), vo.getPageRequestDto().getSize());
 
         Page<Notice> noticePage = this.noticeDao.findAllByOrderByRegistedAtAsc(pageable);
 

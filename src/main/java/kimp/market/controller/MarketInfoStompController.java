@@ -1,11 +1,11 @@
 package kimp.market.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kimp.notice.dto.notice.NoticeDto;
+import kimp.notice.dto.response.NoticeDto;
 import kimp.market.dto.market.response.websocket.InfoResponseDto;
 import kimp.market.dto.market.response.websocket.MarketWebsocketResponseDto;
 import kimp.market.dto.market.response.websocket.UserWebsocketResponseDto;
-import kimp.market.dto.marketInfo.common.MarketInfoWebsocketDto;
+import kimp.market.dto.internal.marketInfo.MarketInfoWebsocketDto;
 import kimp.market.service.MarketInfoService;
 import kimp.telegram.service.TelegramService;
 import kimp.websocket.service.WebSocketUserTracker;
@@ -42,7 +42,7 @@ public class MarketInfoStompController {
         
         // 텔레그램 채널로도 공지사항 전송
         try {
-            telegramService.sendNoticeMessage(noticeDto);
+//            telegramService.sendNoticeMessage(noticeDto);
         } catch (Exception e) {
             log.error("텔레그램 알림 전송 실패: {} - {} (오류: {})", 
                     noticeDto.getExchangeType().name(), noticeDto.getTitle(), e.getMessage());

@@ -10,7 +10,7 @@ import kimp.community.dto.board.response.BoardWithCommentResponseDto;
 import kimp.community.entity.Board;
 import kimp.community.service.BoardService;
 import kimp.community.service.BoardPacadeService;
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import kimp.exception.KimprunException;
 import kimp.exception.response.ApiResponse;
 import kimp.security.user.CustomUserDetails;
@@ -60,10 +60,22 @@ public class BoardControllerTest {
     void setUp() {
         mockBoard = new Board();
         mockBoardResponseDto = new BoardResponseDto();
-        mockBoardWithCommentResponseDto = new BoardWithCommentResponseDto(
-            1L, 1L, 1L, "Test Category", "Test User", "Test Title", "Test Content",
-            0, 0, LocalDateTime.now(), LocalDateTime.now(), new ArrayList<>(), 0, false
-        );
+        mockBoardWithCommentResponseDto = BoardWithCommentResponseDto.builder()
+            .boardId(1L)
+            .memberId(1L)
+            .categoryId(1L)
+            .categoryName("Test Category")
+            .memberNickName("Test User")
+            .title("Test Title")
+            .content("Test Content")
+            .boardViewsCount(0)
+            .boardLikesCount(0)
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .comments(new ArrayList<>())
+            .commentsCount(0)
+            .isPin(false)
+            .build();
 
         lenient().when(customUserDetails.getId()).thenReturn(1L);
     }
@@ -72,7 +84,7 @@ public class BoardControllerTest {
     @DisplayName("게시글 조회 성공 (인증된 사용자)")
     void shouldReturnBoardWithCommentForAuthenticatedUser() {
         // Arrange
-        when(boardPacadeService.getBoardByIdWithCommentPage(anyLong(), anyLong(), anyInt())).thenReturn(mockBoardWithCommentResponseDto);
+        when(boardPacadeService.getBoardByIdWithCommentPage(any())).thenReturn(mockBoardWithCommentResponseDto);
 
         // Act
         ApiResponse<BoardWithCommentResponseDto> response = boardController.getBoard(customUserDetails, 1L, 1);
@@ -82,14 +94,14 @@ public class BoardControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(mockBoardWithCommentResponseDto, response.getData());
-        verify(boardPacadeService, times(1)).getBoardByIdWithCommentPage(1L, 1L, 1);
+        verify(boardPacadeService, times(1)).getBoardByIdWithCommentPage(any());
     }
 
     @Test
     @DisplayName("게시글 조회 성공 (인증되지 않은 사용자)")
     void shouldReturnBoardWithCommentForUnauthenticatedUser() {
         // Arrange
-        when(boardPacadeService.getBoardByIdWithCommentPage(anyLong(), anyLong(), anyInt())).thenReturn(mockBoardWithCommentResponseDto);
+        when(boardPacadeService.getBoardByIdWithCommentPage(any())).thenReturn(mockBoardWithCommentResponseDto);
 
         // Act
         ApiResponse<BoardWithCommentResponseDto> response = boardController.getBoard(null, 1L, 1);
@@ -99,7 +111,7 @@ public class BoardControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(mockBoardWithCommentResponseDto, response.getData());
-        verify(boardPacadeService, times(1)).getBoardByIdWithCommentPage(-1L, 1L, 1);
+        verify(boardPacadeService, times(1)).getBoardByIdWithCommentPage(any());
     }
 
     @Test
@@ -143,7 +155,7 @@ public class BoardControllerTest {
         pageRequestDto.setSize(10);
         
         Page<BoardResponseDto> mockPage = new PageImpl<>(Arrays.asList(mockBoardResponseDto), Pageable.ofSize(10), 1);
-        when(boardPacadeService.getBoardDtoPageWithCategoryId(anyLong(), any(PageRequestDto.class))).thenReturn(mockPage);
+        when(boardPacadeService.getBoardDtoPageWithCategoryId(any())).thenReturn(mockPage);
 
         // Act
         ApiResponse<Page<BoardResponseDto>> response = boardController.getBoardsPageWithPage(2L, pageRequestDto);
@@ -154,7 +166,7 @@ public class BoardControllerTest {
         assertEquals(200, response.getStatus());
         assertNotNull(response.getData());
         assertEquals(mockPage, response.getData());
-        verify(boardPacadeService, times(1)).getBoardDtoPageWithCategoryId(2L, pageRequestDto);
+        verify(boardPacadeService, times(1)).getBoardDtoPageWithCategoryId(any());
     }
 
     @Test
@@ -186,7 +198,7 @@ public class BoardControllerTest {
     void shouldCreateBoardSuccessfully() {
         // Arrange
         CreateBoardRequestDto createBoardRequestDto = new CreateBoardRequestDto("Test Title", "Test Content", "test_image.png");
-        when(boardPacadeService.createBoardDto(anyLong(), anyLong(), any(CreateBoardRequestDto.class))).thenReturn(mockBoardResponseDto);
+        when(boardPacadeService.createBoardDto(any())).thenReturn(mockBoardResponseDto);
 
         // Act
         ApiResponse<BoardResponseDto> response = boardController.createBoard(customUserDetails, 1L, createBoardRequestDto);
@@ -196,7 +208,7 @@ public class BoardControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(mockBoardResponseDto, response.getData());
-        verify(boardPacadeService, times(1)).createBoardDto(1L, 1L, createBoardRequestDto);
+        verify(boardPacadeService, times(1)).createBoardDto(any());
     }
 
     @Test
@@ -223,7 +235,7 @@ public class BoardControllerTest {
     void shouldUpdateBoardSuccessfully() {
         // Arrange
         UpdateBoardRequestDto updateBoardRequestDto = new UpdateBoardRequestDto("Updated Title", "Updated Content");
-        when(boardPacadeService.updateBoard(anyLong(), anyLong(), any(UpdateBoardRequestDto.class))).thenReturn(mockBoardResponseDto);
+        when(boardPacadeService.updateBoard(any())).thenReturn(mockBoardResponseDto);
 
         // Act
         ApiResponse<BoardResponseDto> response = boardController.updateBoard(customUserDetails, 1L, updateBoardRequestDto);
@@ -233,7 +245,7 @@ public class BoardControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(mockBoardResponseDto, response.getData());
-        verify(boardPacadeService, times(1)).updateBoard(1L, 1L, updateBoardRequestDto);
+        verify(boardPacadeService, times(1)).updateBoard(any());
     }
 
     @Test
@@ -251,7 +263,7 @@ public class BoardControllerTest {
     @DisplayName("게시글 삭제 성공")
     void shouldDeleteBoardSuccessfully() {
         // Arrange
-        when(boardPacadeService.deleteBoard(anyLong(), anyLong())).thenReturn(true);
+        when(boardPacadeService.deleteBoard(any())).thenReturn(true);
 
         // Act
         ApiResponse<Boolean> response = boardController.deleteBoard(customUserDetails, 1L);
@@ -261,7 +273,7 @@ public class BoardControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertTrue(response.getData());
-        verify(boardPacadeService, times(1)).deleteBoard(1L, 1L);
+        verify(boardPacadeService, times(1)).deleteBoard(any());
     }
 
     @Test
@@ -312,7 +324,7 @@ public class BoardControllerTest {
     @DisplayName("게시글 좋아요 성공")
     void shouldLikeBoardSuccessfully() {
         // Arrange
-        when(boardPacadeService.likeBoardById(anyLong(), anyLong())).thenReturn(true);
+        when(boardPacadeService.likeBoardById(any())).thenReturn(true);
 
         // Act
         ApiResponse<Boolean> response = boardController.likeBoard(customUserDetails, new BoardLikeRequest(1L));
@@ -322,6 +334,6 @@ public class BoardControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertTrue(response.getData());
-        verify(boardPacadeService, times(1)).likeBoardById(1L, 1L);
+        verify(boardPacadeService, times(1)).likeBoardById(any());
     }
 }

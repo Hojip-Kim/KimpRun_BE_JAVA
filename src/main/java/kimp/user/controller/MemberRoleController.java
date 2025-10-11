@@ -6,6 +6,7 @@ import kimp.user.dto.request.CreateRoleRequestDto;
 import kimp.user.dto.request.UpdateRoleRequestDto;
 import kimp.user.dto.response.MemberRoleResponseDto;
 import kimp.user.service.MemberRoleService;
+import kimp.user.vo.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,49 +16,53 @@ import java.util.List;
 @RequestMapping("/role")
 @Tag(name = "권한 관리", description = "사용자 권한 역할 관리 컨트롤러")
 public class MemberRoleController {
-    
+
     private final MemberRoleService memberRoleService;
-    
+
     public MemberRoleController(MemberRoleService memberRoleService) {
         this.memberRoleService = memberRoleService;
     }
-    
+
     @PreAuthorize("hasAuthority('OPERATOR')")
     @PostMapping
     public ApiResponse<MemberRoleResponseDto> createRole(@RequestBody CreateRoleRequestDto request) {
-        MemberRoleResponseDto response = memberRoleService.createRoleDto(request.getRoleKey(), request.getRoleName());
+        CreateRoleVo vo = new CreateRoleVo(request.getRoleKey(), request.getRoleName());
+        MemberRoleResponseDto response = memberRoleService.createRoleDto(vo);
         return ApiResponse.success(response);
     }
-    
+
     @PreAuthorize("hasAnyAuthority('MANAGER', 'OPERATOR')")
     @GetMapping("/{id}")
     public ApiResponse<MemberRoleResponseDto> getRoleById(@PathVariable Long id) {
-        MemberRoleResponseDto response = memberRoleService.getRoleByIdDto(id);
+        GetRoleByIdVo vo = new GetRoleByIdVo(id);
+        MemberRoleResponseDto response = memberRoleService.getRoleByIdDto(vo);
         return ApiResponse.success(response);
     }
-    
+
     @PreAuthorize("hasAnyAuthority('MANAGER', 'OPERATOR')")
     @GetMapping("/key/{roleKey}")
     public ApiResponse<MemberRoleResponseDto> getRoleByKey(@PathVariable String roleKey) {
-        MemberRoleResponseDto response = memberRoleService.getRoleByKeyDto(roleKey);
+        GetRoleByKeyVo vo = new GetRoleByKeyVo(roleKey);
+        MemberRoleResponseDto response = memberRoleService.getRoleByKeyDto(vo);
         return ApiResponse.success(response);
     }
-    
+
     @PreAuthorize("hasAnyAuthority('MANAGER', 'OPERATOR')")
     @GetMapping
     public ApiResponse<List<MemberRoleResponseDto>> getAllRoles() {
         List<MemberRoleResponseDto> response = memberRoleService.getAllRolesDto();
         return ApiResponse.success(response);
     }
-    
+
     @PreAuthorize("hasAuthority('OPERATOR')")
     @PutMapping("/{id}")
-    public ApiResponse<MemberRoleResponseDto> updateRole(@PathVariable Long id, 
+    public ApiResponse<MemberRoleResponseDto> updateRole(@PathVariable Long id,
                                                         @RequestBody UpdateRoleRequestDto request) {
-        MemberRoleResponseDto response = memberRoleService.updateRoleDto(id, request.getRoleName());
+        UpdateRoleVo vo = new UpdateRoleVo(id, request.getRoleName());
+        MemberRoleResponseDto response = memberRoleService.updateRoleDto(vo);
         return ApiResponse.success(response);
     }
-    
+
     @PreAuthorize("hasAuthority('OPERATOR')")
     @DeleteMapping("/{id}")
     public ApiResponse<Boolean> deleteRole(@PathVariable Long id) {

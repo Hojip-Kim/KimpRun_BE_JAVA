@@ -1,6 +1,6 @@
 package unit.kimp.notice.service;
 
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import kimp.common.method.DtoConverter;
 import kimp.common.method.MarketMethod;
 import kimp.exchange.entity.Exchange;
@@ -8,8 +8,8 @@ import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import kimp.market.Enum.MarketType;
 import kimp.notice.dao.NoticeDao;
-import kimp.notice.dto.notice.ExchangeNoticeDto;
-import kimp.notice.dto.notice.NoticeDto;
+import kimp.notice.dto.response.ExchangeNoticeDto;
+import kimp.notice.dto.response.NoticeDto;
 import kimp.notice.entity.Notice;
 import kimp.notice.service.impl.NoticeServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -146,7 +146,7 @@ public class NoticeServiceImplTest {
         when(dtoConverter.wrappingDtosToExchangeNoticeDto(any(), any())).thenReturn(exchangeNoticeDto);
 
         // When
-        ExchangeNoticeDto<Page<NoticeDto>> result = noticeService.getAllNotices(pageRequestDto);
+        ExchangeNoticeDto<Page<NoticeDto>> result = noticeService.getAllNotices(new kimp.notice.vo.GetNoticeByExchangeVo(MarketType.ALL, pageRequestDto));
 
         // Then
         assertThat(result).isEqualTo(exchangeNoticeDto);
@@ -166,7 +166,7 @@ public class NoticeServiceImplTest {
         when(noticeDao.findAllByOrderByRegistedAtAsc(any(Pageable.class))).thenReturn(emptyNoticePage);
 
         // When & Then
-        assertThatThrownBy(() -> noticeService.getAllNotices(pageRequestDto))
+        assertThatThrownBy(() -> noticeService.getAllNotices(new kimp.notice.vo.GetNoticeByExchangeVo(MarketType.ALL, pageRequestDto)))
                 .isInstanceOf(KimprunException.class)
                 .hasFieldOrPropertyWithValue("exceptionEnum", KimprunExceptionEnum.REQUEST_ACCEPTED)
                 .hasFieldOrPropertyWithValue("message", "Not have data");

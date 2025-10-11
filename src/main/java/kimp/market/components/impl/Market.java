@@ -2,9 +2,9 @@ package kimp.market.components.impl;
 
 
 import kimp.market.Enum.MarketType;
-import kimp.market.dto.coin.common.ServiceCoinWrapperDto;
-import kimp.market.dto.coin.common.crypto.CryptoDto;
-import kimp.market.dto.market.common.MarketList;
+import kimp.market.dto.coin.internal.ServiceCoinWrapperDto;
+import kimp.market.dto.coin.internal.crypto.CryptoDto;
+import kimp.market.dto.market.internal.MarketList;
 import kimp.market.dto.market.response.MarketDataList;
 
 import java.io.IOException;

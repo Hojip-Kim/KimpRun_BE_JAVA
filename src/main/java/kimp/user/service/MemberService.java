@@ -1,16 +1,17 @@
 package kimp.user.service;
 
-import kimp.user.dto.UserCopyDto;
-import kimp.user.dto.UserDto;
-import kimp.user.dto.UserWithIdNameEmailDto;
+import kimp.user.dto.internal.UserCopyDto;
+import kimp.user.dto.response.UserDto;
+import kimp.user.dto.response.UserWithIdNameEmailDto;
 import kimp.user.dto.request.*;
 import kimp.user.entity.Member;
 import kimp.user.enums.UserRole;
 import kimp.user.enums.Oauth;
+import kimp.user.vo.*;
 
 public interface MemberService {
 
-    public UserDto createMember(CreateUserDTO request);
+    public UserDto createMember(CreateMemberVo vo);
 
     public Member createMemberEntity(CreateUserDTO request);
 
@@ -18,13 +19,13 @@ public interface MemberService {
 
     public Member getMemberByOAuthProviderId(String provider, String providerId);
 
-    public String sendEmailVerifyCode(String email);
+    public String sendEmailVerifyCode(SendEmailVerifyCodeVo vo);
 
     public UserCopyDto createCopyUserDtoByEmail(String email);
 
-    public Boolean verifyCode(String email, String code);
+    public Boolean verifyCode(VerifyEmailCodeVo vo);
 
-    public UserDto getmemberById(Long id);
+    public UserDto getmemberById(GetMemberByIdVo vo);
 
     public Member getMemberEntityById(Long id);
 
@@ -34,24 +35,24 @@ public interface MemberService {
 
     public void setMemberIP(Member member, String ip);
 
-    public UserDto updateMember(Long id, UpdateUserPasswordDTO UpdateUserPasswordDTO);
+    public UserDto updateMember(UpdateMemberPasswordVo vo);
 
-    public UserWithIdNameEmailDto updateNickname(Long id, UpdateUserNicknameDTO UpdateUserNicknameDTO);
+    public UserWithIdNameEmailDto updateNickname(UpdateMemberNicknameVo vo);
 
-    public Boolean deActivateMember(Long id, DeActivateUserDTO deleteUserDTO);
+    public Boolean deActivateMember(DeActivateMemberVo vo);
 
-    public Boolean deleteMember(DeleteUserDTO DeleteUserDTO);
+    public Boolean deleteMember(DeleteMemberVo vo);
 
     public UserDto convertUserToUserDto(Member member);
 
-    public UserDto grantRole(Long memberId, UserRole grantRole);
+    public UserDto grantRole(UpdateUserRoleVo vo);
 
-    public Member attachOAuthToMember(Member member, String provider, String providerId, 
-                                     String accessToken, String refreshToken, String tokenType, 
+    public Member attachOAuthToMember(Member member, String provider, String providerId,
+                                     String accessToken, String refreshToken, String tokenType,
                                      Long expiresIn, String scope);
 
-    public Boolean updatePassword(UpdateUserPasswordRequest request);
-    
+    public Boolean updatePassword(ResetPasswordVo vo);
+
     /**
      * 로그인용 최적화된 Member 조회 (모든 연관 엔티티를 한 번에 fetch)
      */

@@ -2,7 +2,7 @@ package kimp.security.user.service;
 
 import kimp.security.user.CustomUserDetails;
 import kimp.user.dao.MemberDao;
-import kimp.user.dto.UserCopyDto;
+import kimp.user.dto.internal.UserCopyDto;
 import kimp.user.entity.Member;
 import kimp.user.service.MemberService;
 import lombok.extern.slf4j.Slf4j;

@@ -1,6 +1,6 @@
 package kimp.exchange.service;
 
-import kimp.notice.dto.notice.NoticeParsedData;
+import kimp.notice.dto.response.NoticeParsedData;
 import kimp.market.Enum.MarketType;
 
 import java.util.List;

@@ -1,5 +1,7 @@
 package kimp.user.dto.response;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -7,6 +9,8 @@ import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ProfileInfoResponse {
     private Long memberId;
     private String nickname;
@@ -19,20 +23,4 @@ public class ProfileInfoResponse {
     private int declarationCount;
     private int followerCount;
     private int followingCount;
-
-    public ProfileInfoResponse(Long memberId, String nickname, String email, String role, 
-                             String profileImageUrl, String seedMoneyRange, String activityRankGrade, 
-                             LocalDateTime joinedAt, int declarationCount, int followerCount, int followingCount) {
-        this.memberId = memberId;
-        this.nickname = nickname;
-        this.email = email;
-        this.role = role;
-        this.profileImageUrl = profileImageUrl;
-        this.seedMoneyRange = seedMoneyRange;
-        this.activityRankGrade = activityRankGrade;
-        this.joinedAt = joinedAt;
-        this.declarationCount = declarationCount;
-        this.followerCount = followerCount;
-        this.followingCount = followingCount;
-    }
 }

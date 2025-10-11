@@ -1,8 +1,8 @@
 package kimp.common.method;
 
 import kimp.exchange.dto.exchange.response.ExchangeDto;
-import kimp.notice.dto.notice.ExchangeNoticeDto;
-import kimp.notice.dto.notice.NoticeDto;
+import kimp.notice.dto.response.ExchangeNoticeDto;
+import kimp.notice.dto.response.NoticeDto;
 import kimp.exchange.entity.Exchange;
 import kimp.notice.entity.Notice;
 import kimp.market.Enum.MarketType;

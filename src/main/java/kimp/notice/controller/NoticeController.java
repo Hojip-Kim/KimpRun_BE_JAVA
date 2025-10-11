@@ -1,11 +1,12 @@
 package kimp.notice.controller;
 
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import kimp.exception.response.ApiResponse;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
-import kimp.notice.dto.notice.ExchangeNoticeDto;
+import kimp.notice.dto.response.ExchangeNoticeDto;
 import kimp.notice.service.NoticeService;
+import kimp.notice.vo.*;
 import kimp.exchange.service.ScrapService;
 import kimp.exchange.service.impl.ExchangeNoticePacadeService;
 import kimp.market.Enum.MarketType;
@@ -36,12 +37,13 @@ public class NoticeController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Exchange type and page request parameters cannot be null", HttpStatus.BAD_REQUEST, "NoticeController.getNoticeByExchangeId");
         }
 
+        GetNoticeByExchangeVo vo = new GetNoticeByExchangeVo(exchangeType, pageRequestDto);
         ExchangeNoticeDto noticeDtos;
 
         if(exchangeType.equals(MarketType.ALL)){
-            noticeDtos = noticeService.getAllNotices(pageRequestDto);
+            noticeDtos = noticeService.getAllNotices(vo);
         }else{
-            noticeDtos = exchangeNoticePacadeService.getNoticeByExchange(exchangeType, pageRequestDto);
+            noticeDtos = exchangeNoticePacadeService.getNoticeByExchange(vo);
         }
         return ApiResponse.success(noticeDtos);
 

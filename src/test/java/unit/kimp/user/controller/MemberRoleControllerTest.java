@@ -53,7 +53,7 @@ public class MemberRoleControllerTest {
     void shouldCreateRole() throws Exception {
         CreateRoleRequestDto request = new CreateRoleRequestDto("test-role-key", UserRole.USER);
         MemberRoleResponseDto responseDto = new MemberRoleResponseDto(memberRole);
-        when(memberRoleService.createRoleDto(anyString(), any(UserRole.class))).thenReturn(responseDto);
+        when(memberRoleService.createRoleDto(any())).thenReturn(responseDto);
 
         mockMvc.perform(post("/role")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -67,7 +67,7 @@ public class MemberRoleControllerTest {
     @DisplayName("역할 조회")
     void shouldGetRoleById() throws Exception {
         MemberRoleResponseDto responseDto = new MemberRoleResponseDto(memberRole);
-        when(memberRoleService.getRoleByIdDto(1L)).thenReturn(responseDto);
+        when(memberRoleService.getRoleByIdDto(any())).thenReturn(responseDto);
 
         mockMvc.perform(get("/role/1"))
                 .andExpect(status().isOk())

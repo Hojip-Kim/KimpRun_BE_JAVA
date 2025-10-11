@@ -1,9 +1,9 @@
 package kimp.cmc.component;
 
-import kimp.cmc.dto.common.coin.*;
-import kimp.cmc.dto.common.exchange.CmcExchangeDto;
-import kimp.cmc.dto.common.exchange.CmcExchangeApiStatusDto;
-import kimp.cmc.dto.common.exchange.CmcExchangeDetailMapDto;
+import kimp.cmc.dto.internal.coin.*;
+import kimp.cmc.dto.internal.exchange.CmcExchangeDto;
+import kimp.cmc.dto.internal.exchange.CmcExchangeApiStatusDto;
+import kimp.cmc.dto.internal.exchange.CmcExchangeDetailMapDto;
 import kimp.common.ratelimit.DistributedRateLimiter;
 import kimp.common.ratelimit.RateLimitResult;
 import lombok.extern.slf4j.Slf4j;

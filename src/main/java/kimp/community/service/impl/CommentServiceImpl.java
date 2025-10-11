@@ -130,7 +130,17 @@ public class CommentServiceImpl implements CommentService {
             Long memberId = comment.getMember().getId();
             LocalDateTime createdAt = comment.getRegistedAt();
             LocalDateTime updatedAt = comment.getUpdatedAt();
-            return new ResponseCommentDto(commentId, parentCommentId, content, depth, memberEmail, memberNickName, memberId, createdAt, updatedAt);
+            return ResponseCommentDto.builder()
+                    .id(commentId)
+                    .parentCommentId(parentCommentId)
+                    .content(content)
+                    .depth(depth)
+                    .email(memberEmail)
+                    .nickName(memberNickName)
+                    .memberId(memberId)
+                    .createdAt(createdAt)
+                    .updatedAt(updatedAt)
+                    .build();
         }
     }
 

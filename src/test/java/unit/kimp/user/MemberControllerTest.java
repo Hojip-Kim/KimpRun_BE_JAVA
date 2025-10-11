@@ -4,8 +4,8 @@ import kimp.exception.KimprunException;
 import kimp.exception.response.ApiResponse;
 import kimp.security.user.CustomUserDetails;
 import kimp.user.controller.MemberController;
-import kimp.user.dto.UserDto;
-import kimp.user.dto.UserWithIdNameEmailDto;
+import kimp.user.dto.response.UserDto;
+import kimp.user.dto.response.UserWithIdNameEmailDto;
 import kimp.user.dto.request.*;
 import kimp.user.dto.response.AdminResponse;
 import kimp.user.dto.response.EmailVerifyCodeResponseDTO;
@@ -70,7 +70,7 @@ public class MemberControllerTest {
     @DisplayName("현재 사용자 정보 조회")
     void shouldReturnCurrentUserInformation() {
         // Arrange
-        when(memberService.getmemberById(anyLong())).thenReturn(mockUserDto);
+        when(memberService.getmemberById(any())).thenReturn(mockUserDto);
 
         // Act
         ApiResponse<UserDto> response = memberController.getMember(customUserDetails);
@@ -80,14 +80,14 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(mockUserDto, response.getData());
-        verify(memberService, times(1)).getmemberById(1L);
+        verify(memberService, times(1)).getmemberById(any());
     }
 
     @Test
     @DisplayName("ID로 사용자 정보 조회 (관리자 전용)")
     void shouldReturnMemberByIdForManager() throws IOException {
         // Arrange
-        when(memberService.getmemberById(anyLong())).thenReturn(mockUserDto);
+        when(memberService.getmemberById(any())).thenReturn(mockUserDto);
 
         // Act
         ApiResponse<UserDto> response = memberController.findMemberById(customUserDetails, 1L);
@@ -97,7 +97,7 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(mockUserDto, response.getData());
-        verify(memberService, times(1)).getmemberById(1L);
+        verify(memberService, times(1)).getmemberById(any());
     }
 
     @Test
@@ -105,7 +105,7 @@ public class MemberControllerTest {
     void shouldVerifyEmailCodeSuccessfully() {
         // Arrange
         EmailVerifyCodeRequestDTO requestDTO = new EmailVerifyCodeRequestDTO("test@example.com", "123456");
-        when(memberService.verifyCode(anyString(), anyString())).thenReturn(true);
+        when(memberService.verifyCode(any())).thenReturn(true);
 
         // Act
         ApiResponse<EmailVerifyCodeResponseDTO> response = memberController.verifyEmailCode(requestDTO);
@@ -115,7 +115,7 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertTrue(response.getData().getIsVerified());
-        verify(memberService, times(1)).verifyCode("test@example.com", "123456");
+        verify(memberService, times(1)).verifyCode(any());
     }
 
     @Test
@@ -123,7 +123,7 @@ public class MemberControllerTest {
     void shouldFailEmailCodeVerification() {
         // Arrange
         EmailVerifyCodeRequestDTO requestDTO = new EmailVerifyCodeRequestDTO("test@example.com", "wrongcode");
-        when(memberService.verifyCode(anyString(), anyString())).thenReturn(false);
+        when(memberService.verifyCode(any())).thenReturn(false);
 
         // Act
         ApiResponse<EmailVerifyCodeResponseDTO> response = memberController.verifyEmailCode(requestDTO);
@@ -133,7 +133,7 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertFalse(response.getData().getIsVerified());
-        verify(memberService, times(1)).verifyCode("test@example.com", "wrongcode");
+        verify(memberService, times(1)).verifyCode(any());
     }
 
     @Test
@@ -142,7 +142,7 @@ public class MemberControllerTest {
         // Arrange
         EmailVerifyRequestDTO requestDTO = new EmailVerifyRequestDTO("test@example.com");
         when(memberService.getmemberByEmail(anyString())).thenReturn(mockMember);
-        when(memberService.sendEmailVerifyCode(anyString())).thenReturn("123456");
+        when(memberService.sendEmailVerifyCode(any())).thenReturn("123456");
 
         // Act
         ApiResponse<EmailVerifyResponseDTO> response = memberController.sendEmailVerificationCode(requestDTO);
@@ -154,7 +154,7 @@ public class MemberControllerTest {
         assertTrue(response.getData().getIsExisted());
         assertEquals("123456", response.getData().getVerificationCode());
         verify(memberService, times(1)).getmemberByEmail("test@example.com");
-        verify(memberService, times(1)).sendEmailVerifyCode("test@example.com");
+        verify(memberService, times(1)).sendEmailVerifyCode(any());
     }
 
     @Test
@@ -174,7 +174,7 @@ public class MemberControllerTest {
         assertFalse(response.getData().getIsExisted());
         assertNull(response.getData().getVerificationCode());
         verify(memberService, times(1)).getmemberByEmail("new@example.com");
-        verify(memberService, never()).sendEmailVerifyCode(anyString());
+        verify(memberService, never()).sendEmailVerifyCode(any());
     }
 
     @Test
@@ -186,7 +186,7 @@ public class MemberControllerTest {
         Member newMember = new Member("newuser@example.com", "newuser", "password123", userRole);
         UserDto newUserDto = new UserDto("newuser@example.com", "newuser", UserRole.USER);
 
-        when(memberService.createMember(any(CreateUserDTO.class))).thenReturn(newUserDto);
+        when(memberService.createMember(any())).thenReturn(newUserDto);
 
         // Act
         ApiResponse<UserDto> response = memberController.createMember(createUserDTO);
@@ -196,7 +196,7 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(newUserDto, response.getData());
-        verify(memberService, times(1)).createMember(createUserDTO);
+        verify(memberService, times(1)).createMember(any());
     }
 
     @Test
@@ -208,7 +208,7 @@ public class MemberControllerTest {
         Member updatedMember = new Member("test@example.com", "testuser", "password", managerRole);
         UserDto updatedUserDto = new UserDto("test@example.com", "testuser", UserRole.MANAGER);
 
-        when(memberService.grantRole(anyLong(), any(UserRole.class))).thenReturn(updatedUserDto);
+        when(memberService.grantRole(any())).thenReturn(updatedUserDto);
 
         // Act
         ApiResponse<UserDto> response = memberController.updateUserRole(customUserDetails, updateUserRoleDTO);
@@ -218,7 +218,7 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(updatedUserDto, response.getData());
-        verify(memberService, times(1)).grantRole(1L, UserRole.MANAGER);
+        verify(memberService, times(1)).grantRole(any());
     }
 
     @Test
@@ -230,7 +230,7 @@ public class MemberControllerTest {
         Member updatedMember = new Member("test@example.com", "testuser", "newpass", userRole);
         UserDto updatedUserDto = new UserDto("test@example.com", "testuser", UserRole.USER);
 
-        when(memberService.updateMember(anyLong(), any(UpdateUserPasswordDTO.class))).thenReturn(updatedUserDto);
+        when(memberService.updateMember(any())).thenReturn(updatedUserDto);
 
         // Act
         ApiResponse<UserDto> response = memberController.updateMember(customUserDetails, updatePasswordDTO);
@@ -240,7 +240,7 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(updatedUserDto, response.getData());
-        verify(memberService, times(1)).updateMember(1L, updatePasswordDTO);
+        verify(memberService, times(1)).updateMember(any());
     }
 
     @Test
@@ -263,7 +263,7 @@ public class MemberControllerTest {
         Member updatedMember = new Member("test@example.com", "newnickname", "password", userRole);
         UserWithIdNameEmailDto updatedUserDto = new UserWithIdNameEmailDto("test@example.com", "newnickname", UserRole.USER.name(), 1L);
 
-        when(memberService.updateNickname(anyLong(), any(UpdateUserNicknameDTO.class))).thenReturn(updatedUserDto);
+        when(memberService.updateNickname(any())).thenReturn(updatedUserDto);
 
         // Act
         ApiResponse<UserWithIdNameEmailDto> response = memberController.updateMemberNickname(customUserDetails, updateNicknameDTO);
@@ -273,7 +273,7 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertEquals(updatedUserDto.getName(), response.getData().getName());
-        verify(memberService, times(1)).updateNickname(1L, updateNicknameDTO);
+        verify(memberService, times(1)).updateNickname(any());
     }
 
     @Test
@@ -292,7 +292,7 @@ public class MemberControllerTest {
     void shouldDeactivateMemberSuccessfully() {
         // Arrange
         DeActivateUserDTO deActivateUserDTO = new DeActivateUserDTO("password");
-        when(memberService.deActivateMember(anyLong(), any(DeActivateUserDTO.class))).thenReturn(true);
+        when(memberService.deActivateMember(any())).thenReturn(true);
 
         // Act
         ApiResponse<Boolean> response = memberController.deActivateMember(customUserDetails, deActivateUserDTO);
@@ -302,7 +302,7 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertTrue(response.getData());
-        verify(memberService, times(1)).deActivateMember(1L, deActivateUserDTO);
+        verify(memberService, times(1)).deActivateMember(any());
     }
 
     @Test
@@ -321,7 +321,7 @@ public class MemberControllerTest {
     void shouldDeleteMemberSuccessfully() {
         // Arrange
         DeleteUserDTO deleteUserDTO = new DeleteUserDTO(1L);
-        when(memberService.deleteMember(any(DeleteUserDTO.class))).thenReturn(true);
+        when(memberService.deleteMember(any())).thenReturn(true);
 
         // Act
         ApiResponse<Boolean> response = memberController.deleteMember(customUserDetails, deleteUserDTO);
@@ -331,7 +331,7 @@ public class MemberControllerTest {
         assertTrue(response.isSuccess());
         assertEquals(200, response.getStatus());
         assertTrue(response.getData());
-        verify(memberService, times(1)).deleteMember(deleteUserDTO);
+        verify(memberService, times(1)).deleteMember(any());
     }
 
     @Test

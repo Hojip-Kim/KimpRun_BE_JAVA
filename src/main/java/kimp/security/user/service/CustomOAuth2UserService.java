@@ -1,9 +1,9 @@
 package kimp.security.user.service;
 
-import kimp.auth.dto.OauthProcessDTO;
+import kimp.auth.dto.internal.OauthProcessDTO;
 import kimp.auth.service.OAuth2Service;
 import kimp.security.user.CustomUserDetails;
-import kimp.user.dto.UserCopyDto;
+import kimp.user.dto.internal.UserCopyDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;

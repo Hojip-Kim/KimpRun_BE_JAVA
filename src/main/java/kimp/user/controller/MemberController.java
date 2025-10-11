@@ -5,13 +5,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import kimp.exception.response.ApiResponse;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
-import kimp.user.dto.UserDto;
-import kimp.user.dto.UserWithIdNameEmailDto;
+import kimp.user.dto.response.UserDto;
+import kimp.user.dto.response.UserWithIdNameEmailDto;
 import kimp.user.dto.request.*;
 import kimp.user.dto.response.AdminResponse;
 import kimp.user.dto.response.EmailVerifyCodeResponseDTO;
 import kimp.user.dto.response.EmailVerifyResponseDTO;
 import kimp.user.service.MemberService;
+import kimp.user.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -44,10 +45,11 @@ public class MemberController {
         if (UserDetails == null) {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "User not authenticated", HttpStatus.UNAUTHORIZED, "MemberController.getMember");
         }
-        
+
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
-        UserDto result = memberService.getmemberById(customUserDetails.getId());
+        GetMemberByIdVo vo = new GetMemberByIdVo(customUserDetails.getId());
+        UserDto result = memberService.getmemberById(vo);
         return ApiResponse.success(result);
     }
 
@@ -55,15 +57,15 @@ public class MemberController {
     @PreAuthorize("hasAuthority('MANAGER')")
     @GetMapping("/{id}")
     public ApiResponse<UserDto> findMemberById(@AuthenticationPrincipal UserDetails UserDetails, @PathVariable("id") long id ) throws IOException {
-        CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
-
-        UserDto result = memberService.getmemberById(id);
+        GetMemberByIdVo vo = new GetMemberByIdVo(id);
+        UserDto result = memberService.getmemberById(vo);
         return ApiResponse.success(result);
     }
 
     @PostMapping("/email/verify")
     public ApiResponse<EmailVerifyCodeResponseDTO> verifyEmailCode(@RequestBody EmailVerifyCodeRequestDTO requestDTO){
-        Boolean isVerify = this.memberService.verifyCode(requestDTO.getEmail(),requestDTO.getVerifyCode());
+        VerifyEmailCodeVo vo = new VerifyEmailCodeVo(requestDTO.getEmail(), requestDTO.getVerifyCode());
+        Boolean isVerify = this.memberService.verifyCode(vo);
 
         EmailVerifyCodeResponseDTO responseDTO = new EmailVerifyCodeResponseDTO();
 
@@ -86,7 +88,8 @@ public class MemberController {
             return ApiResponse.success(responseDTO);
         }
 
-        String verifyCode = memberService.sendEmailVerifyCode(requestDTO.getEmail());
+        SendEmailVerifyCodeVo vo = new SendEmailVerifyCodeVo(requestDTO.getEmail());
+        String verifyCode = memberService.sendEmailVerifyCode(vo);
 
         responseDTO.setIsExisted(true);
         responseDTO.setVerificationCode(verifyCode);
@@ -101,7 +104,8 @@ public class MemberController {
 
         EmailVerifyResponseDTO responseDTO = new EmailVerifyResponseDTO();
 
-        String verifyCode = memberService.sendEmailVerifyCode(requestDTO.getEmail());
+        SendEmailVerifyCodeVo vo = new SendEmailVerifyCodeVo(requestDTO.getEmail());
+        String verifyCode = memberService.sendEmailVerifyCode(vo);
 
         responseDTO.setIsExisted(false);
         responseDTO.setVerificationCode(verifyCode);
@@ -114,7 +118,8 @@ public class MemberController {
     @PostMapping("/sign-up")
     public ApiResponse<UserDto> createMember(@RequestBody CreateUserDTO request){
 
-        UserDto result = memberService.createMember(request);
+        CreateMemberVo vo = new CreateMemberVo(request);
+        UserDto result = memberService.createMember(vo);
         return ApiResponse.success(result);
     }
 
@@ -122,8 +127,8 @@ public class MemberController {
     @PreAuthorize("hasAuthority('MANAGER')")
     @PatchMapping("/update/role")
     public ApiResponse<UserDto> updateUserRole(@AuthenticationPrincipal UserDetails UserDetails, @RequestBody UpdateUserRoleDTO updateUserRoleDTO){
-        CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
-        UserDto result = memberService.grantRole(updateUserRoleDTO.getUserId(), updateUserRoleDTO.getRole());
+        UpdateUserRoleVo vo = new UpdateUserRoleVo(updateUserRoleDTO.getUserId(), updateUserRoleDTO.getRole().name());
+        UserDto result = memberService.grantRole(vo);
         return ApiResponse.success(result);
     }
 
@@ -136,7 +141,8 @@ public class MemberController {
 
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
 
-        UserDto result = memberService.updateMember(customUserDetails.getId(), UpdateUserPasswordDTO);
+        UpdateMemberPasswordVo vo = new UpdateMemberPasswordVo(customUserDetails.getId(), UpdateUserPasswordDTO);
+        UserDto result = memberService.updateMember(vo);
         return ApiResponse.success(result);
 
     }
@@ -147,7 +153,8 @@ public class MemberController {
         if(request == null) {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "UpdateUserPasswordDTO cannot be null", HttpStatus.BAD_REQUEST, "MemberController.updateMemberPassword");
         }
-        boolean isSuccess = memberService.updatePassword(request);
+        ResetPasswordVo vo = new ResetPasswordVo(request);
+        boolean isSuccess = memberService.updatePassword(vo);
 
         return ApiResponse.success(isSuccess);
     }
@@ -158,7 +165,8 @@ public class MemberController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "UpdateUserNicknameDTO cannot be null", HttpStatus.BAD_REQUEST, "MemberController.updateMemberNickname");
         }
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
-        UserWithIdNameEmailDto result = memberService.updateNickname(customUserDetails.getId(), UpdateUserNicknameDTO);
+        UpdateMemberNicknameVo vo = new UpdateMemberNicknameVo(customUserDetails.getId(), UpdateUserNicknameDTO);
+        UserWithIdNameEmailDto result = memberService.updateNickname(vo);
         return ApiResponse.success(result);
     }
 
@@ -171,7 +179,8 @@ public class MemberController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "DeActivateUserDTO cannot be null", HttpStatus.BAD_REQUEST, "MemberController.deActivateMember");
         }
 
-        Boolean isSuccessDeActivate = memberService.deActivateMember(customUserDetails.getId(), deActivateUserDTO);
+        DeActivateMemberVo vo = new DeActivateMemberVo(customUserDetails.getId(), deActivateUserDTO);
+        Boolean isSuccessDeActivate = memberService.deActivateMember(vo);
         return ApiResponse.success(isSuccessDeActivate);
     }
 
@@ -182,7 +191,8 @@ public class MemberController {
             throw new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "DeleteUserDTO cannot be null", HttpStatus.BAD_REQUEST, "MemberController.deleteMember");
         }
 
-        Boolean isDeleted = memberService.deleteMember(request);
+        DeleteMemberVo vo = new DeleteMemberVo(request);
+        Boolean isDeleted = memberService.deleteMember(vo);
         return ApiResponse.success(isDeleted);
     }
 
@@ -190,7 +200,9 @@ public class MemberController {
     @GetMapping("/admin")
     public ApiResponse<AdminResponse> redirectAdmin(@AuthenticationPrincipal UserDetails UserDetails, HttpServletResponse response) throws IOException {
         CustomUserDetails customUserDetails = (CustomUserDetails) UserDetails;
-        AdminResponse result = new AdminResponse(adminUrl);
+        AdminResponse result = AdminResponse.builder()
+                .response(adminUrl)
+                .build();
         return ApiResponse.success(result);
     }
 

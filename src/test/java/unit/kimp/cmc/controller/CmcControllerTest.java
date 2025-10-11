@@ -2,13 +2,14 @@ package unit.kimp.cmc.controller;
 
 import kimp.cmc.component.CoinMarketCapComponent;
 import kimp.cmc.controller.CmcController;
-import kimp.cmc.dto.common.coin.CmcApiDataDto;
-import kimp.cmc.dto.common.coin.CmcCoinInfoDataMapDto;
-import kimp.cmc.dto.common.coin.CmcCoinMapDataDto;
-import kimp.cmc.dto.common.exchange.CmcExchangeDetailMapDto;
-import kimp.cmc.dto.common.exchange.CmcExchangeDto;
+import kimp.cmc.dto.internal.coin.CmcApiDataDto;
+import kimp.cmc.dto.internal.coin.CmcCoinInfoDataMapDto;
+import kimp.cmc.dto.internal.coin.CmcCoinMapDataDto;
+import kimp.cmc.dto.internal.exchange.CmcExchangeDetailMapDto;
+import kimp.cmc.dto.internal.exchange.CmcExchangeDto;
 import kimp.cmc.dto.response.CmcCoinResponseDto;
 import kimp.cmc.service.CmcCoinManageService;
+import kimp.cmc.vo.GetCoinDataByCoinIdVo;
 import kimp.exception.response.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +24,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -74,7 +76,8 @@ public class CmcControllerTest {
     void shouldReturnCoinData() {
         // Arrange
         Long coinId = 1L;
-        when(cmcCoinManageService.findCmcCoinDataByCoinId(anyLong())).thenReturn(mockCmcCoinResponseDto);
+        GetCoinDataByCoinIdVo vo = new GetCoinDataByCoinIdVo(coinId);
+        when(cmcCoinManageService.findCmcCoinDataByCoinId(any(GetCoinDataByCoinIdVo.class))).thenReturn(mockCmcCoinResponseDto);
 
         // Act
         ApiResponse<CmcCoinResponseDto> response = cmcController.getCoinDataByCoinId(coinId);

@@ -1,6 +1,6 @@
 package kimp.chat.dto.request;
 
-import kimp.common.dto.PageRequestDto;
+import kimp.common.dto.request.PageRequestDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

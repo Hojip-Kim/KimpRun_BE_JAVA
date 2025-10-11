@@ -2,7 +2,7 @@ package kimp.websocket.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.market.components.impl.market.Upbit;
-import kimp.market.dto.coin.common.market.UpbitDto;
+import kimp.market.dto.coin.internal.market.UpbitDto;
 import kimp.market.controller.MarketDataStompController;
 import kimp.websocket.dto.response.UpbitReceiveDto;
 import kimp.websocket.dto.request.TicketMessage;
