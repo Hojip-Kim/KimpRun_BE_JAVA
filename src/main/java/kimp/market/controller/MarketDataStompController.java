@@ -1,6 +1,5 @@
 package kimp.market.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.market.dto.coin.internal.market.*;
 import kimp.market.dto.market.response.websocket.MultipleMarketDataResponseDto;
 import lombok.extern.slf4j.Slf4j;
