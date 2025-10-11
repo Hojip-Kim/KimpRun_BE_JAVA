@@ -102,4 +102,16 @@ public class SchedulingConfig {
         scheduler.initialize();
         return scheduler;
     }
+
+    // 뉴스 스케줄러용
+    @Bean("newsTaskScheduler")
+    public TaskScheduler newsTaskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(2);
+        scheduler.setThreadNamePrefix("news-scheduler-");
+        scheduler.setAwaitTerminationSeconds(60);
+        scheduler.setWaitForTasksToCompleteOnShutdown(true);
+        scheduler.initialize();
+        return scheduler;
+    }
 }
