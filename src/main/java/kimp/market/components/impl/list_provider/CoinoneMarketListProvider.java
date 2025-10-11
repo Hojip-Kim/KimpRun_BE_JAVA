@@ -1,6 +1,5 @@
 package kimp.market.components.impl.list_provider;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.market.common.MarketCommonMethod;
 import kimp.market.components.MarketListProvider;
 import kimp.market.dto.market.internal.CoinoneMarketInfo;
