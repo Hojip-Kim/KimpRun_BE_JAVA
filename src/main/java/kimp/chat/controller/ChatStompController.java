@@ -1,6 +1,5 @@
 package kimp.chat.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.chat.vo.SaveChatMessage;
 import kimp.chat.dto.request.ChatMessage;
 import kimp.chat.dto.response.ChatMessageResponse;
@@ -27,18 +26,15 @@ import java.util.UUID;
 @Slf4j
 public class ChatStompController {
 
-    private final ObjectMapper objectMapper;
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatStompService chatStompService;
     private final RedisTemplate<String, Object> chatRedisTemplate;
     private final RedisMessageHandler redisMessageHandler;
 
-    public ChatStompController(ObjectMapper objectMapper, 
-                              SimpMessagingTemplate messagingTemplate, 
+    public ChatStompController(SimpMessagingTemplate messagingTemplate,
                               ChatStompService chatStompService,
                               @Qualifier("chatRedisTemplate") RedisTemplate<String, Object> chatRedisTemplate,
                               RedisMessageHandler redisMessageHandler) {
-        this.objectMapper = objectMapper;
         this.messagingTemplate = messagingTemplate;
         this.chatStompService = chatStompService;
         this.chatRedisTemplate = chatRedisTemplate;
