@@ -9,7 +9,7 @@ import kimp.user.entity.ActivityRank;
 import kimp.user.entity.Member;
 import kimp.user.entity.Profile;
 import kimp.user.entity.SeedMoneyRange;
-import kimp.user.repository.ProfileRepository;
+import kimp.user.repository.user.ProfileRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 

@@ -1,4 +1,4 @@
-package kimp.user.service.impl;
+package kimp.user.service.member.impl;
 
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
@@ -11,7 +11,7 @@ import kimp.user.entity.ActivityRank;
 import kimp.user.entity.Member;
 import kimp.user.entity.Profile;
 import kimp.user.entity.SeedMoneyRange;
-import kimp.user.service.ProfileService;
+import kimp.user.service.member.ProfileService;
 import kimp.user.vo.GetProfileInfoVo;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
