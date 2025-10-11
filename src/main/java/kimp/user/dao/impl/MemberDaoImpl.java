@@ -22,6 +22,11 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
+    public Optional<Member> findById(Long id) {
+        return this.memberRepository.findById(id);
+    }
+
+    @Override
     public Member findMemberById(Long id){
         Optional<Member> member =  this.memberRepository.findById(id);
 
