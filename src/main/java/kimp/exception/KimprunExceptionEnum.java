@@ -26,9 +26,12 @@ public enum KimprunExceptionEnum {
     // Resource Exceptions
     RESOURCE_NOT_FOUND_EXCEPTION(HttpStatus.NOT_FOUND, "E0009"),
     RESOURCE_ALREADY_EXISTS_EXCEPTION(HttpStatus.CONFLICT, "E0010"),
-    
+    NOT_FOUND_EXCEPTION(HttpStatus.NOT_FOUND, "E0020"),
+    ALREADY_EXISTS_EXCEPTION(HttpStatus.CONFLICT, "E0021"),
+
     // Authentication Exceptions
     AUTHENTICATION_REQUIRED_EXCEPTION(HttpStatus.UNAUTHORIZED, "E0011"),
+    UNAUTHORIZED_EXCEPTION(HttpStatus.FORBIDDEN, "E0022"),
     
     // Business Logic Exceptions
     EXCHANGE_SCRAPING_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "E0012"),
