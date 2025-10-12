@@ -21,6 +21,7 @@ public class BoardLikeRepositoryCustomImpl implements BoardLikeRepositoryCustom 
     QMember member = QMember.member;
     QBoardLikeCount boardLikeCount = QBoardLikeCount.boardLikeCount;
 
+
     public BoardLikeRepositoryCustomImpl(EntityManager em) {
         this.queryFactory = new JPAQueryFactory(em);
         this.entityManager = em;
