@@ -3,8 +3,11 @@ package kimp.user.dao;
 import kimp.user.entity.Member;
 import kimp.user.entity.MemberRole;
 
+import java.util.Optional;
+
 public interface MemberDao {
 
+    public Optional<Member> findById(Long id);
     public Member findMemberById(Long id);
     public Member findMemberByIdWithProfile(Long id);
     public Member findMemberByEmail(String email);

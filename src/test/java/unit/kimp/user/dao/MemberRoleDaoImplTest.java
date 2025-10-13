@@ -3,7 +3,7 @@ package unit.kimp.user.dao;
 import kimp.user.dao.impl.MemberRoleDaoImpl;
 import kimp.user.entity.MemberRole;
 import kimp.user.enums.UserRole;
-import kimp.user.repository.MemberRoleRepository;
+import kimp.user.repository.user.MemberRoleRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

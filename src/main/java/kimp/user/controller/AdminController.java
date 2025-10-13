@@ -2,7 +2,7 @@ package kimp.user.controller;
 
 import kimp.exception.response.ApiResponse;
 import kimp.user.dto.request.CreateActivityRankRequestDto;
-import kimp.user.service.AdminService;
+import kimp.user.service.member.AdminService;
 import kimp.user.vo.CreateActivityRankVo;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;

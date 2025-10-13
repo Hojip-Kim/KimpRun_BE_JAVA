@@ -20,14 +20,18 @@ public class RestClientConfig {
     private String cdnApiUrl;
 
     @Bean
-    public RestClient restClient() {
+    public RestClient.Builder restClientBuilder() {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(5000);
         requestFactory.setReadTimeout(30000);
 
         return RestClient.builder()
-                .requestFactory(requestFactory)
-                .build();
+                .requestFactory(requestFactory);
+    }
+
+    @Bean
+    public RestClient restClient(RestClient.Builder builder) {
+        return builder.build();
     }
 
     @Bean

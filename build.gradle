@@ -16,10 +16,13 @@ ext {
     querydslVersion = "5.0.0"
 }
 
+// QueryDSL 생성 디렉토리를 먼저 정의
+def querydslDir = layout.buildDirectory.dir('generated/querydsl').get().asFile
+
 sourceSets {
     main {
         java {
-            srcDir "$buildDir/generated/querydsl"
+            srcDirs = ['src/main/java', querydslDir]
         }
     }
 
@@ -93,29 +96,48 @@ dependencies {
     // MyBatis
     implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
 
+    // Lombok - QueryDSL보다 먼저 처리되어야 함
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
     // QueryDSL
     implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
     annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
     annotationProcessor "jakarta.annotation:jakarta.annotation-api"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
-
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.postgresql:postgresql'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.h2database:h2'
+
+    // 테스트 소스셋에도 annotation processor 적용
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testAnnotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
 }
 
-def querydslDir = "$buildDir/generated/querydsl"
+// QueryDSL 생성 디렉토리 정리 태스크
+tasks.register('cleanQuerydsl', Delete) {
+    delete querydslDir
+}
 
-
+// clean 태스크가 실행될 때 QueryDSL 디렉토리도 정리
+tasks.named('clean') {
+    dependsOn 'cleanQuerydsl'
+}
 
 tasks.withType(JavaCompile).configureEach {
-    options.generatedSourceOutputDirectory = file(querydslDir)
+    options.generatedSourceOutputDirectory = querydslDir
     options.encoding = "UTF-8"
-    options.compilerArgs += ["-Xlint:deprecation", "-Xlint:unchecked"]
+    // options.compilerArgs += ["-Xlint:deprecation", "-Xlint:unchecked"]
+}
+
+// compileJava 태스크가 실행되기 전에 QueryDSL 생성 디렉토리가 존재하도록 보장
+tasks.named('compileJava') {
+    doFirst {
+        querydslDir.mkdirs()
+    }
 }
 
 tasks.named('test') {

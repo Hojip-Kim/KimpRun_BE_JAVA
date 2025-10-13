@@ -8,7 +8,7 @@ import kimp.security.user.CustomUserDetails;
 import kimp.user.dto.request.*;
 import kimp.user.dto.response.AnnonymousMemberResponseDto;
 import kimp.user.dto.response.UpdateAnonNicknameResponse;
-import kimp.user.service.AnnonyMousService;
+import kimp.user.service.member.AnnonyMousService;
 import kimp.user.vo.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;

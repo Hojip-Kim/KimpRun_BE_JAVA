@@ -4,7 +4,7 @@ import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import kimp.user.dao.DeclarationDao;
 import kimp.user.entity.Declaration;
-import kimp.user.repository.DeclarationRepository;
+import kimp.user.repository.user.DeclarationRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;

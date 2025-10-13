@@ -5,7 +5,7 @@ import kimp.exception.response.ApiResponse;
 import kimp.user.dto.request.CreateRoleRequestDto;
 import kimp.user.dto.request.UpdateRoleRequestDto;
 import kimp.user.dto.response.MemberRoleResponseDto;
-import kimp.user.service.MemberRoleService;
+import kimp.user.service.member.MemberRoleService;
 import kimp.user.vo.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

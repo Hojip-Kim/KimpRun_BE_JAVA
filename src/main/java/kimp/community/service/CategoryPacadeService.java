@@ -4,7 +4,7 @@ import kimp.community.dto.category.response.CategoryDto;
 import kimp.community.dto.category.request.CreateCategoryRequestDto;
 import kimp.community.entity.Category;
 import kimp.user.entity.Member;
-import kimp.user.service.MemberService;
+import kimp.user.service.member.MemberService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

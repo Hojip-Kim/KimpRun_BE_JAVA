@@ -3,7 +3,7 @@ package unit.kimp.auth.service.impl;
 import kimp.auth.dto.response.LoginMemberResponseDto;
 import kimp.auth.service.serviceImpl.SessionAuthServiceImpl;
 import kimp.auth.vo.CheckAuthStatusVo;
-import kimp.user.service.MemberService;
+import kimp.user.service.member.MemberService;
 import kimp.user.util.NicknameGeneratorUtils;
 import kimp.security.user.CustomUserDetails;
 import kimp.user.entity.Member;

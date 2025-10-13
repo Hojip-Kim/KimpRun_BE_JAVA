@@ -19,7 +19,7 @@ import java.util.concurrent.*;
 
 @Slf4j
 public class BinanceWebSocketClient extends WebSocketClient {
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final MarketDataStompController marketDataStompController;
     private final MarketInfoService marketInfoService;
     private final Binance binance;
@@ -30,8 +30,9 @@ public class BinanceWebSocketClient extends WebSocketClient {
     private static volatile boolean isConnected = false;
     private static volatile boolean isReconnecting = false;
 
-    public BinanceWebSocketClient(String serverUri, MarketDataStompController marketDataStompController, MarketInfoService marketInfoService, Binance binance) throws URISyntaxException {
+    public BinanceWebSocketClient(String serverUri, ObjectMapper objectMapper, MarketDataStompController marketDataStompController, MarketInfoService marketInfoService, Binance binance) throws URISyntaxException {
         super(new URI(serverUri));
+        this.objectMapper = objectMapper;
         this.marketDataStompController = marketDataStompController;
         this.marketInfoService = marketInfoService;
         this.binance = binance;

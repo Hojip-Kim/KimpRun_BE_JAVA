@@ -4,7 +4,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kimp.user.entity.Member;
-import kimp.user.service.MemberService;
+import kimp.user.service.member.MemberService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -22,6 +22,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URL;
 
 @Component
 @Slf4j
@@ -62,10 +63,10 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         securityContextRepository.saveContext(context, request, response);
 
         // 환경에 따른 프론트엔드 URL 결정
-        String targetUrl = determineTargetUrl();
-        
+        String targetUrl = determineTargetUrl(request);
+
         log.info("OAuth2 로그인 후 리디렉션 - URL: {}", targetUrl);
-        
+
         // 프론트엔드로 리디렉션
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
@@ -122,15 +123,44 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         }
     }
 
-    private String determineTargetUrl() {
-        // 프로덕션 환경 확인 (prod 프로파일 또는 특정 조건)
-        boolean isProduction = environment.acceptsProfiles(Profiles.of("prod"));
+    private String determineTargetUrl(HttpServletRequest request) {
+        // Referer 또는 Origin 헤더에서 요청이 온 도메인 확인
+        String referer = request.getHeader("Referer");
+        String origin = request.getHeader("Origin");
 
+        // Origin이나 Referer에서 도메인 추출
+        String requestOrigin = origin != null ? origin :
+                              (referer != null ? extractOriginFromReferer(referer) : null);
+
+        log.info("OAuth2 요청 출처 - Origin: {}, Referer: {}", origin, referer);
+
+        // 로컬 개발 환경 (localhost, www.localhost, 127.0.0.1 등 모든 로컬 주소)
+        if (requestOrigin != null && (requestOrigin.contains("localhost") || requestOrigin.contains("127.0.0.1"))) {
+            return requestOrigin + "?login=success";
+        }
+
+        // kimprun.com 도메인 (www, api 등 서브도메인 포함)
+        if (requestOrigin != null && requestOrigin.contains("kimprun.com")) {
+            return requestOrigin + "?login=success";
+        }
+
+        // 프로덕션 환경 확인 (기본값)
+        boolean isProduction = environment.acceptsProfiles(Profiles.of("prod"));
         String baseUrl = isProduction ? frontendProdUrl : frontendDevUrl;
         String targetUrl = baseUrl + "?login=success";
-        
+
         log.info("환경 구분 - Production: {}, Target URL: {}", isProduction, targetUrl);
-        
+
         return targetUrl;
+    }
+
+    private String extractOriginFromReferer(String referer) {
+        try {
+            URL url = new java.net.URL(referer);
+            return url.getProtocol() + "://" + url.getHost() + (url.getPort() != -1 && url.getPort() != 80 && url.getPort() != 443 ? ":" + url.getPort() : "");
+        } catch (Exception e) {
+            log.warn("Referer URL 파싱 실패: {}", referer);
+            return null;
+        }
     }
 }

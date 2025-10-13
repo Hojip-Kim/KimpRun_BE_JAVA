@@ -4,7 +4,7 @@ import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
 import kimp.user.dao.ActivityRankDao;
 import kimp.user.entity.ActivityRank;
-import kimp.user.repository.ActivityRankRepository;
+import kimp.user.repository.user.ActivityRankRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;

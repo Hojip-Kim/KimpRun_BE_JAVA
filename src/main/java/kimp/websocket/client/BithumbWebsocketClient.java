@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -23,9 +24,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 @Slf4j
+@Component
 public class BithumbWebsocketClient extends WebSocketClient {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final MarketDataStompController marketDataStompController;
     private final Bithumb bithumb;
 
@@ -35,8 +37,9 @@ public class BithumbWebsocketClient extends WebSocketClient {
     private static volatile boolean isConnected = false;
     private static volatile boolean isReconnecting = false;
 
-    public BithumbWebsocketClient(String serverUri, MarketDataStompController marketDataStompController, Bithumb bithumb) throws URISyntaxException {
+    public BithumbWebsocketClient(String serverUri, ObjectMapper objectMapper, MarketDataStompController marketDataStompController, Bithumb bithumb) throws URISyntaxException {
         super(new URI(serverUri));
+        this.objectMapper = objectMapper;
         this.marketDataStompController = marketDataStompController;
         this.bithumb = bithumb;
     }

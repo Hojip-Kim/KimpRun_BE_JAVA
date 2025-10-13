@@ -5,7 +5,7 @@ import kimp.exception.KimprunExceptionEnum;
 import kimp.user.dao.MemberRoleDao;
 import kimp.user.entity.MemberRole;
 import kimp.user.enums.UserRole;
-import kimp.user.repository.MemberRoleRepository;
+import kimp.user.repository.user.MemberRoleRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 

@@ -3,7 +3,7 @@ package kimp.user.dao.impl;
 import kimp.user.dao.UserAgentDao;
 import kimp.user.entity.Member;
 import kimp.user.entity.UserAgent;
-import kimp.user.repository.UserAgentRepository;
+import kimp.user.repository.user.UserAgentRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository

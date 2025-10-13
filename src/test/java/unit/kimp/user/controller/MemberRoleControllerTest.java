@@ -6,7 +6,7 @@ import kimp.user.dto.request.CreateRoleRequestDto;
 import kimp.user.dto.response.MemberRoleResponseDto;
 import kimp.user.entity.MemberRole;
 import kimp.user.enums.UserRole;
-import kimp.user.service.MemberRoleService;
+import kimp.user.service.member.MemberRoleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;

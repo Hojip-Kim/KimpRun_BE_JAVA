@@ -3,7 +3,7 @@ package kimp.user.dao.impl;
 import kimp.user.dao.BannedCountDao;
 import kimp.user.entity.BannedCount;
 import kimp.user.entity.UserAgent;
-import kimp.user.repository.BannedCountRepository;
+import kimp.user.repository.user.BannedCountRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository

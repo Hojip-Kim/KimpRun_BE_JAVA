@@ -9,7 +9,7 @@ import kimp.exception.response.ApiResponse;
 import kimp.security.user.CustomUserDetails;
 import kimp.security.user.dto.LoginResponseDto;
 import kimp.user.entity.Member;
-import kimp.user.service.MemberService;
+import kimp.user.service.member.MemberService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;

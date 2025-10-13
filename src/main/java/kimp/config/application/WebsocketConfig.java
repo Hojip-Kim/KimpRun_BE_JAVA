@@ -14,6 +14,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.*;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
+import java.util.Arrays;
+
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -42,8 +44,13 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         log.info("allowOrigins : " + allowOrigins);
+
+        String[] origins = Arrays.stream(allowOrigins.split(","))
+                .map(String::trim)
+                .toArray(String[]::new);
+
         registry.addEndpoint("/ws")
-                .setAllowedOrigins(allowOrigins.split(","))
+                .setAllowedOriginPatterns(origins)
                 .addInterceptors(
                     new HttpSessionHandshakeInterceptor(), // HTTP 세션 정보 전달
                     new ChatHandshakeInterceptor(chatTrackingService)         // 커스텀 핸드셰이크 인터셉터

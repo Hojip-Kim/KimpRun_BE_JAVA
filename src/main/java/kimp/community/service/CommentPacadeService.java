@@ -6,7 +6,7 @@ import kimp.community.entity.Board;
 import kimp.community.entity.Comment;
 import kimp.community.entity.CommentLikeCount;
 import kimp.user.entity.Member;
-import kimp.user.service.MemberService;
+import kimp.user.service.member.MemberService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
