@@ -16,10 +16,13 @@ ext {
     querydslVersion = "5.0.0"
 }
 
+// QueryDSL 생성 디렉토리를 먼저 정의
+def querydslDir = layout.buildDirectory.dir('generated/querydsl').get().asFile
+
 sourceSets {
     main {
         java {
-            srcDirs = ['src/main/java', "$buildDir/generated/querydsl"]
+            srcDirs = ['src/main/java', querydslDir]
         }
     }
 
@@ -114,11 +117,9 @@ dependencies {
     testAnnotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
 }
 
-def querydslDir = "$buildDir/generated/querydsl"
-
 // QueryDSL 생성 디렉토리 정리 태스크
 tasks.register('cleanQuerydsl', Delete) {
-    delete file(querydslDir)
+    delete querydslDir
 }
 
 // clean 태스크가 실행될 때 QueryDSL 디렉토리도 정리
@@ -127,7 +128,7 @@ tasks.named('clean') {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.generatedSourceOutputDirectory = file(querydslDir)
+    options.generatedSourceOutputDirectory = querydslDir
     options.encoding = "UTF-8"
     // options.compilerArgs += ["-Xlint:deprecation", "-Xlint:unchecked"]
 }
@@ -135,7 +136,7 @@ tasks.withType(JavaCompile).configureEach {
 // compileJava 태스크가 실행되기 전에 QueryDSL 생성 디렉토리가 존재하도록 보장
 tasks.named('compileJava') {
     doFirst {
-        file(querydslDir).mkdirs()
+        querydslDir.mkdirs()
     }
 }
 
