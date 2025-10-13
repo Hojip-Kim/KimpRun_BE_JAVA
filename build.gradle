@@ -115,7 +115,7 @@ def querydslDir = "$buildDir/generated/querydsl"
 tasks.withType(JavaCompile).configureEach {
     options.generatedSourceOutputDirectory = file(querydslDir)
     options.encoding = "UTF-8"
-    options.compilerArgs += ["-Xlint:deprecation", "-Xlint:unchecked"]
+    // options.compilerArgs += ["-Xlint:deprecation", "-Xlint:unchecked"]
 }
 
 tasks.named('test') {
