@@ -19,7 +19,7 @@ ext {
 sourceSets {
     main {
         java {
-            srcDir "$buildDir/generated/querydsl"
+            srcDirs = ['src/main/java', "$buildDir/generated/querydsl"]
         }
     }
 
