@@ -4,7 +4,7 @@ import kimp.chat.vo.SaveChatMessage;
 import kimp.chat.dto.request.ChatMessage;
 import kimp.chat.dto.response.ChatMessageResponse;
 import kimp.chat.service.ChatStompService;
-import kimp.config.redis.RedisMessageBrokerConfig;
+import kimp.common.redis.constant.RedisChannelType;
 import kimp.config.redis.handler.RedisMessageHandler;
 import kimp.exception.KimprunException;
 import kimp.exception.KimprunExceptionEnum;
@@ -169,10 +169,11 @@ public class ChatStompController {
             );
             
             // Redis 채널에 메시지 발행
-            chatRedisTemplate.convertAndSend(RedisMessageBrokerConfig.CHAT_CHANNEL, wrapper);
-            
-            log.debug("Redis 메시지 발행 완료 - 채널: {}, 채팅ID: {}, 인스턴스ID: {}", 
-                    RedisMessageBrokerConfig.CHAT_CHANNEL, 
+            String channel = RedisChannelType.CHAT_MESSAGES.getChannel();
+            chatRedisTemplate.convertAndSend(channel, wrapper);
+
+            log.debug("Redis 메시지 발행 완료 - 채널: {}, 채팅ID: {}, 인스턴스ID: {}",
+                    channel,
                     chatMessageResponse.getChatID(),
                     redisMessageHandler.getInstanceId());
                     

@@ -65,27 +65,16 @@ public class CoinnessArticleNewsSourceServiceImpl implements NewsSourceService<C
     @Override
     @Transactional
     public News updateNewsFromSource(News existingNews, CoinnessArticleDto newsSourceDto) {
-        News updatedNews = News.builder()
-                .id(existingNews.getId())
-                .newsSource(NewsSource.COINNESS)
-                .sourceSequenceId(newsSourceDto.getId())
-                .newsType("article")
-                .region("KR")
-                .title(newsSourceDto.getTitle())
-                .plainTextContent(newsSourceDto.getDescription())
-                .markdownContent(newsSourceDto.getDescription())
-                .thumbnail(newsSourceDto.getThumbnailImage())
-                .sentiment("NEUTRAL")
-                .sourceUrl(newsSourceDto.getSourceUrl())
-                .createEpochMillis(newsSourceDto.getCreateEpochMillis())
-                .updateEpochMillis(newsSourceDto.getCreateEpochMillis())
-                .changeValue(null)
-                .isNew(true)
-                .isHeadline(false)
-                .createdAt(existingNews.getCreatedAt())
-                .build();
+        // 엔티티의 update 메서드를 사용하여 Dirty Checking으로 UPDATE (SELECT 없이)
+        existingNews.updateFromCoinnessArticle(
+            newsSourceDto.getTitle(),
+            newsSourceDto.getDescription(),
+            newsSourceDto.getThumbnailImage(),
+            newsSourceDto.getSourceUrl(),
+            newsSourceDto.getCreateEpochMillis()
+        );
 
-        return updatedNews;
+        return existingNews;
     }
 
     @Transactional

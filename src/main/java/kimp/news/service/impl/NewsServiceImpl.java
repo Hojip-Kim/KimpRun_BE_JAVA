@@ -40,10 +40,8 @@ public class NewsServiceImpl implements NewsService {
     @Override
     @Transactional
     public News updateNews(News existingNews, BloomingBitNewsDto bloomingBitNewsDto) {
-        News updatedNews = bloomingBitNewsSourceService.updateNewsFromSource(existingNews, bloomingBitNewsDto);
-        News savedNews = newsDao.save(updatedNews);
-        bloomingBitNewsSourceService.updateNewsCollections(savedNews, bloomingBitNewsDto);
-        return savedNews;
+        bloomingBitNewsSourceService.updateNewsFromSource(existingNews, bloomingBitNewsDto);
+        return existingNews;
     }
 
     @Override
@@ -98,5 +96,10 @@ public class NewsServiceImpl implements NewsService {
     @Transactional
     public void saveAll(List<News> newsList) {
         newsDao.saveAll(newsList);
+    }
+
+    @Override
+    public List<News> findByNewsSourceAndSourceSequenceIdIn(NewsSource newsSource, List<Long> sourceSequenceIds) {
+        return newsDao.findByNewsSourceAndSourceSequenceIdIn(newsSource, sourceSequenceIds);
     }
 }

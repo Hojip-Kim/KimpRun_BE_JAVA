@@ -35,12 +35,6 @@ public class NoticeServiceImpl implements NoticeService
     }
 
     @Override
-    public NoticeDto getNoticeById(Long id) {
-        Notice notice = noticeDao.getNotice(id);
-        return dtoConverter.convertNoticeToDto(notice);
-    }
-
-    @Override
     public NoticeDto getNoticeByLink(String link) {
         Notice notice = noticeDao.getNoticeByLink(link);
         return dtoConverter.convertNoticeToDto(notice);
@@ -62,31 +56,6 @@ public class NoticeServiceImpl implements NoticeService
     }
 
     @Override
-    public NoticeDto createNotice(String title, String link, LocalDateTime date) {
-        Notice notice = new Notice(title, link, date);
-
-        Notice savedNotice = noticeDao.createNotice(notice);
-
-        return dtoConverter.convertNoticeToDto(savedNotice);
-    }
-
-    @Override
-    @Transactional
-    public NoticeDto findNoticeByLink(String link) {
-        Notice notice = this.noticeDao.getNoticeByLink(link);
-
-        return dtoConverter.convertNoticeToDto(notice);
-    }
-
-    @Override
-    public NoticeDto updateNotice(Long id, String title, String link) {
-        Notice notice = noticeDao.getNotice(id);
-        notice.updateTitle(title);
-        notice.updateLink(link);
-        return dtoConverter.convertNoticeToDto(notice);
-    }
-
-    @Override
     @Transactional
     public NoticeDto updateNoticeDate(Long id, LocalDateTime date) {
         Notice notice = noticeDao.getNotice(id);
@@ -105,24 +74,18 @@ public class NoticeServiceImpl implements NoticeService
     }
 
     @Override
-    public LocalDateTime getLatestNoticeDate(MarketType marketType) {
-        try {
-            return noticeDao.getLatestNoticeDate(marketType);
-        } catch (Exception e) {
-            log.error("최신 공지사항 날짜 조회 실패: {} - {}", marketType, e.getMessage());
-            return null;
-        }
-    }
-
-    @Override
-    public List<String> getNoticeLinksAfterDate(MarketType marketType, LocalDateTime afterDate) {
+    @Transactional(readOnly = true)
+    public List<NoticeDto> getNoticesAfterDate(MarketType marketType, LocalDateTime afterDate) {
         try {
             if (afterDate == null) {
                 return List.of();
             }
-            return noticeDao.getNoticeLinksAfterDate(marketType, afterDate);
+            List<Notice> notices = noticeDao.getNoticesAfterDate(marketType, afterDate);
+            return notices.stream()
+                .map(notice -> dtoConverter.convertNoticeToDto(notice))
+                .toList();
         } catch (Exception e) {
-            log.error("날짜 이후 공지사항 링크 조회 실패: {} - {}", marketType, e.getMessage());
+            log.error("날짜 이후 공지사항 조회 실패: {} - {}", marketType, e.getMessage());
             return List.of();
         }
     }

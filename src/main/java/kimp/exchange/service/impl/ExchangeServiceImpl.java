@@ -49,18 +49,6 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
 
     @Override
-    public ExchangeDto getExchangeByMarketType(MarketType exchangeName) {
-        Exchange exchange = exchangeDao.getExchangeByMarketType(exchangeName);
-        return dtoConverter.convertExchangeToExchangeDto(exchange);
-    }
-
-    @Override
-    public List<ExchangeDto> getExchangesByMarketTypes(List<MarketType> exchangeName) {
-        List<Exchange> exchanges = exchangeDao.getExchangeByMarketTypes(exchangeName);
-        return dtoConverter.convertExchangeListToExchangeDtoList(exchanges);
-    }
-
-    @Override
     public ExchangeDto createExchange(CreateExchangeVo vo) {
         MarketType exchangeType = vo.getRequest().getExchangeName();
         String exchangeMainLink = vo.getRequest().getLink();

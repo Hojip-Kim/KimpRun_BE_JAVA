@@ -1,14 +1,14 @@
 package kimp.news.service.impl;
 
 import kimp.common.lock.DistributedLockService;
-import kimp.news.component.CoinnessComponent;
+import kimp.common.redis.constant.RedisKeyType;
+import kimp.news.component.impl.CoinnessComponent;
 import kimp.news.dto.internal.coinness.CoinnessArticleDto;
 import kimp.news.dto.internal.coinness.CoinnessBreakingNewsDto;
 import kimp.news.entity.News;
 import kimp.news.dao.NewsDao;
 import kimp.news.enums.NewsSource;
 import kimp.news.service.CoinnessScrapService;
-import kimp.news.service.NewsSourceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -16,8 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -25,9 +24,7 @@ public class CoinnessScrapServiceImpl implements CoinnessScrapService {
 
     private static final String BREAKING_NEWS_LOCK_KEY = "news-scrape:coinness:breaking";
     private static final String ARTICLES_LOCK_KEY = "news-scrape:coinness:articles";
-    private static final String BREAKING_NEWS_CACHE_KEY = "news:coinness:breaking:ids";
-    private static final String ARTICLES_CACHE_KEY = "news:coinness:articles:ids";
-    private static final int LOCK_TIMEOUT = 300; // 5 minutes
+    private static final int LOCK_TIMEOUT = 300;
 
     private final CoinnessComponent coinnessComponent;
     private final CoinnessBreakingNewsSourceServiceImpl breakingNewsSourceService;
@@ -70,41 +67,38 @@ public class CoinnessScrapServiceImpl implements CoinnessScrapService {
                 return;
             }
 
-            // Process all breaking news with upsert logic
             int insertCount = 0;
             int updateCount = 0;
             List<News> processedNewsList = new ArrayList<>();
 
+            // 1. 모든 ID를 한번에 조회
+            List<Long> allIds = newsList.stream()
+                    .map(CoinnessBreakingNewsDto::getId)
+                    .toList();
+
+            Map<Long, News> existingNewsMap = newsDao.findByNewsSourceAndSourceSequenceIdIn(
+                    NewsSource.COINNESS,
+                    allIds
+            ).stream().collect(java.util.stream.Collectors.toMap(News::getSourceSequenceId, n -> n));
+
+            // 2. 메모리에서 구분하여 처리
             for (CoinnessBreakingNewsDto newsDto : newsList) {
                 try {
-                    // Check if news already exists
-                    boolean exists = newsDao.existsByNewsSourceAndSourceSequenceId(
-                            NewsSource.COINNESS,
-                            newsDto.getId()
-                    );
-
                     News savedNews;
-                    if (exists) {
-                        // Update existing news
-                        News existingNews = newsDao.findByNewsSourceAndSourceSequenceId(
-                                NewsSource.COINNESS,
-                                newsDto.getId()
-                        ).orElseThrow();
+                    News existingNews = existingNewsMap.get(newsDto.getId());
 
-                        News updatedNews = breakingNewsSourceService.updateNewsFromSource(existingNews, newsDto);
-                        savedNews = newsDao.save(updatedNews);
-                        breakingNewsSourceService.updateNewsCollections(savedNews, newsDto);
+                    if (existingNews != null) {
+                        breakingNewsSourceService.updateNewsFromSource(existingNews, newsDto);
+                        savedNews = existingNews;
                         updateCount++;
                         log.debug("속보 업데이트 완료: id={}, title={}", newsDto.getId(), newsDto.getTitle());
                     } else {
-                        // Insert new news
                         News news = breakingNewsSourceService.createNewsFromSource(newsDto);
                         savedNews = newsDao.save(news);
                         breakingNewsSourceService.saveNewsCollections(savedNews, newsDto);
                         insertCount++;
 
-                        // Update Redis cache for new news
-                        redisTemplate.opsForSet().add(BREAKING_NEWS_CACHE_KEY, String.valueOf(newsDto.getId()));
+                        redisTemplate.opsForSet().add(RedisKeyType.NEWS_COINNESS_BREAKING_IDS.getKey(), String.valueOf(newsDto.getId()));
                         log.debug("속보 저장 완료: id={}, title={}", newsDto.getId(), newsDto.getTitle());
                     }
 
@@ -145,41 +139,38 @@ public class CoinnessScrapServiceImpl implements CoinnessScrapService {
                 return;
             }
 
-            // Process all articles with upsert logic
             int insertCount = 0;
             int updateCount = 0;
             List<News> processedArticlesList = new ArrayList<>();
 
+            // 1. 모든 ID를 한번에 조회
+            List<Long> allIds = articles.stream()
+                    .map(CoinnessArticleDto::getId)
+                    .toList();
+
+            Map<Long, News> existingNewsMap = newsDao.findByNewsSourceAndSourceSequenceIdIn(
+                    NewsSource.COINNESS,
+                    allIds
+            ).stream().collect(java.util.stream.Collectors.toMap(News::getSourceSequenceId, n -> n));
+
+            // 2. 메모리에서 구분하여 처리
             for (CoinnessArticleDto articleDto : articles) {
                 try {
-                    // Check if article already exists
-                    boolean exists = newsDao.existsByNewsSourceAndSourceSequenceId(
-                            NewsSource.COINNESS,
-                            articleDto.getId()
-                    );
-
                     News savedNews;
-                    if (exists) {
-                        // Update existing article
-                        News existingNews = newsDao.findByNewsSourceAndSourceSequenceId(
-                                NewsSource.COINNESS,
-                                articleDto.getId()
-                        ).orElseThrow();
+                    News existingNews = existingNewsMap.get(articleDto.getId());
 
-                        News updatedNews = articleNewsSourceService.updateNewsFromSource(existingNews, articleDto);
-                        savedNews = newsDao.save(updatedNews);
-                        articleNewsSourceService.updateNewsCollections(savedNews, articleDto);
+                    if (existingNews != null) {
+                        articleNewsSourceService.updateNewsFromSource(existingNews, articleDto);
+                        savedNews = existingNews;  // 영속 엔티티 그대로 사용
                         updateCount++;
                         log.debug("기사 업데이트 완료: id={}, title={}", articleDto.getId(), articleDto.getTitle());
                     } else {
-                        // Insert new article
                         News news = articleNewsSourceService.createNewsFromSource(articleDto);
                         savedNews = newsDao.save(news);
                         articleNewsSourceService.saveNewsCollections(savedNews, articleDto);
                         insertCount++;
 
-                        // Update Redis cache for new article
-                        redisTemplate.opsForSet().add(ARTICLES_CACHE_KEY, String.valueOf(articleDto.getId()));
+                        redisTemplate.opsForSet().add(RedisKeyType.NEWS_COINNESS_ARTICLES_IDS.getKey(), String.valueOf(articleDto.getId()));
                         log.debug("기사 저장 완료: id={}, title={}", articleDto.getId(), articleDto.getTitle());
                     }
 

@@ -1,15 +1,11 @@
 package kimp.cmc.service.impl;
 
-import kimp.cmc.component.CoinMarketCapComponent;
 import kimp.cmc.dao.coin.impl.CmcCoinDaoImpl;
 import kimp.cmc.dao.coin.impl.CmcCoinInfoDaoImpl;
 import kimp.cmc.dao.coin.impl.CmcCoinMetaDaoImpl;
 import kimp.cmc.dao.coin.impl.CmcMainnetDaoImpl;
 import kimp.cmc.dao.coin.impl.CmcPlatformDaoImpl;
 import kimp.cmc.dao.coin.impl.CmcRankDaoImpl;
-import kimp.cmc.dto.internal.coin.CmcApiDataDto;
-import kimp.cmc.dto.internal.coin.CmcCoinInfoDataMapDto;
-import kimp.cmc.dto.internal.coin.CmcCoinMapDataDto;
 import kimp.cmc.dto.response.CmcCoinInfoResponseDto;
 import kimp.cmc.dto.response.CmcCoinResponseDto;
 import kimp.cmc.entity.coin.CmcCoin;
@@ -32,7 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,7 +35,6 @@ import java.util.stream.Collectors;
 @Service
 public class CmcCoinManageServiceImpl implements CmcCoinManageService {
 
-    private final CoinMarketCapComponent coinMarketCapComponent;
     private final CoinService coinService;
     private final MarketInfoServiceImpl marketInfoServiceImpl;
 
@@ -52,7 +46,7 @@ public class CmcCoinManageServiceImpl implements CmcCoinManageService {
     private final CmcCoinMetaDaoImpl cmcCoinMetaDao;
     private final CmcCoinRepository cmcCoinRepository;
 
-    public CmcCoinManageServiceImpl(CmcCoinDaoImpl cmcDao, CmcRankDaoImpl cmcRankDao, CmcMainnetDaoImpl cmcMainnetDao, CmcPlatformDaoImpl cmcPlatformDao, CmcCoinInfoDaoImpl cmcCoinInfoDao, CmcCoinMetaDaoImpl cmcCoinMetaDao, CmcCoinRepository cmcCoinRepository, CoinMarketCapComponent coinMarketCapComponent, CoinService coinService, MarketInfoServiceImpl marketInfoServiceImpl) {
+    public CmcCoinManageServiceImpl(CmcCoinDaoImpl cmcDao, CmcRankDaoImpl cmcRankDao, CmcMainnetDaoImpl cmcMainnetDao, CmcPlatformDaoImpl cmcPlatformDao, CmcCoinInfoDaoImpl cmcCoinInfoDao, CmcCoinMetaDaoImpl cmcCoinMetaDao, CmcCoinRepository cmcCoinRepository, CoinService coinService, MarketInfoServiceImpl marketInfoServiceImpl) {
         this.cmcDao = cmcDao;
         this.cmcRankDao = cmcRankDao;
         this.cmcMainnetDao = cmcMainnetDao;
@@ -60,19 +54,8 @@ public class CmcCoinManageServiceImpl implements CmcCoinManageService {
         this.cmcCoinInfoDao = cmcCoinInfoDao;
         this.cmcCoinMetaDao = cmcCoinMetaDao;
         this.cmcCoinRepository = cmcCoinRepository;
-        this.coinMarketCapComponent = coinMarketCapComponent;
         this.coinService = coinService;
         this.marketInfoServiceImpl = marketInfoServiceImpl;
-    }
-
-    private List<CmcCoinMapDataDto> cmcCoinMapDataDtoList = new ArrayList<>();
-    private List<CmcApiDataDto> cmcApiDataDtoList = new ArrayList<>();
-    private CmcCoinInfoDataMapDto cmcCoinInfoDataMapDto;
-
-    public List<CmcCoinMapDataDto> getCmcCoinMapDataDtoList(int start, int limit) {
-        List<CmcCoinMapDataDto> cmcCoinMapDataDtos = coinMarketCapComponent.getCoinMapFromCMC(start, limit);
-
-        return cmcCoinMapDataDtos.size() != 0 ? cmcCoinMapDataDtos : null;
     }
 
     @Override

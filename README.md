@@ -15,8 +15,8 @@ KimpRun은 여러 거래소(업비트, 바이낸스, 빗썸, 코인원)에서 �
 - 📊 **차익거래 감지**: 통합 시장 데이터 처리 및 김치 프리미엄 분석
 - 🔔 **거래소 공지사항 집계**: 자동화된 스크래핑 및 알림 시스템 (텔레그램 + 애플리케이션) -> 최대 공지사항 뜬 후 20초 이내 알림
 - 👥 **커뮤니티 기능**: 게시판, 댓글 및 유저 추적
-- 🔒 **분산 시스템 지원**: Redisson을 이용한 Redis 기반 분산 락 및 속도 제한 (Api Rate Limiter)
-- 📈 **배치 처리**: 스케줄링화 되어있는 데이터 동기화를 위한 Spring Batch ETL
+- 🗄️ **CMC 데이터 조회**: CoinMarketCap 코인/거래소 메타데이터 제공 (배치 처리는 별도 서비스로 분리)
+- 🔐 **OAuth2 인증**: Google 소셜 로그인 지원
 
 ## 🛠 기술 스택
 
@@ -29,7 +29,7 @@ KimpRun은 여러 거래소(업비트, 바이낸스, 빗썸, 코인원)에서 �
 - **주 데이터베이스**: PostgreSQL 16.4 (트랜잭션 데이터)
 - **문서 저장소**: MongoDB 5.0 (채팅 데이터)
 - **캐시 및 세션**: Redis
-- **ORM**: Spring Data JPA + QueryDSL (타입 안전 쿼리), MyBatis (동적 SQL)
+- **ORM**: Spring Data JPA + QueryDSL (타입 안전 쿼리)
 
 ### 실시간 및 메시징
 - **WebSocket**: 실시간 데이터 스트리밍을 위한 Spring WebSocket + STOMP
@@ -66,9 +66,9 @@ REST API            비즈니스 로직           데이터 접근 계층       
 - 거래소별 구현
 
 #### 🪙 CMC 모듈 (`/cmc`)
-- CoinMarketCap API 통합
-- 코인 메타데이터 및 순위 동기화
-- 주기적 업데이트를 위한 배치 처리
+- CoinMarketCap 코인/거래소 메타데이터 조회
+- 코인 순위 및 상세 정보 제공
+- 메타데이터 조회 API (배치 처리는 별도 서비스로 분리)
 
 #### 👥 Community 모듈 (`/community`)
 - 사용자 생성 콘텐츠 관리
@@ -105,44 +105,16 @@ REST API            비즈니스 로직           데이터 접근 계층       
 - 🟪 **빗썸**: `BithumbWebsocketClient.java`
 - 🟩 **코인원**: `CoinoneWebsocketClient.java`
 
-## 🔒 보안 및 속도 제한
-
-### 분산 락 (Redisson)
-- 자동 락 워치독 (30초 TTL 갱신)
-- 안전한 분산 작업
-- 수동 TTL 확장 불필요
-
-### API 속도 제한 (Redisson)
-- 리소스별 속도 제한
-- 인스턴스 간 분산 속도 제한
-- 지수적 백오프를 통한 자동 재시도
-
 ## 📦 배치 처리
 
-### Spring Batch 작업
-- **CMC 데이터 동기화**: 주기적 CoinMarketCap 데이터 동기화
-- **공지사항 처리**: 거래소 공지사항 집계 및 처리
+배치 처리 시스템은 별도의 서비스로 분리되었습니다.
 
-### 배치 스텝 구성
+### 주요 배치 작업
+- **CMC 데이터 동기화**: CoinMarketCap 코인/거래소 메타데이터 주기적 동기화
+- **공지사항 처리**: 거래소 공지사항 집계 및 알림 처리
 
-#### CMC 데이터 동기화 스텝 (순차 실행)
-1. **coinMapSyncStep**: CoinMarketCap 코인 맵 데이터 수집 및 저장
-2. **coinLatestInfoSyncStep**: 코인 최신 정보 업데이트 (랭킹 등)
-3. **coinDetailInfoSyncStep**: 코인 상세 정보 수집 및 저장
-4. **exchangeMapSyncStep**: 거래소 맵 데이터 수집 및 저장
-5. **exchangeDetailInfoSyncStep**: 거래소 상세 정보 수집 (멀티스레드 Tasklet)
-6. **coinInfoBulkStep**: 모든 CMC 코인 정보 일괄 처리 (멀티스레드 Tasklet)
-7. **coinMetaStep**: CmcCoinMeta 데이터 처리 (Tasklet)
-8. **coinMappingStep**: CMC Coin과 기존 Coin 매핑 (Tasklet)
-
-### 배치 처리 특징
-- **분산 락**: Redis 분산 락으로 중복 실행 방지
-- **API 속도 제한**: Redisson 기반 CMC API 호출 제한 (30회/분)
-- **비동기 실행**: 멀티스레드 처리 (4개 스레드 풀)
-- **안전한 동시성**: 분산 환경에서 하나의 인스턴스만 배치 실행
-- **청크 기반 처리**: 대용량 데이터 처리를 위한 청크 단위 처리
-
-`BatchConfig.java`에서 설정되며, 스케줄링과 수동 실행을 모두 지원합니다.
+배치 서비스는 Spring Batch 기반으로 구현되어 있으며, Redisson 분산 락과 API 속도 제한을 통해 안전한 동시성을 보장합니다.
+자세한 내용은 별도 배치 서비스 저장소를 참고하세요.
 
 ## 🚢 CI/CD 파이프라인
 
@@ -162,17 +134,27 @@ REST API            비즈니스 로직           데이터 접근 계층       
 
 ```
 src/main/java/kimp/
-├── batch/                      # Spring Batch 작업 (CMC 데이터 동기화, 공지사항 처리)
-├── cmc/                       # CoinMarketCap API 통합 (코인/거래소 메타데이터)
-├── common/                    # 공유 유틸리티 (분산락, 속도제한, 예외처리)
-├── community/                 # 커뮤니티 기능 (게시판, 댓글)
-├── config/                    # 애플리케이션 설정 (DB, Redis, 초기화)
+├── auth/                      # 인증 처리 (OAuth2, 세션)
+├── cdn/                       # CDN 관리 (Cloudflare)
+├── chat/                      # 채팅 기능 (MongoDB 기반)
+├── cmc/                       # CoinMarketCap 메타데이터 조회 API
+├── common/                    # 공유 유틸리티 (DTO, 공통 로직)
+├── community/                 # 커뮤니티 기능 (게시판, 댓글, 카테고리)
+├── config/                    # 애플리케이션 설정 (DB, Redis, Security, WebSocket)
+├── exception/                 # 예외 처리 및 글로벌 예외 핸들러
 ├── exchange/                  # 거래소 관리 (CRUD, 메타데이터)
+├── filter/                    # 커스텀 필터 (인증, 로깅)
+├── logs/                      # 로그 관리
 ├── market/                    # 시장 데이터 처리 (실시간 가격, 차익거래)
-├── notice/                    # 공지사항 관리 (스크래핑, 알림)
-├── scrap/                     # 웹 스크래핑 (거래소별 공지사항 수집)
-├── security/                  # 보안 설정 (인증, 인가)
-├── test/                      # 테스트 데이터 초기화
+├── news/                      # 뉴스 관리
+├── notice/                    # 공지사항 관리 (알림, 텔레그램 연동)
+├── preloader/                 # 애플리케이션 시작 시 데이터 사전 로드
+├── scrap/                     # 웹 스크래핑 서비스 연동 (거래소별 공지사항 수집)
+├── security/                  # 보안 설정 (SecurityConfig, 인가)
+├── telegram/                  # 텔레그램 봇 연동 (공지사항 알림)
+├── user/                      # 사용자 관리 (회원, 권한)
+├── util/                      # 유틸리티 클래스
+├── webhook/                   # 웹훅 처리 (Slack)
 └── websocket/                 # WebSocket 처리 (STOMP, 실시간 스트리밍)
 ```
 

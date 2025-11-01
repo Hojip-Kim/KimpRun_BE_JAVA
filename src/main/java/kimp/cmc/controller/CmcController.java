@@ -1,6 +1,5 @@
 package kimp.cmc.controller;
 
-import kimp.cmc.component.CoinMarketCapComponent;
 import kimp.cmc.dto.response.CmcCoinInfoResponseDto;
 import kimp.cmc.dto.response.CmcCoinResponseDto;
 import kimp.cmc.dto.response.CmcExchangeInfoResponseDto;
@@ -22,12 +21,10 @@ public class CmcController {
 
     private final CmcCoinManageService cmcCoinManageService;
     private final CmcExchangeManageService cmcExchangeManageService;
-    private final CoinMarketCapComponent coinMarketCapComponent;
 
-    public CmcController(CmcCoinManageService cmcCoinManageService, CmcExchangeManageService cmcExchangeManageService, CoinMarketCapComponent coinMarketCapComponent) {
+    public CmcController(CmcCoinManageService cmcCoinManageService, CmcExchangeManageService cmcExchangeManageService) {
         this.cmcCoinManageService = cmcCoinManageService;
         this.cmcExchangeManageService = cmcExchangeManageService;
-        this.coinMarketCapComponent = coinMarketCapComponent;
     }
 
     @GetMapping("/coin")

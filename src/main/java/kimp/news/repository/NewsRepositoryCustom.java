@@ -1,4 +1,4 @@
-package kimp.news.dao;
+package kimp.news.repository;
 
 import kimp.news.entity.News;
 import kimp.news.enums.NewsSource;
@@ -6,9 +6,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.Optional;
 
-public interface NewsDao {
+/**
+ * News Repository의 커스텀 쿼리 인터페이스
+ * QueryDSL을 사용한 복잡한 쿼리를 위한 인터페이스
+ */
+public interface NewsRepositoryCustom {
 
     /**
      * 모든 뉴스 조회 (페이징, 생성시간 내림차순)
@@ -31,34 +34,9 @@ public interface NewsDao {
     Page<News> findHeadlinesOrderByCreateEpochDesc(Pageable pageable);
 
     /**
-     * ID로 뉴스 조회
-     */
-    Optional<News> findById(Long id);
-
-    /**
-     * 뉴스 소스와 시퀀스 ID로 조회
-     */
-    Optional<News> findByNewsSourceAndSourceSequenceId(NewsSource newsSource, Long sourceSequenceId);
-
-    /**
      * 뉴스 소스별 최근 시퀀스 ID 목록 조회
      */
     List<Long> findSourceSequenceIdsByNewsSource(NewsSource newsSource, Pageable pageable);
-
-    /**
-     * 뉴스 소스와 시퀀스 ID로 존재 여부 확인
-     */
-    boolean existsByNewsSourceAndSourceSequenceId(NewsSource newsSource, Long sourceSequenceId);
-
-    /**
-     * 뉴스 저장
-     */
-    News save(News news);
-
-    /**
-     * 뉴스 목록 저장
-     */
-    List<News> saveAll(List<News> newsList);
 
     /**
      * 여러 sourceSequenceId에 대한 기존 뉴스를 한번에 조회

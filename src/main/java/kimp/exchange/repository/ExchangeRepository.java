@@ -12,6 +12,4 @@ public interface ExchangeRepository extends JpaRepository<Exchange, Long>, Excha
 
     public List<Exchange> findByMarketIn(List<MarketType> marketTypeList);
 
-    public List<Exchange> findByIdIn(List<Long> idList);
-
 }

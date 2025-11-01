@@ -29,7 +29,7 @@ public class Notice extends TimeStamp {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String link;
 
     @Column(nullable = false)

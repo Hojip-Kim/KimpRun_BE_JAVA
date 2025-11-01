@@ -11,17 +11,9 @@ import java.util.List;
 
 public interface NoticeService {
 
-    public NoticeDto getNoticeById(Long id);
-
     public NoticeDto getNoticeByLink(String link);
 
     public ExchangeNoticeDto<Page<NoticeDto>> getAllNotices(kimp.notice.vo.GetNoticeByExchangeVo vo);
-
-    public NoticeDto createNotice(String title, String link, LocalDateTime date);
-
-    public NoticeDto findNoticeByLink(String link);
-
-    public NoticeDto updateNotice(Long id, String title, String link);
 
     public NoticeDto updateNoticeDate(Long id, LocalDateTime date);
 
@@ -34,19 +26,13 @@ public interface NoticeService {
     public List<String> getRecentNoticeLinks(MarketType marketType, int limit);
 
     /**
-     * 특정 거래소의 가장 최근 공지사항 날짜를 가져옴
-     * @param marketType 거래소 타입
-     * @return 가장 최근 공지사항 날짜 (없으면 null)
-     */
-    public LocalDateTime getLatestNoticeDate(MarketType marketType);
-
-    /**
-     * 특정 거래소의 지정된 날짜 이후 새로운 공지사항들의 링크를 가져옴
+     * 특정 거래소의 지정된 날짜 이후 새로운 공지사항들을 가져옴 (URL과 날짜 포함)
+     * Redis 캐시 초기화 시 사용
      * @param marketType 거래소 타입
      * @param afterDate 기준 날짜
-     * @return 새로운 공지사항 링크 목록
+     * @return 새로운 공지사항 DTO 목록
      */
-    public List<String> getNoticeLinksAfterDate(MarketType marketType, LocalDateTime afterDate);
+    public List<NoticeDto> getNoticesAfterDate(MarketType marketType, LocalDateTime afterDate);
 
     /**
      * 특정 거래소의 모든 공지사항을 가져옴 (새로운 로직용)
