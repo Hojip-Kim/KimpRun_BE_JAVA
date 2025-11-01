@@ -116,4 +116,59 @@ public class News {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    /**
+     * 코인니스 속보 뉴스 업데이트
+     */
+    public void updateFromCoinnessBreakingNews(String title, String content, String thumbnailImage,
+                                                String sentiment, String sourceUrl, Long updateEpochMillis,
+                                                Boolean isImportant) {
+        this.title = title;
+        this.plainTextContent = content;
+        this.markdownContent = content;
+        this.thumbnail = thumbnailImage;
+        this.sentiment = sentiment;
+        this.sourceUrl = sourceUrl;
+        this.updateEpochMillis = updateEpochMillis;
+        this.isNew = true;
+        this.isHeadline = isImportant != null && isImportant;
+    }
+
+    /**
+     * 코인니스 기사 뉴스 업데이트
+     */
+    public void updateFromCoinnessArticle(String title, String description, String thumbnailImage,
+                                          String sourceUrl, Long updateEpochMillis) {
+        this.title = title;
+        this.plainTextContent = description;
+        this.markdownContent = description;
+        this.thumbnail = thumbnailImage;
+        this.sentiment = "NEUTRAL";
+        this.sourceUrl = sourceUrl;
+        this.updateEpochMillis = updateEpochMillis;
+        this.isNew = true;
+        this.isHeadline = false;
+    }
+
+    /**
+     * 블루밍비트 뉴스 업데이트
+     */
+    public void updateFromBloomingBit(String newsType, String region, String title,
+                                      String plainTextContent, String markdownContent,
+                                      String thumbnail, String sentiment, String sourceUrl,
+                                      Long updateEpochMillis, Integer changeValue,
+                                      Boolean isNew, Boolean isHeadline) {
+        this.newsType = newsType;
+        this.region = region;
+        this.title = title;
+        this.plainTextContent = plainTextContent;
+        this.markdownContent = markdownContent;
+        this.thumbnail = thumbnail;
+        this.sentiment = sentiment;
+        this.sourceUrl = sourceUrl;
+        this.updateEpochMillis = updateEpochMillis;
+        this.changeValue = changeValue;
+        this.isNew = isNew;
+        this.isHeadline = isHeadline;
+    }
 }

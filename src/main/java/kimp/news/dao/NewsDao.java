@@ -59,4 +59,20 @@ public interface NewsDao {
      * 뉴스 목록 저장
      */
     List<News> saveAll(List<News> newsList);
+
+    /**
+     * 여러 sourceSequenceId에 대한 기존 뉴스를 한번에 조회
+     * @param newsSource 뉴스 소스
+     * @param sourceSequenceIds 조회할 시퀀스 ID 목록
+     * @return 기존에 존재하는 뉴스 목록
+     */
+    List<News> findByNewsSourceAndSourceSequenceIdIn(NewsSource newsSource, List<Long> sourceSequenceIds);
+
+    /**
+     * 여러 sourceSequenceId 중 이미 존재하는 ID만 반환
+     * @param newsSource 뉴스 소스
+     * @param sourceSequenceIds 확인할 시퀀스 ID 목록
+     * @return 이미 존재하는 시퀀스 ID 목록
+     */
+    List<Long> findExistingSourceSequenceIds(NewsSource newsSource, List<Long> sourceSequenceIds);
 }
