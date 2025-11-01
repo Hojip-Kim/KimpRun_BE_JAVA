@@ -76,7 +76,8 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    
+    implementation 'org.springframework.session:spring-session-data-redis'
+
     implementation 'org.redisson:redisson-spring-boot-starter:3.39.0'
     implementation 'io.github.bonigarcia:webdrivermanager:5.5.0'
     implementation 'org.jsoup:jsoup:1.18.3'
