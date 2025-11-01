@@ -32,4 +32,9 @@ public interface NewsService {
     List<Long> getRecentSourceSequenceIdsByNewsSource(NewsSource newsSource, int limit);
 
     void saveAll(List<News> newsList);
+
+    /**
+     * 여러 sourceSequenceId에 대한 기존 뉴스를 한번에 조회
+     */
+    List<News> findByNewsSourceAndSourceSequenceIdIn(NewsSource newsSource, List<Long> sourceSequenceIds);
 }

@@ -1,7 +1,8 @@
 package kimp.news.service.impl;
 
 import kimp.common.lock.DistributedLockService;
-import kimp.news.component.BloomingBitComponent;
+import kimp.common.redis.constant.RedisKeyType;
+import kimp.news.component.impl.BloomingBitComponent;
 import kimp.news.dto.internal.bloomingbit.BloomingBitNewsDto;
 import kimp.news.entity.News;
 import kimp.news.enums.NewsSource;
@@ -13,13 +14,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
 public class NewsScrapServiceImpl implements NewsScrapService {
 
     private static final String LOCK_KEY = "news-scrape:bloomingbit";
-    private static final String CACHE_KEY = "news:bloomingbit:seqs";
     private static final int LOCK_TIMEOUT = 300; // 5 minutes
 
     private final BloomingBitComponent bloomingBitComponent;
@@ -58,27 +59,29 @@ public class NewsScrapServiceImpl implements NewsScrapService {
                 return;
             }
 
-            // Process all news with upsert logic
+            // Process all news with bulk upsert logic (N+1 문제 해결)
             int insertCount = 0;
             int updateCount = 0;
             List<News> processedNewsList = new ArrayList<>();
 
+            // 1. 모든 ID를 한번에 조회
+            List<Long> allIds = newsList.stream()
+                    .map(BloomingBitNewsDto::getSeq)
+                    .toList();
+
+            Map<Long, News> existingNewsMap = newsService.findByNewsSourceAndSourceSequenceIdIn(
+                    NewsSource.BLOOMING_BIT,
+                    allIds
+            ).stream().collect(java.util.stream.Collectors.toMap(News::getSourceSequenceId, n -> n));
+
+            // 2. 메모리에서 구분하여 처리
             for (BloomingBitNewsDto newsDto : newsList) {
                 try {
-                    // Check if news already exists
-                    boolean exists = newsService.existsByNewsSourceAndSourceSequenceId(
-                            NewsSource.BLOOMING_BIT,
-                            newsDto.getSeq()
-                    );
-
                     News savedNews;
-                    if (exists) {
-                        // Update existing news
-                        News existingNews = newsService.getNewsByNewsSourceAndSourceSequenceId(
-                                NewsSource.BLOOMING_BIT,
-                                newsDto.getSeq()
-                        ).orElseThrow();
+                    News existingNews = existingNewsMap.get(newsDto.getSeq());
 
+                    if (existingNews != null) {
+                        // Update existing news
                         savedNews = newsService.updateNews(existingNews, newsDto);
                         updateCount++;
                         log.debug("뉴스 업데이트 완료: seq={}, title={}", newsDto.getSeq(), newsDto.getTitle());
@@ -88,7 +91,7 @@ public class NewsScrapServiceImpl implements NewsScrapService {
                         insertCount++;
 
                         // Update Redis cache for new news
-                        redisTemplate.opsForSet().add(CACHE_KEY, String.valueOf(newsDto.getSeq()));
+                        redisTemplate.opsForSet().add(RedisKeyType.NEWS_BLOOMINGBIT_SEQS.getKey(), String.valueOf(newsDto.getSeq()));
                         log.debug("뉴스 저장 완료: seq={}, title={}", newsDto.getSeq(), newsDto.getTitle());
                     }
 
