@@ -1,5 +1,7 @@
 package kimp.config.database;
 
+import kimp.common.redis.constant.RedisChannelType;
+import kimp.config.redis.listener.NoticeRedisSubscriber;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
@@ -8,6 +10,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.PatternTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
@@ -40,6 +45,45 @@ public class RedisConfig {
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new StringRedisSerializer());
         return template;
+    }
+
+    /**
+     * Pub/Sub용 RedisTemplate (JSON 직렬화)
+     * 공지사항 등 객체 전송용
+     */
+    @Bean
+    public RedisTemplate<String, Object> redisPubSubTemplate(RedisConnectionFactory factory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(factory);
+
+        // JSON 직렬화
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+
+        return template;
+    }
+
+    /**
+     * Redis Pub/Sub 메시지 리스너 컨테이너 (공지사항용)
+     * 공지사항 채널 구독
+     */
+    @Bean
+    public RedisMessageListenerContainer noticeRedisMessageListenerContainer(
+            RedisConnectionFactory connectionFactory,
+            NoticeRedisSubscriber noticeRedisSubscriber) {
+
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+
+        // 공지사항 채널 구독: notice:upbit, notice:binance, notice:bithumb, notice:coinone
+        container.addMessageListener(
+            noticeRedisSubscriber,
+            new PatternTopic(RedisChannelType.NOTICE_ALL.getChannel())
+        );
+
+        return container;
     }
     
     /**
