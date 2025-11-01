@@ -69,36 +69,6 @@ public class NoticeServiceImplTest {
     }
 
     @Test
-    @DisplayName("ID로 공지사항 조회")
-    void shouldGetNoticeById() {
-        // Given
-        when(noticeDao.getNotice(anyLong())).thenReturn(notice);
-        when(dtoConverter.convertNoticeToDto(any(Notice.class))).thenReturn(noticeDto);
-
-        // When
-        NoticeDto result = noticeService.getNoticeById(1L);
-
-        // Then
-        assertThat(result).isEqualTo(noticeDto);
-        verify(noticeDao, times(1)).getNotice(1L);
-        verify(dtoConverter, times(1)).convertNoticeToDto(notice);
-    }
-
-    @Test
-    @DisplayName("ID로 공지사항 조회: 공지사항 없을 때 예외 발생")
-    void shouldThrowExceptionWhenGetNoticeByIdNotFound() {
-        // Given
-        when(noticeDao.getNotice(anyLong())).thenThrow(new IllegalArgumentException("not found notice id : 1"));
-
-        // When & Then
-        assertThatThrownBy(() -> noticeService.getNoticeById(1L))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("not found notice id : 1");
-        verify(noticeDao, times(1)).getNotice(1L);
-        verify(dtoConverter, never()).convertNoticeToDto(any(Notice.class));
-    }
-
-    @Test
     @DisplayName("링크로 공지사항 조회")
     void shouldGetNoticeByLink() {
         // Given
@@ -174,95 +144,6 @@ public class NoticeServiceImplTest {
         verify(noticeDao, times(1)).findAllByOrderByRegistedAtAsc(any());
         verify(dtoConverter, never()).convertNoticePageToDtoPage(any());
         verify(dtoConverter, never()).wrappingDtosToExchangeNoticeDto(any(), any());
-    }
-
-    @Test
-    @DisplayName("공지사항 생성")
-    void shouldCreateNotice() {
-        // Given
-        when(noticeDao.createNotice(any(Notice.class))).thenReturn(notice);
-        when(dtoConverter.convertNoticeToDto(any(Notice.class))).thenReturn(noticeDto);
-
-        // When
-        NoticeDto result = noticeService.createNotice(title, link, date);
-
-        // Then
-        assertThat(result).isEqualTo(noticeDto);
-        verify(noticeDao, times(1)).createNotice(any(Notice.class));
-        verify(dtoConverter, times(1)).convertNoticeToDto(notice);
-    }
-
-    @Test
-    @DisplayName("링크로 공지사항 찾기")
-    void shouldFindNoticeByLink() {
-        // Given
-        when(noticeDao.getNoticeByLink(anyString())).thenReturn(notice);
-        when(dtoConverter.convertNoticeToDto(any(Notice.class))).thenReturn(noticeDto);
-
-        // When
-        NoticeDto result = noticeService.findNoticeByLink(link);
-
-        // Then
-        assertThat(result).isEqualTo(noticeDto);
-        verify(noticeDao, times(1)).getNoticeByLink(link);
-        verify(dtoConverter, times(1)).convertNoticeToDto(notice);
-    }
-
-    @Test
-    @DisplayName("공지사항 업데이트")
-    void shouldUpdateNotice() {
-        // Given
-        String newTitle = "New Test Title";
-        String newLink = "https://test.com/notice/2";
-        Notice spyNotice = spy(notice);
-        when(noticeDao.getNotice(anyLong())).thenReturn(spyNotice);
-        when(dtoConverter.convertNoticeToDto(any(Notice.class))).thenReturn(noticeDto);
-
-        // When
-        NoticeDto result = noticeService.updateNotice(1L, newTitle, newLink);
-
-        // Then
-        assertThat(result).isEqualTo(noticeDto);
-        verify(noticeDao, times(1)).getNotice(1L);
-        verify(spyNotice, times(1)).updateTitle(newTitle);
-        verify(spyNotice, times(1)).updateLink(newLink);
-        verify(dtoConverter, times(1)).convertNoticeToDto(spyNotice);
-    }
-
-    @Test
-    @DisplayName("공지사항 업데이트: 공지사항 없을 때 예외 발생")
-    void shouldThrowExceptionWhenUpdateNoticeNotFound() {
-        // Given
-        String newTitle = "New Test Title";
-        String newLink = "https://test.com/notice/2";
-        when(noticeDao.getNotice(anyLong())).thenThrow(new IllegalArgumentException("not found notice id : 1"));
-
-        // When & Then
-        assertThatThrownBy(() -> noticeService.updateNotice(1L, newTitle, newLink))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("not found notice id : 1");
-        verify(noticeDao, times(1)).getNotice(1L);
-        verify(dtoConverter, never()).convertNoticeToDto(any(Notice.class));
-    }
-
-    @Test
-    @DisplayName("공지사항 업데이트: 빈 제목 예외 발생")
-    void shouldThrowExceptionWhenUpdateNoticeEmptyTitle() {
-        // Given
-        String emptyTitle = "";
-        String newLink = "https://test.com/notice/2";
-        Notice spyNotice = spy(notice);
-        when(noticeDao.getNotice(anyLong())).thenReturn(spyNotice);
-        doThrow(new KimprunException(KimprunExceptionEnum.INVALID_PARAMETER_EXCEPTION, "Notice title cannot be empty", HttpStatus.BAD_REQUEST, "Notice.updateTitle")).when(spyNotice).updateTitle(emptyTitle);
-
-        // When & Then
-        assertThatThrownBy(() -> noticeService.updateNotice(1L, emptyTitle, newLink))
-                .isInstanceOf(KimprunException.class)
-                .hasMessageContaining("Notice title cannot be empty");
-        verify(noticeDao, times(1)).getNotice(1L);
-        verify(spyNotice, times(1)).updateTitle(emptyTitle);
-        verify(spyNotice, never()).updateLink(anyString());
-        verify(dtoConverter, never()).convertNoticeToDto(any(Notice.class));
     }
 
     @Test

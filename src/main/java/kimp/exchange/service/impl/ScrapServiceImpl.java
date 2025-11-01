@@ -12,7 +12,6 @@ import kimp.scrap.dto.internal.coinone.CoinoneNoticeDto;
 import kimp.scrap.dto.internal.upbit.UpbitNoticeDto;
 import kimp.notice.service.NoticeService;
 import kimp.exchange.service.ScrapService;
-import kimp.market.controller.MarketInfoStompController;
 import kimp.market.Enum.MarketType;
 import kimp.telegram.service.TelegramService;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +34,6 @@ public class ScrapServiceImpl implements ScrapService {
     private final ExchangeScrap<BinanceNoticeDto> binanceScrapComponent;
     private final ExchangeNoticePacadeService exchangeNoticePacadeService;
     private final NoticeService noticeService;
-    private final MarketInfoStompController marketInfoStompController;
     private final RedisTemplate<String, Object> redisTemplate;
     private final RedisMessagePublisher redisMessagePublisher;
     private final TelegramService telegramService;
@@ -47,7 +45,6 @@ public class ScrapServiceImpl implements ScrapService {
             ExchangeScrap<BinanceNoticeDto> binanceScrapComponent,
             ExchangeNoticePacadeService exchangeNoticePacadeService,
             NoticeService noticeService,
-            MarketInfoStompController marketInfoStompController,
             @Qualifier("redisTemplate") RedisTemplate<String, Object> redisTemplate,
             RedisMessagePublisher redisMessagePublisher,
             TelegramService telegramService) {
@@ -57,7 +54,6 @@ public class ScrapServiceImpl implements ScrapService {
         this.binanceScrapComponent = binanceScrapComponent;
         this.exchangeNoticePacadeService = exchangeNoticePacadeService;
         this.noticeService = noticeService;
-        this.marketInfoStompController = marketInfoStompController;
         this.redisTemplate = redisTemplate;
         this.redisMessagePublisher = redisMessagePublisher;
         this.telegramService = telegramService;
@@ -153,12 +149,6 @@ public class ScrapServiceImpl implements ScrapService {
 
                         // 6-1. Redis 캐시 동기화 - 새로운 공지사항들을 Redis에 추가
                         updateRedisCache(scrapComponent.getMarketType(), newNotices);
-
-                        // 6-2. 저장된 새로운 공지사항들 상세 로깅 (저장 순서대로)
-                        for (int i = 0; i < orderedForSaving.size(); i++) {
-                            NoticeParsedData notice = orderedForSaving.get(i);
-                            boolean isLatest = notice.equals(latestNotice);
-                        }
 
                         // 7. Redis Pub/Sub으로 공지사항 발행 (분산 서버 간 이벤트 전파)
                         publishNewNotices(scrapComponent.getMarketType(), newNotices);
@@ -363,31 +353,6 @@ public class ScrapServiceImpl implements ScrapService {
                 .toList();
         }
     }
-    /**
-     * WebSocket 및 텔레그램을 통한 실시간 공지사항 전송
-     */
-    private void sendNewNoticesViaWebSocket(List<NoticeParsedData> newNotices, String exchangeName) {
-        for (NoticeParsedData noticeData : newNotices) {
-            try {
-                // 링크를 통해 DB에서 저장된 공지사항 조회
-                NoticeDto noticeDto = noticeService.getNoticeByLink(noticeData.getAlink());
-                if (noticeDto != null) {
-                    // WebSocket 전송
-                    marketInfoStompController.sendNewNotice(noticeDto);
-
-                    // 텔레그램 전송
-                    telegramService.sendNoticeMessage(noticeDto);
-                } else {
-                    log.warn("공지사항 전송 실패 - DB에서 공지사항을 찾을 수 없음: {} - {}",
-                            exchangeName, noticeData.getTitle());
-                }
-            } catch (Exception e) {
-                log.warn("공지사항 전송 실패: {} - {} (오류: {})",
-                        exchangeName, noticeData.getTitle(), e.getMessage());
-            }
-        }
-    }
-
     /**
      * Redis Pub/Sub으로 새 공지사항 발행 및 텔레그램 전송
      * 분산 서버 간 WebSocket 이벤트 전파 + 최초 발견 서버만 텔레그램 전송

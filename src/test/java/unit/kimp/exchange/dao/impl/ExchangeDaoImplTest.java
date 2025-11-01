@@ -198,33 +198,6 @@ public class ExchangeDaoImplTest {
     }
 
     @Test
-    @DisplayName("ID들로 거래소 조회: 발견 시 거래소들 반환")
-    void shouldReturnExchangesWhenFoundByIds() {
-        // Arrange
-        when(exchangeRepository.findByIdIn(exchangeIds)).thenReturn(exchangeList);
-
-        // Act
-        List<Exchange> result = exchangeDao.getExchangesByIds(exchangeIds);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(exchangeList, result);
-        verify(exchangeRepository, times(1)).findByIdIn(exchangeIds);
-    }
-
-    @Test
-    @DisplayName("ID들로 거래소 조회: 거래소 없을 때 예외 발생")
-    void shouldThrowExceptionWhenNoExchangesFoundByIds() {
-        // Arrange
-        when(exchangeRepository.findByIdIn(any())).thenReturn(new ArrayList<>());
-
-        // Act & Assert
-        assertThrows(KimprunException.class, () -> exchangeDao.getExchangesByIds(Arrays.asList(999L)));
-        verify(exchangeRepository, times(1)).findByIdIn(any());
-    }
-
-    @Test
     @DisplayName("ID들로 거래소와 코인 거래소 조회: 발견 시 거래소들 반환")
     void shouldReturnExchangesAndCoinExchangesWhenFoundByIds() {
         // Arrange

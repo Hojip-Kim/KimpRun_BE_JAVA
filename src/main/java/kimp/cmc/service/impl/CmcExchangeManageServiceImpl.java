@@ -1,18 +1,14 @@
 package kimp.cmc.service.impl;
 
-import kimp.cmc.component.CoinMarketCapComponent;
 import kimp.cmc.dao.exchange.CmcExchangeDao;
 import kimp.cmc.dao.exchange.CmcExchangeInfoDao;
 import kimp.cmc.dao.exchange.CmcExchangeMetaDao;
 import kimp.cmc.dao.exchange.CmcExchangeUrlDao;
-import kimp.cmc.dto.internal.exchange.CmcExchangeDetailMapDto;
-import kimp.cmc.dto.internal.exchange.CmcExchangeDto;
 import kimp.cmc.dto.response.CmcExchangeInfoResponseDto;
 import kimp.cmc.entity.exchange.CmcExchange;
 import kimp.cmc.repository.exchange.CmcExchangeRepository;
 import kimp.cmc.service.CmcExchangeManageService;
 import kimp.cmc.vo.GetAllExchangeInfoPageDataVo;
-import kimp.common.dto.request.PageRequestDto;
 import kimp.exchange.service.ExchangeService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -30,7 +26,6 @@ import java.util.List;
 @Service
 public class CmcExchangeManageServiceImpl implements CmcExchangeManageService {
 
-    private final CoinMarketCapComponent coinMarketCapComponent;
     private final ExchangeService exchangeService;
 
     private final CmcExchangeDao cmcExchangeDao;
@@ -39,29 +34,13 @@ public class CmcExchangeManageServiceImpl implements CmcExchangeManageService {
     private final CmcExchangeUrlDao cmcExchangeUrlDao;
     private final CmcExchangeRepository cmcExchangeRepository;
 
-    public CmcExchangeManageServiceImpl(CoinMarketCapComponent coinMarketCapComponent, ExchangeService exchangeService, CmcExchangeDao cmcExchangeDao, CmcExchangeInfoDao cmcExchangeInfoDao, CmcExchangeMetaDao cmcExchangeMetaDao, CmcExchangeUrlDao cmcExchangeUrlDao, CmcExchangeRepository cmcExchangeRepository) {
-        this.coinMarketCapComponent = coinMarketCapComponent;
+    public CmcExchangeManageServiceImpl(ExchangeService exchangeService, CmcExchangeDao cmcExchangeDao, CmcExchangeInfoDao cmcExchangeInfoDao, CmcExchangeMetaDao cmcExchangeMetaDao, CmcExchangeUrlDao cmcExchangeUrlDao, CmcExchangeRepository cmcExchangeRepository) {
         this.exchangeService = exchangeService;
         this.cmcExchangeDao = cmcExchangeDao;
         this.cmcExchangeInfoDao = cmcExchangeInfoDao;
         this.cmcExchangeMetaDao = cmcExchangeMetaDao;
         this.cmcExchangeUrlDao = cmcExchangeUrlDao;
         this.cmcExchangeRepository = cmcExchangeRepository;
-    }
-
-    private List<CmcExchangeDto> cmcExchangeDtoList = new ArrayList<>();
-    private CmcExchangeDetailMapDto cmcExchangeDetailMapDto;
-
-    public void setCmcExchangeList() {
-
-        for(int i = 0; i < 2; i++){
-            List<CmcExchangeDto> broughtCmcExchangeDtos = coinMarketCapComponent.getExchangeMap(i*5000 + 1, 5000);
-            cmcExchangeDtoList.addAll(broughtCmcExchangeDtos);
-        }
-    }
-
-    public void setCmcExchangeDetailMapDto() {
-
     }
 
     @Override

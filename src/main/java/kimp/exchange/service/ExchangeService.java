@@ -12,10 +12,6 @@ public interface ExchangeService {
 
     public List<ExchangeDto> getExchanges();
 
-    public ExchangeDto getExchangeByMarketType(MarketType exchangeName);
-
-    public List<ExchangeDto> getExchangesByMarketTypes(List<MarketType> exchangeName);
-
     public ExchangeDto createExchange(CreateExchangeVo vo);
 
 }
