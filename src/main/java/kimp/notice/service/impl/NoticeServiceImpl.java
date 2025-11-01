@@ -129,6 +129,23 @@ public class NoticeServiceImpl implements NoticeService
 
     @Override
     @Transactional(readOnly = true)
+    public List<NoticeDto> getNoticesAfterDate(MarketType marketType, LocalDateTime afterDate) {
+        try {
+            if (afterDate == null) {
+                return List.of();
+            }
+            List<Notice> notices = noticeDao.getNoticesAfterDate(marketType, afterDate);
+            return notices.stream()
+                .map(notice -> dtoConverter.convertNoticeToDto(notice))
+                .toList();
+        } catch (Exception e) {
+            log.error("날짜 이후 공지사항 조회 실패: {} - {}", marketType, e.getMessage());
+            return List.of();
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<NoticeDto> getAllNoticesByMarketType(MarketType marketType) {
         try {
             List<Notice> notices = noticeDao.findAllNoticesByMarketType(marketType);

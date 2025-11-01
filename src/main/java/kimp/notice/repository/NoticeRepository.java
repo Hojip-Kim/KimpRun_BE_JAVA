@@ -40,6 +40,13 @@ public interface NoticeRepository extends JpaRepository<Notice, Long>, NoticeRep
     public List<String> findNoticeLinksAfterDate(@Param("marketType") MarketType marketType, @Param("afterDate") LocalDateTime afterDate);
 
     /**
+     * 특정 거래소의 지정된 날짜 이후 공지사항들을 가져옴 (날짜 기준 오름차순)
+     * Redis 캐시 초기화 시 URL과 날짜를 함께 가져오기 위해 사용
+     */
+    @Query("SELECT n FROM Notice n JOIN FETCH n.exchange WHERE n.exchange.market = :marketType AND n.date > :afterDate ORDER BY n.date ASC")
+    public List<Notice> findNoticesAfterDate(@Param("marketType") MarketType marketType, @Param("afterDate") LocalDateTime afterDate);
+
+    /**
      * 특정 거래소의 모든 공지사항을 가져옴 (새로운 로직용)
      */
     @Query("SELECT n FROM Notice n WHERE n.exchange.market = :marketType ORDER BY n.date DESC")
