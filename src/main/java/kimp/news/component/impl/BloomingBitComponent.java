@@ -1,5 +1,6 @@
-package kimp.news.component;
+package kimp.news.component.impl;
 
+import kimp.news.component.NewsComponent;
 import kimp.news.dto.internal.bloomingbit.BloomingBitNewsDto;
 import kimp.news.dto.internal.bloomingbit.BloomingBitResponseDto;
 import lombok.extern.slf4j.Slf4j;

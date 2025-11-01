@@ -1,4 +1,4 @@
-package kimp.news.component;
+package kimp.news.component.impl;
 
 import kimp.news.dto.internal.coinness.CoinnessArticleDto;
 import kimp.news.dto.internal.coinness.CoinnessBreakingNewsDto;
