@@ -1,6 +1,7 @@
 package kimp.config.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kimp.common.redis.constant.RedisChannelType;
 import kimp.config.redis.handler.RedisMessageHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -25,9 +26,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Slf4j
 public class RedisMessageBrokerConfig {
     
-    // Redis 채팅 채널명
-    public static final String CHAT_CHANNEL = "kimprun:chat:messages";
-    
     /**
      * 채팅 메시지 전용 RedisTemplate 설정
      * JSON 직렬화를 사용하여 객체 전송
@@ -51,21 +49,21 @@ public class RedisMessageBrokerConfig {
     }
     
     /**
-     * Redis 메시지 리스너 컨테이너
+     * Redis 메시지 리스너 컨테이너 (채팅용)
      * Redis pub/sub 메시지를 수신하고 처리
      */
     @Bean
-    public RedisMessageListenerContainer redisMessageListenerContainer(
+    public RedisMessageListenerContainer chatRedisMessageListenerContainer(
             RedisConnectionFactory connectionFactory,
             MessageListenerAdapter chatMessageListenerAdapter,
             ChannelTopic chatChannelTopic) {
-        
+
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        
+
         // 채팅 채널 구독 설정
         container.addMessageListener(chatMessageListenerAdapter, chatChannelTopic);
-        
+
         return container;
     }
     
@@ -85,6 +83,6 @@ public class RedisMessageBrokerConfig {
      */
     @Bean
     public ChannelTopic chatChannelTopic() {
-        return new ChannelTopic(CHAT_CHANNEL);
+        return new ChannelTopic(RedisChannelType.CHAT_MESSAGES.getChannel());
     }
 }

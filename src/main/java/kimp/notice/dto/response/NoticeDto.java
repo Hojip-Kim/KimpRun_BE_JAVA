@@ -1,12 +1,14 @@
 package kimp.notice.dto.response;
 
 import kimp.market.Enum.MarketType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 public class NoticeDto {
 
