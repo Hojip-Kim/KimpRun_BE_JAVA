@@ -94,6 +94,11 @@ public class NoticeDaoImpl implements NoticeDao {
     }
 
     @Override
+    public List<Notice> getNoticesAfterDate(MarketType marketType, LocalDateTime afterDate) {
+        return this.noticeRepository.findNoticesAfterDate(marketType, afterDate);
+    }
+
+    @Override
     public List<Notice> findAllNoticesByMarketType(MarketType marketType) {
         return this.noticeRepository.findAllNoticesByMarketTypeWithFetch(marketType);
     }

@@ -101,27 +101,23 @@ public class BloomingBitNewsSourceServiceImpl implements NewsSourceService<Bloom
     @Override
     @Transactional
     public News updateNewsFromSource(News existingNews, BloomingBitNewsDto newsSourceDto) {
-        News updatedNews = News.builder()
-                .id(existingNews.getId())
-                .newsSource(NewsSource.BLOOMING_BIT)
-                .sourceSequenceId(newsSourceDto.getSeq())
-                .newsType(newsSourceDto.getNewsType())
-                .region(newsSourceDto.getRegion())
-                .title(newsSourceDto.getTitle())
-                .plainTextContent(newsSourceDto.getPlainTextContent())
-                .markdownContent(newsSourceDto.getMarkdownContent())
-                .thumbnail(newsSourceDto.getThumbnail())
-                .sentiment(newsSourceDto.getSentiment())
-                .sourceUrl(newsSourceDto.getSourceUrl())
-                .createEpochMillis(newsSourceDto.getCreateEpoch())
-                .updateEpochMillis(newsSourceDto.getUpdateEpoch())
-                .changeValue(newsSourceDto.getChange())
-                .isNew(newsSourceDto.getIsNew())
-                .isHeadline(newsSourceDto.getHeadline())
-                .createdAt(existingNews.getCreatedAt())
-                .build();
+        // 엔티티의 update 메서드를 사용하여 Dirty Checking으로 UPDATE (SELECT 없이)
+        existingNews.updateFromBloomingBit(
+            newsSourceDto.getNewsType(),
+            newsSourceDto.getRegion(),
+            newsSourceDto.getTitle(),
+            newsSourceDto.getPlainTextContent(),
+            newsSourceDto.getMarkdownContent(),
+            newsSourceDto.getThumbnail(),
+            newsSourceDto.getSentiment(),
+            newsSourceDto.getSourceUrl(),
+            newsSourceDto.getUpdateEpoch(),
+            newsSourceDto.getChange(),
+            newsSourceDto.getIsNew(),
+            newsSourceDto.getHeadline()
+        );
 
-        return updatedNews;
+        return existingNews;
     }
 
     @Transactional

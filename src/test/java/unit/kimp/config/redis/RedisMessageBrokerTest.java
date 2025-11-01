@@ -2,12 +2,11 @@ package unit.kimp.config.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kimp.chat.dto.response.ChatMessageResponse;
-import kimp.config.redis.RedisMessageBrokerConfig;
+import kimp.common.redis.constant.RedisChannelType;
 import kimp.config.redis.handler.RedisMessageHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -107,10 +106,11 @@ class RedisMessageBrokerTest {
                 new RedisMessageHandler.ChatMessageWrapper(redisMessageHandler.getInstanceId(), chatMessage);
         
         // when
-        redisTemplate.convertAndSend(RedisMessageBrokerConfig.CHAT_CHANNEL, wrapper);
-        
+        String channel = RedisChannelType.CHAT_MESSAGES.getChannel();
+        redisTemplate.convertAndSend(channel, wrapper);
+
         // then
-        verify(redisTemplate).convertAndSend(eq(RedisMessageBrokerConfig.CHAT_CHANNEL), any());
+        verify(redisTemplate).convertAndSend(eq(channel), any());
     }
     
     @Test

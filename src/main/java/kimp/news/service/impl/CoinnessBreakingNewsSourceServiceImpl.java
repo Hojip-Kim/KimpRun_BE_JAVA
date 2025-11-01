@@ -71,27 +71,18 @@ public class CoinnessBreakingNewsSourceServiceImpl implements NewsSourceService<
 
     @Override
     public News updateNewsFromSource(News existingNews, CoinnessBreakingNewsDto newsSourceDto) {
-        News updatedNews = News.builder()
-                .id(existingNews.getId())
-                .newsSource(NewsSource.COINNESS)
-                .sourceSequenceId(newsSourceDto.getId())
-                .newsType("breaking-news")
-                .region("KR")
-                .title(newsSourceDto.getTitle())
-                .plainTextContent(newsSourceDto.getContent())
-                .markdownContent(newsSourceDto.getContent())
-                .thumbnail(newsSourceDto.getThumbnailImage())
-                .sentiment(determineSentiment(newsSourceDto))
-                .sourceUrl(newsSourceDto.getSourceUrl())
-                .createEpochMillis(newsSourceDto.getCreateEpochMillis())
-                .updateEpochMillis(newsSourceDto.getCreateEpochMillis())
-                .changeValue(null)
-                .isNew(true)
-                .isHeadline(newsSourceDto.getIsImportant() != null && newsSourceDto.getIsImportant())
-                .createdAt(existingNews.getCreatedAt())
-                .build();
+        // 엔티티의 update 메서드를 사용하여 Dirty Checking으로 UPDATE (SELECT 없이)
+        existingNews.updateFromCoinnessBreakingNews(
+            newsSourceDto.getTitle(),
+            newsSourceDto.getContent(),
+            newsSourceDto.getThumbnailImage(),
+            determineSentiment(newsSourceDto),
+            newsSourceDto.getSourceUrl(),
+            newsSourceDto.getCreateEpochMillis(),
+            newsSourceDto.getIsImportant()
+        );
 
-        return updatedNews;
+        return existingNews;
     }
 
     public void updateNewsCollections(News savedNews, CoinnessBreakingNewsDto newsSourceDto) {
