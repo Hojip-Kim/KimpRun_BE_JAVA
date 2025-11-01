@@ -28,18 +28,6 @@ public interface NoticeRepository extends JpaRepository<Notice, Long>, NoticeRep
     public List<String> findRecentNoticeLinksByMarketType(@Param("marketType") MarketType marketType, Pageable pageable);
 
     /**
-     * 특정 거래소의 가장 최근 공지사항 날짜를 가져옴
-     */
-    @Query("SELECT MAX(n.date) FROM Notice n WHERE n.exchange.market = :marketType")
-    public LocalDateTime findLatestNoticeDateByMarketType(@Param("marketType") MarketType marketType);
-
-    /**
-     * 특정 거래소의 지정된 날짜 이후 공지사항들의 링크를 가져옴 (날짜 기준 오름차순)
-     */
-    @Query("SELECT n.link FROM Notice n WHERE n.exchange.market = :marketType AND n.date > :afterDate ORDER BY n.date ASC")
-    public List<String> findNoticeLinksAfterDate(@Param("marketType") MarketType marketType, @Param("afterDate") LocalDateTime afterDate);
-
-    /**
      * 특정 거래소의 지정된 날짜 이후 공지사항들을 가져옴 (날짜 기준 오름차순)
      * Redis 캐시 초기화 시 URL과 날짜를 함께 가져오기 위해 사용
      */

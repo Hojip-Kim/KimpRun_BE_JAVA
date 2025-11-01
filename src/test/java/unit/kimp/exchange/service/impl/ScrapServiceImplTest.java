@@ -9,7 +9,6 @@ import kimp.exchange.service.ExchangeService;
 import kimp.exchange.service.impl.ExchangeNoticePacadeService;
 import kimp.exchange.service.impl.ScrapServiceImpl;
 import kimp.market.Enum.MarketType;
-import kimp.market.controller.MarketInfoStompController;
 import kimp.notice.dto.response.NoticeParsedData;
 import kimp.notice.dto.response.NoticeDto;
 import kimp.notice.service.NoticeService;
@@ -53,9 +52,6 @@ public class ScrapServiceImplTest {
 
     @Mock
     private ExchangeService exchangeService;
-
-    @Mock
-    private MarketInfoStompController marketInfoStompController;
 
     @Mock
     private ExchangeNoticePacadeService exchangeNoticePacadeService;
@@ -111,7 +107,6 @@ public class ScrapServiceImplTest {
             binanceScrapComponent,
             exchangeNoticePacadeService,
             noticeService,
-            marketInfoStompController,
             redisTemplate,
             redisMessagePublisher,
             telegramService
@@ -200,17 +195,12 @@ public class ScrapServiceImplTest {
         // When
         scrapService.scrapUpbitNoticeData();
 
-        // Then - 스크래핑은 실행되지만 새로운 공지사항이 없으므로 DB 저장 및 WebSocket 전송 없음
+        // Then - 스크래핑은 실행되지만 새로운 공지사항이 없으므로 DB 저장 없음
         try {
             verify(upbitScrapComponent, times(1)).parseNoticeData();
         } catch (Exception e) {
             // Mock verification, IOException won't be thrown
         }
         verify(exchangeNoticePacadeService, never()).createNoticesBulkOptimized(any(MarketType.class), anyList());
-        try {
-            verify(marketInfoStompController, never()).sendNewNotice(any(NoticeDto.class));
-        } catch (Exception e) {
-            // Mock verification, IOException won't be thrown
-        }
     }
 }

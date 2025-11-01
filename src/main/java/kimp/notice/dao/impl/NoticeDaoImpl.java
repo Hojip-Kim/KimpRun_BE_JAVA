@@ -84,16 +84,6 @@ public class NoticeDaoImpl implements NoticeDao {
     }
 
     @Override
-    public LocalDateTime getLatestNoticeDate(MarketType marketType) {
-        return this.noticeRepository.findLatestNoticeDateByMarketType(marketType);
-    }
-
-    @Override
-    public List<String> getNoticeLinksAfterDate(MarketType marketType, LocalDateTime afterDate) {
-        return this.noticeRepository.findNoticeLinksAfterDate(marketType, afterDate);
-    }
-
-    @Override
     public List<Notice> getNoticesAfterDate(MarketType marketType, LocalDateTime afterDate) {
         return this.noticeRepository.findNoticesAfterDate(marketType, afterDate);
     }
